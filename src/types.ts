@@ -15,6 +15,7 @@ export interface Task {
   order: number;
   userId: string;
   categoryId?: string;
+  category?: string;
   priority: 'low' | 'medium' | 'high';
   subtasks: Subtask[];
   reminder?: Date;
@@ -25,6 +26,11 @@ export interface Task {
   sharedWith?: SharedUser[];
   isShared?: boolean;
   lastSharedAt?: Date;
+  projectId?: string;
+  estimatedTime?: number;
+  actualTime?: number;
+  assignedTo?: string;
+  status: 'todo' | 'in_progress' | 'review' | 'done';
 }
 
 export interface Subtask {

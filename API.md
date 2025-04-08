@@ -1,12 +1,35 @@
 # 2DU API Documentation
 
-This document outlines the API endpoints available in the 2DU Task Management application.
+## API Versioning
+
+The API is versioned through the URL path:
+
+```
+/api/v1/...
+```
+
+Current version: v1
+
+Versioning Strategy:
+
+- Major version changes (v1 -> v2) indicate breaking changes
+- Minor version changes (v1.1 -> v1.2) indicate new features
+- Patch version changes (v1.1.1 -> 1.1.2) indicate bug fixes
+
+## Base URL
+
+Production: `https://api.2du.app/v1`
+Staging: `https://staging-api.2du.app/v1`
+Development: `http://localhost:3000/v1`
 
 ## Authentication
 
+All API requests require authentication using JWT tokens.
+
 ### Sign Up
+
 ```http
-POST /api/auth/signup
+POST /api/v1/auth/signup
 Content-Type: application/json
 
 {
@@ -17,6 +40,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "user": {
@@ -25,13 +49,15 @@ Response:
     "name": "John Doe",
     "createdAt": "2024-03-20T12:00:00Z"
   },
-  "token": "jwt_token_here"
+  "token": "jwt_token_here",
+  "refreshToken": "refresh_token_here"
 }
 ```
 
 ### Sign In
+
 ```http
-POST /api/auth/signin
+POST /api/v1/auth/signin
 Content-Type: application/json
 
 {
@@ -41,6 +67,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "user": {
@@ -48,32 +75,57 @@ Response:
     "email": "user@example.com",
     "name": "John Doe"
   },
-  "token": "jwt_token_here"
+  "token": "jwt_token_here",
+  "refreshToken": "refresh_token_here"
 }
 ```
 
 ### Sign Out
+
 ```http
-POST /api/auth/signout
+POST /api/v1/auth/signout
 Authorization: Bearer jwt_token_here
 ```
 
 Response:
+
 ```json
 {
   "message": "Successfully signed out"
 }
 ```
 
+### Refresh Token
+
+```http
+POST /api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "refresh_token_here"
+}
+```
+
+Response:
+
+```json
+{
+  "token": "new_jwt_token_here",
+  "refreshToken": "new_refresh_token_here"
+}
+```
+
 ## Tasks
 
 ### Get Tasks
+
 ```http
-GET /api/tasks
+GET /api/v1/tasks
 Authorization: Bearer jwt_token_here
 ```
 
 Query Parameters:
+
 - `status`: Filter by status (pending, completed)
 - `tag`: Filter by tag
 - `search`: Search in title and description
@@ -83,6 +135,7 @@ Query Parameters:
 - `order`: Sort order (asc, desc)
 
 Response:
+
 ```json
 {
   "tasks": [
@@ -107,8 +160,9 @@ Response:
 ```
 
 ### Create Task
+
 ```http
-POST /api/tasks
+POST /api/v1/tasks
 Authorization: Bearer jwt_token_here
 Content-Type: application/json
 
@@ -121,6 +175,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "id": "task123",
@@ -135,8 +190,9 @@ Response:
 ```
 
 ### Update Task
+
 ```http
-PUT /api/tasks/:taskId
+PUT /api/v1/tasks/:taskId
 Authorization: Bearer jwt_token_here
 Content-Type: application/json
 
@@ -150,6 +206,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "id": "task123",
@@ -164,12 +221,14 @@ Response:
 ```
 
 ### Delete Task
+
 ```http
-DELETE /api/tasks/:taskId
+DELETE /api/v1/tasks/:taskId
 Authorization: Bearer jwt_token_here
 ```
 
 Response:
+
 ```json
 {
   "message": "Task deleted successfully"
@@ -179,8 +238,9 @@ Response:
 ### Bulk Actions
 
 #### Complete Tasks
+
 ```http
-POST /api/tasks/bulk/complete
+POST /api/v1/tasks/bulk/complete
 Authorization: Bearer jwt_token_here
 Content-Type: application/json
 
@@ -190,6 +250,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "message": "Tasks completed successfully",
@@ -198,8 +259,9 @@ Response:
 ```
 
 #### Delete Tasks
+
 ```http
-POST /api/tasks/bulk/delete
+POST /api/v1/tasks/bulk/delete
 Authorization: Bearer jwt_token_here
 Content-Type: application/json
 
@@ -209,6 +271,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "message": "Tasks deleted successfully",
@@ -217,8 +280,9 @@ Response:
 ```
 
 #### Tag Tasks
+
 ```http
-POST /api/tasks/bulk/tag
+POST /api/v1/tasks/bulk/tag
 Authorization: Bearer jwt_token_here
 Content-Type: application/json
 
@@ -229,6 +293,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "message": "Tasks tagged successfully",
@@ -239,12 +304,14 @@ Response:
 ## Tags
 
 ### Get Tags
+
 ```http
-GET /api/tags
+GET /api/v1/tags
 Authorization: Bearer jwt_token_here
 ```
 
 Response:
+
 ```json
 {
   "tags": [
@@ -259,8 +326,9 @@ Response:
 ```
 
 ### Create Tag
+
 ```http
-POST /api/tags
+POST /api/v1/tags
 Authorization: Bearer jwt_token_here
 Content-Type: application/json
 
@@ -271,6 +339,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "id": "tag123",
@@ -281,8 +350,9 @@ Response:
 ```
 
 ### Update Tag
+
 ```http
-PUT /api/tags/:tagId
+PUT /api/v1/tags/:tagId
 Authorization: Bearer jwt_token_here
 Content-Type: application/json
 
@@ -293,6 +363,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "id": "tag123",
@@ -303,88 +374,36 @@ Response:
 ```
 
 ### Delete Tag
+
 ```http
-DELETE /api/tags/:tagId
+DELETE /api/v1/tags/:tagId
 Authorization: Bearer jwt_token_here
 ```
 
 Response:
+
 ```json
 {
   "message": "Tag deleted successfully"
 }
 ```
 
-## Error Responses
+## WebSocket API
 
-All API endpoints may return the following error responses:
+The WebSocket API provides real-time updates for tasks and tags.
 
-### 400 Bad Request
-```json
-{
-  "error": "Bad Request",
-  "message": "Invalid input data",
-  "details": {
-    "field": "error description"
-  }
-}
+### Connection
+
+Connect to the WebSocket endpoint:
+
 ```
-
-### 401 Unauthorized
-```json
-{
-  "error": "Unauthorized",
-  "message": "Invalid or expired token"
-}
-```
-
-### 403 Forbidden
-```json
-{
-  "error": "Forbidden",
-  "message": "Insufficient permissions"
-}
-```
-
-### 404 Not Found
-```json
-{
-  "error": "Not Found",
-  "message": "Resource not found"
-}
-```
-
-### 500 Internal Server Error
-```json
-{
-  "error": "Internal Server Error",
-  "message": "An unexpected error occurred"
-}
-```
-
-## Rate Limiting
-
-API requests are limited to:
-- 100 requests per minute for authenticated users
-- 20 requests per minute for unauthenticated users
-
-Rate limit headers are included in all responses:
-```http
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1616239020
-```
-
-## WebSocket Events
-
-The application uses WebSocket for real-time updates. Connect to:
-```
-ws://api.2du.app/ws
+wss://api.2du.app/ws?token=jwt_token_here
 ```
 
 ### Events
 
 #### Task Created
+
 ```json
 {
   "type": "TASK_CREATED",
@@ -404,6 +423,7 @@ ws://api.2du.app/ws
 ```
 
 #### Task Updated
+
 ```json
 {
   "type": "TASK_UPDATED",
@@ -423,6 +443,7 @@ ws://api.2du.app/ws
 ```
 
 #### Task Deleted
+
 ```json
 {
   "type": "TASK_DELETED",
@@ -432,18 +453,120 @@ ws://api.2du.app/ws
 }
 ```
 
-## API Versioning
+#### Tag Created
 
-The API is versioned through the URL path:
-```
-/api/v1/...
+```json
+{
+  "type": "TAG_CREATED",
+  "data": {
+    "tag": {
+      "id": "tag123",
+      "name": "new-tag",
+      "color": "#00FF00",
+      "taskCount": 0
+    }
+  }
+}
 ```
 
-Current version: v1
+#### Tag Updated
+
+```json
+{
+  "type": "TAG_UPDATED",
+  "data": {
+    "tag": {
+      "id": "tag123",
+      "name": "updated-tag",
+      "color": "#0000FF",
+      "taskCount": 5
+    }
+  }
+}
+```
+
+#### Tag Deleted
+
+```json
+{
+  "type": "TAG_DELETED",
+  "data": {
+    "tagId": "tag123"
+  }
+}
+```
+
+## Error Responses
+
+All API endpoints may return the following error responses:
+
+### 400 Bad Request
+
+```json
+{
+  "error": "Bad Request",
+  "message": "Invalid input data",
+  "details": {
+    "field": "error description"
+  }
+}
+```
+
+### 401 Unauthorized
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired token"
+}
+```
+
+### 403 Forbidden
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Insufficient permissions"
+}
+```
+
+### 404 Not Found
+
+```json
+{
+  "error": "Not Found",
+  "message": "Resource not found"
+}
+```
+
+### 500 Internal Server Error
+
+```json
+{
+  "error": "Internal Server Error",
+  "message": "An unexpected error occurred"
+}
+```
+
+## Rate Limiting
+
+API requests are limited to:
+
+- 100 requests per minute for authenticated users
+- 20 requests per minute for unauthenticated users
+
+Rate limit headers are included in all responses:
+
+```http
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1616239020
+```
 
 ## Support
 
 For API support, please contact:
+
 - Email: api-support@2du.app
 - Documentation: https://docs.2du.app
-- Status page: https://status.2du.app 
+- Status page: https://status.2du.app

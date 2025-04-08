@@ -1,23 +1,21 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Box, Fab, ThemeProvider, createTheme, CircularProgress } from '@mui/material';
+import React, { useState, lazy, Suspense } from 'react';
+import { Box, CircularProgress } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import AddIcon from '@mui/icons-material/Add';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import Sidebar from './components/Sidebar';
-import TaskModal from './components/TaskModal';
-import AuthForm from './components/AuthForm';
-import ErrorBoundary from './components/ErrorBoundary';
-import LoadingState from './components/LoadingState';
-import { Task, Tag } from '../types';
-import { startOfDay } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { A11yProvider } from './contexts/A11yContext';
-import { logError } from './utils/errorLogging';
-import { performanceMonitor } from './utils/performanceMonitoring';
-import { retry } from './utils/retryMechanism';
+import { FeedbackProvider } from './components/common/UserFeedback';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import MainLayout from './components/layout/MainLayout';
+import TaskManagement from './components/features/TaskManagement';
+import { ThemeProvider, useTheme } from './components/common/ThemeProvider';
+import { Task } from './types';
+import LoadingState from './components/common/LoadingState';
+import AuthForm from './components/forms/AuthForm';
 
 // Lazy load route components
 const TodayView = lazy(() => import('./components/routes/TodayView'));
@@ -34,19 +32,30 @@ const LoadingFallback = () => (
   </Box>
 );
 
-// Protected Route wrapper
+// Protected Route wrapper - modified to make authentication optional
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingState isLoading={true} fullScreen />;
+    return <LoadingState isLoading={true} fullScreen><div /></LoadingState>;
   }
 
-  if (!user) {
-    return <Navigate to="/auth" />;
-  }
-
+  // Allow access even without a user
   return <>{children}</>;
+};
+
+// Page transition component
+const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  );
 };
 
 const AppContent: React.FC = () => {
@@ -54,250 +63,88 @@ const AppContent: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
-  const [darkMode, setDarkMode] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [tags, setTags] = useState<Tag[]>([
+  const [tags] = useState([
     { name: 'Work', color: '#4CAF50' },
     { name: 'Personal', color: '#2196F3' },
     { name: 'Shopping', color: '#FF9800' },
   ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
+  const location = useLocation();
+  const { darkMode, toggleDarkMode } = useTheme();
 
-  // Simplified theme
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: { main: '#4a90e2' },
-      background: {
-        default: darkMode ? '#1a1a1a' : '#ffffff',
-      },
-    },
-    typography: {
-      fontFamily: '"Inter", sans-serif',
+  const taskManagement = TaskManagement({
+    userId: user?.id || 'anonymous',
+    onTasksChange: (updatedTasks) => {
+      // Update the tasks state when changes occur
+      taskManagement.tasks = updatedTasks;
     },
   });
 
-  // Load and save state with error handling
-  useEffect(() => {
-    if (user) {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const savedTasks = localStorage.getItem(`tasks-${user.id}`);
-        const savedTags = localStorage.getItem(`tags-${user.id}`);
-        const savedDarkMode = localStorage.getItem(`darkMode-${user.id}`);
-        
-        if (savedTasks) setTasks(JSON.parse(savedTasks));
-        if (savedTags) setTags(JSON.parse(savedTags));
-        if (savedDarkMode) setDarkMode(JSON.parse(savedDarkMode));
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to load user data');
-        setError(error);
-        logError(error, 'Failed to load user data', {
-          componentName: 'AppContent',
-          actionName: 'load_user_data',
-          userId: user.id
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }, [user]);
-
-  // Save state with error handling
-  useEffect(() => {
-    if (user) {
-      try {
-        localStorage.setItem(`tasks-${user.id}`, JSON.stringify(tasks));
-        localStorage.setItem(`tags-${user.id}`, JSON.stringify(tags));
-        localStorage.setItem(`darkMode-${user.id}`, JSON.stringify(darkMode));
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to save user data');
-        logError(error, 'Failed to save user data', {
-          componentName: 'AppContent',
-          actionName: 'save_user_data',
-          userId: user.id
-        });
-      }
-    }
-  }, [tasks, tags, darkMode, user]);
-
-  // Simplified task management with error handling
-  const handleTaskAction = {
-    toggle: async (taskId: string) => {
-      try {
-        setTasks(prevTasks =>
-          prevTasks.map(task =>
-            task.id === taskId ? { ...task, completed: !task.completed } : task
-          )
-        );
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to toggle task');
-        logError(error, 'Failed to toggle task', {
-          componentName: 'AppContent',
-          actionName: 'toggle_task',
-          userId: user?.id,
-          additionalData: { taskId }
-        });
-      }
-    },
-    delete: async (taskId: string) => {
-      try {
-        setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to delete task');
-        logError(error, 'Failed to delete task', {
-          componentName: 'AppContent',
-          actionName: 'delete_task',
-          userId: user?.id,
-          additionalData: { taskId }
-        });
-      }
-    },
-    update: async (taskId: string, updates: Partial<Task>) => {
-      try {
-        setTasks(prevTasks =>
-          prevTasks.map(task =>
-            task.id === taskId ? { ...task, ...updates } : task
-          )
-        );
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to update task');
-        logError(error, 'Failed to update task', {
-          componentName: 'AppContent',
-          actionName: 'update_task',
-          userId: user?.id,
-          additionalData: { taskId, updates }
-        });
-      }
-    },
-    create: () => {
-      setEditingTask(undefined);
-      setIsTaskModalOpen(true);
-    },
-    edit: (task: Task) => {
-      setEditingTask(task);
-      setIsTaskModalOpen(true);
-    },
-    save: async (taskData: Omit<Task, 'id' | 'order'>) => {
-      if (!user) return;
-
-      try {
-        // Use retry mechanism for task saving
-        await retry(async () => {
-          if (editingTask) {
-            setTasks(prevTasks =>
-              prevTasks.map(task =>
-                task.id === editingTask.id 
-                  ? { 
-                      ...taskData, 
-                      id: task.id, 
-                      order: task.order,
-                      dueDate: startOfDay(taskData.dueDate),
-                      userId: user.id
-                    } 
-                  : task
-              )
-            );
-          } else {
-            const newTask: Task = {
-              ...taskData,
-              id: `task-${Date.now()}`,
-              order: tasks.length,
-              completed: false,
-              tags: taskData.tags || [],
-              dueDate: startOfDay(taskData.dueDate),
-              userId: user.id,
-            };
-            setTasks(prevTasks => [...prevTasks, newTask]);
-          }
-        }, {
-          maxAttempts: 3,
-          onRetry: (attempt, error) => {
-            console.warn(`Retrying task save (attempt ${attempt}): ${error.message}`);
-          }
-        });
-        
-        setIsTaskModalOpen(false);
-        setEditingTask(undefined);
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to save task');
-        logError(error, 'Failed to save task', {
-          componentName: 'AppContent',
-          actionName: 'save_task',
-          userId: user.id,
-          additionalData: { taskData, isEditing: !!editingTask }
-        });
-      }
-    },
-  };
+  const { tasks, handleTaskAction } = taskManagement;
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     
-    try {
       const { source, destination } = result;
       
-      // Only handle reordering within the same list
       if (source.droppableId === destination.droppableId) {
-        setTasks(prevTasks => {
-          const updatedTasks = Array.from(prevTasks);
+      const updatedTasks = Array.from(tasks);
           const [movedTask] = updatedTasks.splice(source.index, 1);
           updatedTasks.splice(destination.index, 0, movedTask);
           
-          // Update order based on new position
-          return updatedTasks.map((task, index) => ({
-            ...task,
-            order: index
-          }));
-        });
+      if (movedTask && typeof movedTask === 'object' && 'id' in movedTask) {
+        handleTaskAction.update(movedTask.id, { order: destination.index });
       }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to reorder tasks');
-      logError(error, 'Failed to reorder tasks', {
-        componentName: 'AppContent',
-        actionName: 'reorder_tasks',
-        userId: user?.id,
-        additionalData: { result }
-      });
     }
   };
 
+  const handleCreateTask = () => {
+    setEditingTask(undefined);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleCloseTaskModal = () => {
+    setIsTaskModalOpen(false);
+    setEditingTask(undefined);
+  };
+
+  // Check if we're on the auth page
+  const isAuthPage = location.pathname === '/auth';
+
   return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <Sidebar
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      <DragDropContext onDragEnd={handleDragEnd}>
+      {isAuthPage ? (
+        <AuthForm />
+      ) : (
+        <MainLayout
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           darkMode={darkMode}
-          onToggleDarkMode={() => setDarkMode(!darkMode)}
+          toggleDarkMode={toggleDarkMode}
           onLogout={logout}
-          userName={user?.name}
-        />
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: 3,
-            width: { sm: `calc(100% - ${isSidebarCollapsed ? 64 : 240}px)` },
-            ml: { sm: `${isSidebarCollapsed ? 64 : 240}px` },
-          }}
+          userName={user?.name || user?.email || ''}
+          isTaskModalOpen={isTaskModalOpen}
+          onCloseTaskModal={handleCloseTaskModal}
+          onSaveTask={handleTaskAction.save}
+          editingTask={editingTask}
+          tags={tags}
+          onCreateTask={handleCreateTask}
+          onOpenShortcutsHelp={() => setIsShortcutsHelpOpen(true)}
         >
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Routes>
-              <Route path="/auth" element={<AuthForm />} />
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<Navigate to="/today" replace />} />
               <Route
-                path="/"
+                path="/today"
                 element={
                   <ProtectedRoute>
-                    <TodayView
-                      tasks={tasks}
-                      onTaskAction={handleTaskAction}
-                      isLoading={isLoading}
-                      error={error}
-                    />
+                    <PageTransition>
+                      <TodayView
+                        tasks={tasks}
+                        onTaskAction={handleTaskAction}
+                        onCreateTask={handleCreateTask}
+                      />
+                    </PageTransition>
                   </ProtectedRoute>
                 }
               />
@@ -305,39 +152,13 @@ const AppContent: React.FC = () => {
                 path="/upcoming"
                 element={
                   <ProtectedRoute>
-                    <UpcomingView
-                      tasks={tasks}
-                      onTaskAction={handleTaskAction}
-                      isLoading={isLoading}
-                      error={error}
-                    />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tags"
-                element={
-                  <ProtectedRoute>
-                    <TagsView
-                      tasks={tasks}
-                      tags={tags}
-                      onTaskAction={handleTaskAction}
-                      isLoading={isLoading}
-                      error={error}
-                    />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/completed"
-                element={
-                  <ProtectedRoute>
-                    <CompletedView
-                      tasks={tasks}
-                      onTaskAction={handleTaskAction}
-                      isLoading={isLoading}
-                      error={error}
-                    />
+                    <PageTransition>
+                      <UpcomingView
+                        tasks={tasks}
+                        onTaskAction={handleTaskAction}
+                        onCreateTask={handleCreateTask}
+                      />
+                    </PageTransition>
                   </ProtectedRoute>
                 }
               />
@@ -345,12 +166,40 @@ const AppContent: React.FC = () => {
                 path="/calendar"
                 element={
                   <ProtectedRoute>
-                    <CalendarView
-                      tasks={tasks}
-                      onTaskAction={handleTaskAction}
-                      isLoading={isLoading}
-                      error={error}
-                    />
+                    <PageTransition>
+                      <CalendarView
+                        tasks={tasks}
+                        onTaskAction={handleTaskAction}
+                      />
+                    </PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tags"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition>
+                      <TagsView
+                        tasks={tasks}
+                        onTaskAction={handleTaskAction}
+                        onCreateTask={handleCreateTask}
+                      />
+                    </PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/completed"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition>
+                      <CompletedView
+                        tasks={tasks.filter((task: Task) => task.completed)}
+                        onTaskAction={handleTaskAction}
+                        onCreateTask={handleCreateTask}
+                      />
+                    </PageTransition>
                   </ProtectedRoute>
                 }
               />
@@ -358,39 +207,18 @@ const AppContent: React.FC = () => {
                 path="/settings"
                 element={
                   <ProtectedRoute>
-                    <Settings />
+                    <PageTransition>
+                      <Settings />
+                    </PageTransition>
                   </ProtectedRoute>
                 }
               />
+              <Route path="*" element={<Navigate to="/today" replace />} />
             </Routes>
-          </DragDropContext>
-
-          <Fab
-            color="primary"
-            aria-label="add task"
-            onClick={handleTaskAction.create}
-            sx={{
-              position: 'fixed',
-              bottom: 16,
-              right: 16,
-            }}
-          >
-            <AddIcon />
-          </Fab>
-
-          <TaskModal
-            open={isTaskModalOpen}
-            onClose={() => {
-              setIsTaskModalOpen(false);
-              setEditingTask(undefined);
-            }}
-            onSave={handleTaskAction.save}
-            task={editingTask}
-            tags={tags}
-          />
-        </Box>
-      </Box>
-    </ThemeProvider>
+          </AnimatePresence>
+        </MainLayout>
+      )}
+      </DragDropContext>
   );
 };
 
@@ -400,11 +228,15 @@ const App: React.FC = () => {
       <AuthProvider>
         <I18nProvider>
           <A11yProvider>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <Suspense fallback={<LoadingFallback />}>
-                <AppContent />
-              </Suspense>
-            </LocalizationProvider>
+            <FeedbackProvider>
+              <ThemeProvider userId={undefined}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <AppContent />
+                </Suspense>
+              </LocalizationProvider>
+              </ThemeProvider>
+            </FeedbackProvider>
           </A11yProvider>
         </I18nProvider>
       </AuthProvider>

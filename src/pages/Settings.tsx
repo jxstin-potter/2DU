@@ -1,8 +1,8 @@
 import React from 'react';
 import { Container, Typography, Box, Tabs, Tab, Paper } from '@mui/material';
 import { useI18n } from '../contexts/I18nContext';
-import AccessibilitySettings from '../components/AccessibilitySettings';
-import LanguageSelector from '../components/LanguageSelector';
+import AccessibilitySettings from '../components/features/AccessibilitySettings';
+import LanguageSelector from '../components/common/LanguageSelector';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -60,12 +60,12 @@ const Settings: React.FC = () => {
             variant="fullWidth"
           >
             <Tab 
-              label={t('settings.tabs.accessibility')} 
+              label={t('settings.accessibility')} 
               id="settings-tab-0"
               aria-controls="settings-tabpanel-0"
             />
             <Tab 
-              label={t('settings.tabs.language')} 
+              label={t('settings.language')} 
               id="settings-tab-1"
               aria-controls="settings-tabpanel-1"
             />

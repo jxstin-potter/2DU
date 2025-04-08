@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import TaskList from '../TaskList';
+import TaskList from '../features/TaskList';
+import EmptyState from '../common/EmptyState';
 import { Task } from '../../types';
 
 interface CompletedViewProps {
@@ -12,9 +13,10 @@ interface CompletedViewProps {
     edit: (task: Task) => void;
     share: (task: Task) => void;
   };
+  onCreateTask?: () => void;
 }
 
-const CompletedView: React.FC<CompletedViewProps> = ({ tasks, onTaskAction }) => {
+const CompletedView: React.FC<CompletedViewProps> = ({ tasks, onTaskAction, onCreateTask }) => {
   const completedTasks = tasks.filter(task => task.completed);
 
   return (
@@ -22,10 +24,15 @@ const CompletedView: React.FC<CompletedViewProps> = ({ tasks, onTaskAction }) =>
       <Typography variant="h4" gutterBottom>
         Completed Tasks
       </Typography>
-      <TaskList
-        tasks={completedTasks}
-        onTaskAction={onTaskAction}
-      />
+      
+      {completedTasks.length > 0 ? (
+        <TaskList
+          tasks={completedTasks}
+          onTaskAction={onTaskAction}
+        />
+      ) : (
+        <EmptyState type="completed" onCreateTask={onCreateTask} />
+      )}
     </Box>
   );
 };

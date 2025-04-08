@@ -16,6 +16,22 @@ const hashPassword = (password: string): string => {
   return btoa(password); // This is just for demo purposes
 };
 
+// Create a default anonymous user
+const createAnonymousUser = (): User => {
+  return {
+    id: 'anonymous',
+    email: 'anonymous@example.com',
+    password: '',
+    name: 'Anonymous User',
+    preferences: {
+      theme: 'light',
+      highContrast: false,
+      notifications: true,
+      defaultView: 'today'
+    }
+  };
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,11 +48,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           // Invalid user data, clear it
           localStorage.removeItem('user');
+          // Set anonymous user
+          setUser(createAnonymousUser());
         }
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('user');
+        // Set anonymous user
+        setUser(createAnonymousUser());
       }
+    } else {
+      // No user data, set anonymous user
+      setUser(createAnonymousUser());
     }
     setIsLoading(false);
   }, []);
@@ -72,6 +95,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: email.toLowerCase(), // Store email in lowercase
       password: hashedPassword,
       name: name.trim(),
+      preferences: {
+        theme: 'light',
+        highContrast: false,
+        notifications: true,
+        defaultView: 'today'
+      }
     };
 
     storedUsers.push(newUser);
@@ -84,8 +113,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+    try {
+      // Set anonymous user instead of null
+      const anonymousUser = createAnonymousUser();
+      setUser(anonymousUser);
+      localStorage.setItem('user', JSON.stringify(anonymousUser));
+      
+      // Clear any user-specific data
+      const userId = user?.id;
+      if (userId && userId !== 'anonymous') {
+        localStorage.removeItem(`tasks-${userId}`);
+        localStorage.removeItem(`preferences-${userId}`);
+        localStorage.removeItem(`settings-${userId}`);
+      }
+      
+      // Clear any session data
+      sessionStorage.clear();
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Fallback to setting anonymous user
+      const anonymousUser = createAnonymousUser();
+      setUser(anonymousUser);
+      localStorage.setItem('user', JSON.stringify(anonymousUser));
+    }
   };
 
   return (

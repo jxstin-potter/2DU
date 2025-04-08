@@ -1,0 +1,10 @@
+sidebar: {
+  today: 'Today',
+  upcoming: 'Upcoming',
+  calendar: 'Calendar',
+  tags: 'Tags',
+  completed: 'Completed',
+  settings: 'Settings',
+  logout: 'Logout',
+  keyboardShortcuts: 'Keyboard Shortcuts',
+}, 

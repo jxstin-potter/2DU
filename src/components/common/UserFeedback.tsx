@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { Snackbar, Alert, AlertTitle, Button, Box, Typography } from '@mui/material';
-import { analytics } from '../utils/analytics';
+import { analytics } from '../../utils/analytics';
 
 // Feedback types
 export enum FeedbackType {

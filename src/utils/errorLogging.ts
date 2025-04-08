@@ -27,41 +27,26 @@ interface ErrorLogData {
 }
 
 /**
- * Logs an error with contextual information
- * @param error The error object
- * @param message A descriptive message about the error
- * @param data Additional context about the error
+ * Simple error logging utility for development
  */
-export const logError = (error: Error, message: string, data: ErrorLogData) => {
-  const timestamp = new Date().toISOString();
-  const errorLog = {
-    timestamp,
-    error: {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    },
-    context: {
-      message,
-      ...data,
-    },
-  };
 
-  // Log to console in development
+export const logError = (error: Error, message: string, context?: Record<string, any>) => {
   if (process.env.NODE_ENV === 'development') {
-    console.error('Error Log:', errorLog);
+    console.error('Error:', {
+      message,
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      },
+      context,
+    });
   }
+};
 
-  // In production, you would send this to your error tracking service
-  // Example: Sentry.captureException(error, { extra: errorLog });
-  
-  // For now, we'll store in localStorage for persistence
-  try {
-    const existingLogs = JSON.parse(localStorage.getItem('errorLogs') || '[]');
-    const updatedLogs = [...existingLogs, errorLog].slice(-100); // Keep last 100 errors
-    localStorage.setItem('errorLogs', JSON.stringify(updatedLogs));
-  } catch (e) {
-    console.error('Failed to store error log:', e);
+export const logWarning = (message: string, context?: Record<string, any>) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Warning:', { message, context });
   }
 };
 

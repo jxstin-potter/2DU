@@ -22,9 +22,9 @@ import {
   Remove as RemoveIcon,
   RestartAlt as RestartIcon,
 } from '@mui/icons-material';
-import { useA11y } from '../contexts/A11yContext';
-import { useI18n } from '../contexts/I18nContext';
-import { createAccessibleButton, createAccessibleCheckbox } from '../utils/a11y';
+import { useA11y } from "../../contexts/A11yContext";
+import { useI18n } from "../../contexts/I18nContext";
+import { createAccessibleButton, createAccessibleCheckbox } from "../../utils/a11y";
 
 /**
  * AccessibilitySettings component
@@ -110,10 +110,10 @@ const AccessibilitySettings: React.FC = () => {
       }}
     >
       <Typography variant="h5" component="h2" gutterBottom>
-        {t('a11y.settings')}
+        {t('settings.accessibility')}
       </Typography>
       <Typography variant="body2" color="text.secondary" paragraph>
-        {t('a11y.settingsDescription')}
+        {t('settings.accessibility.description')}
       </Typography>
       <Divider sx={{ my: 2 }} />
 
@@ -122,10 +122,10 @@ const AccessibilitySettings: React.FC = () => {
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <ContrastIcon sx={{ mr: 1 }} />
-            <Typography variant="subtitle1">{t('a11y.highContrast')}</Typography>
+            <Typography variant="subtitle1">{t('settings.accessibility.highContrast')}</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" paragraph>
-            {t('a11y.highContrastDescription')}
+            {t('settings.accessibility.highContrastDescription')}
           </Typography>
           <FormControlLabel
             control={
@@ -144,10 +144,10 @@ const AccessibilitySettings: React.FC = () => {
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <SpeedIcon sx={{ mr: 1 }} />
-            <Typography variant="subtitle1">{t('a11y.reducedMotion')}</Typography>
+            <Typography variant="subtitle1">{t('settings.accessibility.reducedMotion')}</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" paragraph>
-            {t('a11y.reducedMotionDescription')}
+            {t('settings.accessibility.reducedMotionDescription')}
           </Typography>
           <FormControlLabel
             control={
@@ -166,13 +166,13 @@ const AccessibilitySettings: React.FC = () => {
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <TextFieldsIcon sx={{ mr: 1 }} />
-            <Typography variant="subtitle1">{t('a11y.fontSize')}</Typography>
+            <Typography variant="subtitle1">{t('settings.accessibility.fontSize')}</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" paragraph>
-            {t('a11y.fontSizeDescription')}
+            {t('settings.accessibility.fontSizeDescription')}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Tooltip title={t('a11y.decreaseFontSize')}>
+            <Tooltip title={t('settings.accessibility.fontSize.decrease')}>
               <IconButton
                 onClick={decreaseFontSize}
                 disabled={fontSize <= 12}
@@ -184,7 +184,7 @@ const AccessibilitySettings: React.FC = () => {
             <Typography variant="body1" sx={{ mx: 2, minWidth: 40, textAlign: 'center' }}>
               {fontSize}px
             </Typography>
-            <Tooltip title={t('a11y.increaseFontSize')}>
+            <Tooltip title={t('settings.accessibility.fontSize.increase')}>
               <IconButton
                 onClick={increaseFontSize}
                 disabled={fontSize >= 24}
@@ -193,7 +193,7 @@ const AccessibilitySettings: React.FC = () => {
                 <AddIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title={t('a11y.resetFontSize')}>
+            <Tooltip title={t('settings.accessibility.fontSize.reset')}>
               <IconButton onClick={resetFontSize} sx={{ ml: 1 }} {...resetFontSizeButtonProps}>
                 <RestartIcon />
               </IconButton>
@@ -205,10 +205,10 @@ const AccessibilitySettings: React.FC = () => {
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <VisibilityIcon sx={{ mr: 1 }} />
-            <Typography variant="subtitle1">{t('a11y.focusVisible')}</Typography>
+            <Typography variant="subtitle1">{t('settings.accessibility.focusVisible')}</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" paragraph>
-            {t('a11y.focusVisibleDescription')}
+            {t('settings.accessibility.focusVisibleDescription')}
           </Typography>
           <FormControlLabel
             control={
@@ -223,14 +223,14 @@ const AccessibilitySettings: React.FC = () => {
           />
         </Grid>
 
-        {/* Screen Reader Only */}
+        {/* Screen Reader Mode */}
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <HearingIcon sx={{ mr: 1 }} />
-            <Typography variant="subtitle1">{t('a11y.screenReaderOnly')}</Typography>
+            <Typography variant="subtitle1">{t('settings.accessibility.screenReader')}</Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" paragraph>
-            {t('a11y.screenReaderOnlyDescription')}
+            {t('settings.accessibility.screenReaderDescription')}
           </Typography>
           <FormControlLabel
             control={
@@ -258,7 +258,18 @@ const AccessibilitySettings: React.FC = () => {
             if (focusVisible) toggleFocusVisible();
             if (screenReaderOnly) toggleScreenReaderOnly();
           }}
-          {...createAccessibleButton('reset-all-settings', t('a11y.resetAllSettings'), () => {})}
+          {...createAccessibleButton(
+            'reset-all-settings', 
+            t('a11y.resetAllSettings'), 
+            () => {
+              // Reset all settings to default
+              if (highContrast) toggleHighContrast();
+              if (reducedMotion) toggleReducedMotion();
+              resetFontSize();
+              if (focusVisible) toggleFocusVisible();
+              if (screenReaderOnly) toggleScreenReaderOnly();
+            }
+          )}
         >
           {t('a11y.resetAllSettings')}
         </Button>

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Box, CircularProgress, Typography, Skeleton } from '@mui/material';
+import '../../styles/animations.css';
+import '../../styles.css';
 
 interface LoadingStateProps {
   isLoading: boolean;
@@ -26,6 +28,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
   if (error) {
     return (
       <Box
+        className="animate-slide-in"
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -52,14 +55,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
         {retryAction && (
           <button
             onClick={retryAction}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#4a90e2',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="retry-button"
           >
             Try Again
           </button>
@@ -72,18 +68,18 @@ const LoadingState: React.FC<LoadingStateProps> = ({
   if (isLoading) {
     if (variant === 'skeleton') {
       return (
-        <Box sx={{ width: '100%' }}>
-          <Skeleton variant="rectangular" height={60} sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} />
+        <Box className="animate-fade-in" sx={{ width: '100%' }}>
+          <Skeleton variant="rectangular" height={60} className="skeleton-loading" sx={{ mb: 1 }} />
+          <Skeleton variant="rectangular" height={60} className="skeleton-loading" sx={{ mb: 1 }} />
+          <Skeleton variant="rectangular" height={60} className="skeleton-loading" sx={{ mb: 1 }} />
+          <Skeleton variant="rectangular" height={60} className="skeleton-loading" />
         </Box>
       );
     }
 
     if (variant === 'inline') {
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+        <Box className="animate-fade-in" sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
           <CircularProgress size={20} sx={{ mr: 2 }} />
           <Typography variant="body2">{loadingText}</Typography>
         </Box>
@@ -93,6 +89,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
     // Default overlay variant
     return (
       <Box
+        className="animate-fade-in"
         sx={{
           position: 'absolute',
           top: 0,

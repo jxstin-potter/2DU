@@ -10,9 +10,9 @@ import {
   Paper,
   useTheme,
 } from '@mui/material';
-import { useI18n } from '../contexts/I18nContext';
-import { createAccessibleSelect } from '../utils/a11y';
-import { supportedLanguages } from '../utils/i18n';
+import { useI18n } from '../../contexts/I18nContext';
+import { createAccessibleSelect } from '../../utils/a11y';
+import { supportedLanguages } from '../../utils/i18n';
 
 /**
  * LanguageSelector component

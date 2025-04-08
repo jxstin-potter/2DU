@@ -11,6 +11,8 @@ import CategoryManager from './CategoryManager';
 import { Task, Category, Tag, SharedUser } from '../types';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ShareIcon from '@mui/icons-material/Share';
+import EnhancedTaskList from './EnhancedTaskList';
+import CalendarView from './CalendarView';
 
 // Default tags if none are found in the database
 const DEFAULT_TAGS: Tag[] = [
@@ -99,7 +101,20 @@ const TaskManager: React.FC = () => {
         ...newTask,
         order,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        status: newTask.status || 'todo',
+        tags: newTask.tags || [],
+        category: newTask.category || '',
+        categoryId: newTask.categoryId || newTask.category || '',
+        subtasks: (newTask.subtasks || []).map(subtask => ({
+          ...subtask,
+          order: subtask.order || 0
+        })),
+        attachments: (newTask.attachments || []).map(attachment => ({
+          ...attachment,
+          uploadedAt: new Date()
+        })),
+        completed: false,
       };
       
       const tasksCollection = collection(db, 'tasks');
@@ -282,14 +297,8 @@ const TaskManager: React.FC = () => {
         )}
 
         {view === 'list' ? (
-          <TaskList
+          <EnhancedTaskList
             tasks={filteredTasks}
-            onTaskClick={(task) => {
-              setSelectedTask(task);
-              setIsModalOpen(true);
-            }}
-            onTaskToggle={toggleTask}
-            onTaskDelete={deleteTask}
             onTaskAction={{
               toggle: toggleTask,
               delete: deleteTask,
@@ -297,15 +306,18 @@ const TaskManager: React.FC = () => {
               edit: handleTaskUpdate,
               share: handleShareClick,
             }}
-            draggable
+            draggable={true}
           />
         ) : (
-          <Calendar
+          <CalendarView
             tasks={filteredTasks}
-            onToggleTask={toggleTask}
-            onDeleteTask={deleteTask}
-            onEditTask={handleTaskUpdate}
-            onShareTask={handleShareClick}
+            onTaskAction={{
+              toggle: toggleTask,
+              delete: deleteTask,
+              update: handleTaskUpdate,
+              edit: handleTaskUpdate,
+              share: handleShareClick,
+            }}
           />
         )}
 

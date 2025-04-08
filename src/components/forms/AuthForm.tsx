@@ -10,7 +10,7 @@ import {
   Tab,
   CircularProgress,
 } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const AuthForm: React.FC = () => {
