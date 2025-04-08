@@ -65,6 +65,66 @@
   }
 }
 
+/* New Micro-interaction Animations */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes statusChange {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
 /* Animation Utility Classes */
 .animate-slide-in {
   animation: slideIn 0.3s ease-out forwards;
@@ -86,6 +146,41 @@
   animation: celebrate 0.5s ease-in-out;
 }
 
+/* New Micro-interaction Utility Classes */
+.animate-pulse {
+  animation: pulse 0.5s ease-in-out;
+}
+
+.animate-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 0.6s ease-out;
+}
+
+.animate-bounce {
+  animation: bounce 0.5s ease-in-out;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-status-change {
+  animation: statusChange 0.5s ease-in-out;
+}
+
 /* Loading Skeleton Animation */
 .skeleton-loading {
   background: linear-gradient(
@@ -98,29 +193,33 @@
   animation: shimmer 1.5s infinite;
 }
 
-/* Transition Classes */
+/* Transition Utilities */
 .transition-all {
-  transition: all var(--transition-speed) ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .transition-transform {
-  transition: transform var(--transition-speed) ease;
+  transition: transform 0.2s ease-in-out;
 }
 
 .transition-opacity {
-  transition: opacity var(--transition-speed) ease;
+  transition: opacity 0.2s ease-in-out;
 }
 
-/* Reduced Motion */
+/* Accessibility: Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .animate-slide-in,
   .animate-fade-in,
   .animate-scale-in,
+  .animate-checkmark,
   .animate-celebrate,
-  .skeleton-loading {
+  .animate-pulse,
+  .animate-bounce,
+  .animate-shake,
+  .animate-status-change {
     animation: none;
   }
-
+  
   .transition-all,
   .transition-transform,
   .transition-opacity {
@@ -128,11 +227,13 @@
   }
 }
 
-/* Task completion animation */
+/* Task Completion Animation */
 .task-complete {
-  animation: fadeOut 0.5s ease-out forwards;
+  text-decoration: line-through;
+  opacity: 0.7;
 }
 
+/* Fade Out Animation */
 @keyframes fadeOut {
   from {
     opacity: 1;
@@ -144,9 +245,9 @@
   }
 }
 
-/* Hover animations */
+/* Hover Effects */
 .hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .hover-lift:hover {
@@ -154,14 +255,50 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Loading animation */
+/* Loading Shimmer Effect */
 .loading-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0) 100%
+    var(--card-bg) 25%,
+    var(--card-bg-light) 50%,
+    var(--card-bg) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+/* Button Click Feedback */
+.button-click {
+  position: relative;
+  overflow: hidden;
+}
+
+.button-click::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 0.6s ease-out;
+}
+
+/* Task Status Change Animation */
+.task-status-change {
+  animation: statusChange 0.5s ease-in-out;
+}
+
+/* Success Feedback Animation */
+.success-feedback {
+  animation: pulse 0.5s ease-in-out;
+  color: var(--success-color, #4caf50);
+}
+
+/* Error Feedback Animation */
+.error-feedback {
+  animation: shake 0.5s ease-in-out;
+  color: var(--error-color, #f44336);
 } 

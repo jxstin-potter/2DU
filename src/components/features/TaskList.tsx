@@ -101,11 +101,39 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onTaskAction, draggable = fa
   };
 
   const handleTaskComplete = (taskId: string) => {
-    setCompletingTaskId(taskId);
+    // Add micro-interaction feedback
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      taskElement.classList.add('animate-status-change');
+      setTimeout(() => {
+        taskElement.classList.remove('animate-status-change');
+      }, 500);
+    }
+    
+    onTaskAction.toggle(taskId);
+  };
+
+  const handleTaskDelete = (taskId: string) => {
+    // Add micro-interaction feedback
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      taskElement.classList.add('animate-shake');
+      setTimeout(() => {
+        taskElement.classList.remove('animate-shake');
+        onTaskAction.delete(taskId);
+      }, 500);
+    } else {
+      onTaskAction.delete(taskId);
+    }
+  };
+
+  const handleButtonClick = (event: React.MouseEvent<HTMLElement>) => {
+    // Add ripple effect to button
+    const button = event.currentTarget;
+    button.classList.add('button-click');
     setTimeout(() => {
-      onTaskAction.toggle(taskId);
-      setCompletingTaskId(null);
-    }, 500); // Match the animation duration
+      button.classList.remove('button-click');
+    }, 600);
   };
 
   // Sort tasks based on selected sort option
@@ -154,176 +182,152 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onTaskAction, draggable = fa
 
   const renderTask = (task: Task) => (
     <Card 
-      key={task.id} 
+      id={`task-${task.id}`}
+      className="hover-lift animate-fade-in"
       sx={{ 
-        mb: 2,
-        transition: 'all 0.2s ease',
+        mb: 2, 
+        position: 'relative',
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          boxShadow: theme.shadows[3],
-          transform: 'translateY(-2px)',
+          boxShadow: 3,
         },
-        opacity: task.completed ? 0.7 : 1,
-        borderLeft: `4px solid ${task.completed 
-          ? theme.palette.success.main 
-          : task.priority === 'high' 
-            ? theme.palette.error.main 
-            : task.priority === 'medium' 
-              ? theme.palette.warning.main 
-              : theme.palette.success.main}`,
+        ...(task.completed && { opacity: 0.7 })
       }}
     >
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Checkbox
-            checked={task.completed}
-            onChange={(e) => handleTaskComplete(task.id)}
-            sx={{
-              color: theme.palette.primary.main,
-              '&.Mui-checked': {
-                color: theme.palette.success.main,
-              },
-            }}
-          />
-          <Typography
-            variant="h6"
-            sx={{
+      <CardContent sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+        <Checkbox
+          checked={task.completed}
+          onChange={() => handleTaskComplete(task.id)}
+          sx={{ 
+            mr: 1,
+            '&.Mui-checked': {
+              color: theme.palette.success.main,
+            }
+          }}
+        />
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
               textDecoration: task.completed ? 'line-through' : 'none',
-              flexGrow: 1,
               color: task.completed ? 'text.secondary' : 'text.primary',
+              transition: 'all 0.2s ease-in-out'
             }}
           >
             {task.title}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 0.5 }}>
-            <IconButton 
-              onClick={() => onTaskAction.edit(task)}
-              size="small"
+          {task.description && (
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
               sx={{ 
-                color: 'text.secondary',
-                '&:hover': {
-                  color: 'primary.main',
+                mt: 0.5,
+                transition: 'opacity 0.2s ease-in-out',
+                opacity: task.completed ? 0.5 : 1
+              }}
+            >
+              {task.description}
+            </Typography>
+          )}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            {task.category && (
+              <Chip
+                icon={<FolderIcon />}
+                label={task.category}
+                size="small"
+                sx={{ 
                   bgcolor: alpha(theme.palette.primary.main, 0.1),
-                },
+                  color: theme.palette.primary.main,
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              />
+            )}
+            {task.dueDate && (
+              <Chip
+                icon={<AccessTimeIcon />}
+                label={format(new Date(task.dueDate), 'MMM d, yyyy')}
+                size="small"
+                sx={{ 
+                  bgcolor: isPast(new Date(task.dueDate)) && !task.completed
+                    ? alpha(theme.palette.error.main, 0.1)
+                    : isToday(new Date(task.dueDate))
+                    ? alpha(theme.palette.warning.main, 0.1)
+                    : alpha(theme.palette.info.main, 0.1),
+                  color: isPast(new Date(task.dueDate)) && !task.completed
+                    ? theme.palette.error.main
+                    : isToday(new Date(task.dueDate))
+                    ? theme.palette.warning.main
+                    : theme.palette.info.main,
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              />
+            )}
+            {task.tags && task.tags.length > 0 && (
+              <Chip
+                icon={<LabelIcon />}
+                label={`${task.tags.length} tag${task.tags.length > 1 ? 's' : ''}`}
+                size="small"
+                sx={{ 
+                  bgcolor: alpha(theme.palette.secondary.main, 0.1),
+                  color: theme.palette.secondary.main,
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              />
+            )}
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Edit">
+            <IconButton 
+              size="small" 
+              onClick={(e) => {
+                handleButtonClick(e);
+                onTaskAction.edit(task);
+              }}
+              sx={{ 
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
+                }
               }}
             >
               <EditIcon fontSize="small" />
             </IconButton>
+          </Tooltip>
+          <Tooltip title="Share">
             <IconButton 
-              onClick={() => onTaskAction.delete(task.id)}
-              size="small"
+              size="small" 
+              onClick={(e) => {
+                handleButtonClick(e);
+                onTaskAction.share(task);
+              }}
               sx={{ 
-                color: 'text.secondary',
+                transition: 'all 0.2s ease-in-out',
                 '&:hover': {
-                  color: 'error.main',
+                  bgcolor: alpha(theme.palette.info.main, 0.1),
+                  color: theme.palette.info.main,
+                }
+              }}
+            >
+              <ShareIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton 
+              size="small" 
+              onClick={() => handleTaskDelete(task.id)}
+              sx={{ 
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
                   bgcolor: alpha(theme.palette.error.main, 0.1),
-                },
+                  color: theme.palette.error.main,
+                }
               }}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
-          </Box>
-        </Box>
-        
-        {task.description && (
-          <Typography 
-            variant="body2" 
-            color="text.secondary" 
-            sx={{ 
-              mb: 1.5,
-              pl: 4,
-              borderLeft: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-            }}
-          >
-            {task.description}
-          </Typography>
-        )}
-        
-        <Box sx={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          gap: 1.5, 
-          alignItems: 'center',
-          pl: 4,
-        }}>
-          {task.dueDate && (
-            <Tooltip title={format(new Date(task.dueDate), 'PPP')}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 0.5,
-                color: isPast(new Date(task.dueDate)) && !task.completed
-                  ? theme.palette.error.main
-                  : 'text.secondary',
-              }}>
-                <AccessTimeIcon fontSize="small" />
-                <Typography variant="body2">
-                  {format(new Date(task.dueDate), 'MMM d, yyyy')}
-                </Typography>
-              </Box>
-            </Tooltip>
-          )}
-          
-          {(task.category || task.categoryId) && (
-            <Tooltip title={task.category || task.categoryId}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <FolderIcon fontSize="small" color="action" />
-                <Typography variant="body2" color="text.secondary">
-                  {task.category || task.categoryId}
-                </Typography>
-              </Box>
-            </Tooltip>
-          )}
-          
-          {task.priority && task.priority !== 'medium' && (
-            <Tooltip title={`Priority: ${task.priority}`}>
-              <Chip
-                icon={<FlagIcon />}
-                label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                size="small"
-                sx={{ 
-                  height: 24,
-                  bgcolor: alpha(getPriorityColor(task.priority), 0.1),
-                  color: getPriorityColor(task.priority),
-                  fontWeight: 500,
-                  '& .MuiChip-icon': {
-                    color: getPriorityColor(task.priority),
-                  }
-                }}
-              />
-            </Tooltip>
-          )}
-          
-          {task.tags && task.tags.length > 0 && (
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              {task.tags.map((tag) => (
-                <Chip
-                  key={tag}
-                  label={tag}
-                  size="small"
-                  sx={{ 
-                    height: 20,
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
-                    color: theme.palette.primary.main,
-                  }}
-                />
-              ))}
-            </Box>
-          )}
-          
-          {task.isShared && (
-            <Tooltip title="Shared Task">
-              <Chip
-                icon={<ShareIcon />}
-                label="Shared"
-                size="small"
-                sx={{ 
-                  height: 24,
-                  bgcolor: alpha(theme.palette.success.main, 0.1),
-                  color: theme.palette.success.main,
-                }}
-              />
-            </Tooltip>
-          )}
+          </Tooltip>
         </Box>
       </CardContent>
     </Card>

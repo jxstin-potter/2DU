@@ -25,6 +25,7 @@ import {
   useTheme,
   alpha,
   CircularProgress,
+  FormHelperText,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { Task, Tag, Category, Subtask, Attachment } from '../../types';
@@ -40,34 +41,64 @@ import FolderIcon from '@mui/icons-material/Folder';
 import FlagIcon from '@mui/icons-material/Flag';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 interface TaskModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: (task: Omit<Task, 'id' | 'order'>) => void;
+  onSubmit: (task: Omit<Task, 'id' | 'order'>) => void;
   initialTask?: Task;
   tags: Tag[];
   categories: Category[];
 }
 
+// Define validation schema
+const taskSchema = yup.object().shape({
+  title: yup.string().required('Task title is required').trim(),
+  description: yup.string().trim(),
+  dueDate: yup.date().nullable(),
+  priority: yup.string().oneOf(['low', 'medium', 'high']).default('medium'),
+  tags: yup.array().of(yup.string()),
+  category: yup.string().default(''),
+  categoryId: yup.string().default(''),
+  subtasks: yup.array().of(
+    yup.object().shape({
+      id: yup.string(),
+      title: yup.string().trim(),
+      completed: yup.boolean().default(false),
+      order: yup.number().default(0),
+    })
+  ),
+  notes: yup.string().trim(),
+  attachments: yup.array().of(
+    yup.object().shape({
+      id: yup.string(),
+      name: yup.string(),
+      size: yup.number(),
+      type: yup.string(),
+      url: yup.string(),
+      uploadedAt: yup.date().default(() => new Date()),
+    })
+  ),
+  completed: yup.boolean().default(false),
+  createdAt: yup.string().default(() => new Date().toISOString()),
+  updatedAt: yup.string().default(() => new Date().toISOString()),
+  status: yup.string().default('todo'),
+  userId: yup.string().default(''),
+});
+
+type TaskFormData = yup.InferType<typeof taskSchema>;
+
 const TaskModal: React.FC<TaskModalProps> = ({
   open,
   onClose,
-  onSave,
   initialTask,
   tags = [],
   categories = [],
 }) => {
   const theme = useTheme();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [category, setCategory] = useState<string>('');
-  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
-  const [notes, setNotes] = useState('');
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [expandedSections, setExpandedSections] = useState<{
     description: boolean;
     subtasks: boolean;
@@ -82,117 +113,121 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize React Hook Form
+  const { 
+    control, 
+    handleSubmit, 
+    reset, 
+    watch, 
+    setValue, 
+    formState: { errors } 
+  } = useForm<TaskFormData>({
+    resolver: yupResolver(taskSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      dueDate: null,
+      priority: 'medium',
+      tags: [],
+      category: '',
+      categoryId: '',
+      subtasks: [],
+      notes: '',
+      attachments: [],
+      completed: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'todo',
+      userId: '',
+    }
+  });
+
+  // Use field array for subtasks
+  const { fields: subtaskFields, append: appendSubtask, remove: removeSubtask } = useFieldArray({
+    control,
+    name: 'subtasks',
+  });
+
+  // Watch form values
+  const selectedTags = watch('tags');
+  const priority = watch('priority');
+  const category = watch('category');
+
   useEffect(() => {
     if (initialTask) {
-      setTitle(initialTask.title);
-      setDescription(initialTask.description || '');
-      setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
-      setPriority(initialTask.priority || 'medium');
-      setSelectedTags(initialTask.tags || []);
-      setCategory(initialTask.category || '');
-      setSubtasks(initialTask.subtasks || []);
-      setNotes(initialTask.notes || '');
-      setAttachments(initialTask.attachments || []);
+      // Reset form with initial task data
+      reset({
+        title: initialTask.title,
+        description: initialTask.description || '',
+        dueDate: initialTask.dueDate ? new Date(initialTask.dueDate) : null,
+        priority: initialTask.priority || 'medium',
+        tags: initialTask.tags || [],
+        category: initialTask.category || '',
+        categoryId: initialTask.categoryId || '',
+        subtasks: initialTask.subtasks || [],
+        notes: initialTask.notes || '',
+        attachments: initialTask.attachments || [],
+        completed: initialTask.completed || false,
+        createdAt: initialTask.createdAt || new Date().toISOString(),
+        updatedAt: initialTask.updatedAt || new Date().toISOString(),
+        status: initialTask.status || 'todo',
+        userId: initialTask.userId || '',
+      });
     } else {
-      resetForm();
-    }
-  }, [initialTask, open]);
-
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setDueDate(null);
-    setPriority('medium');
-    setSelectedTags([]);
-    setCategory('');
-    setSubtasks([]);
-    setNotes('');
-    setAttachments([]);
-    setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!title.trim()) {
-      setError('Task title is required');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setError(null);
-    
-    try {
-      const taskData: Omit<Task, 'id' | 'order'> = {
-        title: title.trim(),
-        description: description.trim(),
-        dueDate: dueDate ? startOfDay(dueDate).toISOString() : null,
-        priority,
-        tags: selectedTags,
-        category: category || '',
-        categoryId: category || '',
-        subtasks: subtasks.map(subtask => ({
-          ...subtask,
-          order: subtask.order || 0
-        })),
-        notes: notes.trim(),
-        attachments: attachments.map(attachment => ({
-          ...attachment,
-          uploadedAt: new Date()
-        })),
+      // Reset form to default values
+      reset({
+        title: '',
+        description: '',
+        dueDate: null,
+        priority: 'medium',
+        tags: [],
+        category: '',
+        categoryId: '',
+        subtasks: [],
+        notes: '',
+        attachments: [],
         completed: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         status: 'todo',
-        userId: '', // This will be set by the parent component
-      };
-      
-      console.log('Submitting task data:', taskData);
-      await onSave(taskData);
-      resetForm();
-      onClose();
-    } catch (err) {
-      setError('Failed to save task. Please try again.');
-      console.error('Error saving task:', err);
-    } finally {
-      setIsSubmitting(false);
+        userId: '',
+      });
     }
-  };
+  }, [initialTask, open, reset]);
 
   const handleTagToggle = (tagName: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tagName) 
-        ? prev.filter(tag => tag !== tagName)
-        : [...prev, tagName]
-    );
+    const currentTags = watch('tags');
+    const updatedTags = currentTags.includes(tagName)
+      ? currentTags.filter(tag => tag !== tagName)
+      : [...currentTags, tagName];
+    
+    setValue('tags', updatedTags);
   };
 
   const handleAddSubtask = () => {
-    const newSubtask: Subtask = {
+    appendSubtask({
       id: `subtask-${Date.now()}`,
       title: '',
       completed: false,
-    };
-    setSubtasks(prev => [...prev, newSubtask]);
-  };
-
-  const handleDeleteSubtask = (id: string) => {
-    setSubtasks(prev => prev.filter(subtask => subtask.id !== id));
+      order: subtaskFields.length,
+    });
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
     
+    const currentAttachments = watch('attachments');
     const newAttachments: Attachment[] = Array.from(files).map(file => ({
       id: `attachment-${Date.now()}-${file.name}`,
       name: file.name,
       size: file.size,
       type: file.type,
       url: URL.createObjectURL(file),
+      uploadedAt: new Date(),
     }));
     
-    setAttachments(prev => [...prev, ...newAttachments]);
+    setValue('attachments', [...currentAttachments, ...newAttachments]);
   };
 
   const getPriorityColor = (priority: 'low' | 'medium' | 'high') => {
@@ -211,6 +246,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }));
   };
 
+  const onSubmit = async (data: TaskFormData) => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const taskData: Omit<Task, 'id' | 'order'> = {
+        ...data,
+        dueDate: data.dueDate ? startOfDay(data.dueDate).toISOString() : null,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      console.log('Submitting task data:', taskData);
+      await onSubmit(taskData);
+      reset();
+      onClose();
+    } catch (err) {
+      setError('Failed to save task. Please try again.');
+      console.error('Error saving task:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Dialog 
       open={open} 
@@ -224,7 +282,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         }
       }}
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -262,70 +320,92 @@ const TaskModal: React.FC<TaskModalProps> = ({
           )}
           
           <Box sx={{ mb: 3 }}>
-            <TextField
-              autoFocus
-              fullWidth
-              label="Task Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              variant="outlined"
-              required
-              error={!!error && !title.trim()}
-              InputProps={{
-                sx: { 
-                  borderRadius: 1,
-                  '&:hover': {
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.primary.main,
-                    },
-                  },
-                }
-              }}
+            <Controller
+              name="title"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  autoFocus
+                  fullWidth
+                  label="Task Title"
+                  variant="outlined"
+                  required
+                  error={!!errors.title}
+                  helperText={errors.title?.message}
+                  InputProps={{
+                    sx: { 
+                      borderRadius: 1,
+                      '&:hover': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                        },
+                      },
+                    }
+                  }}
+                />
+              )}
             />
           </Box>
           
           <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
             <FormControl sx={{ minWidth: 120 }}>
               <InputLabel>Priority</InputLabel>
-              <Select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
-                label="Priority"
-                sx={{ borderRadius: 1 }}
-              >
-                <MenuItem value="low">Low</MenuItem>
-                <MenuItem value="medium">Medium</MenuItem>
-                <MenuItem value="high">High</MenuItem>
-              </Select>
+              <Controller
+                name="priority"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    label="Priority"
+                    sx={{ borderRadius: 1 }}
+                  >
+                    <MenuItem value="low">Low</MenuItem>
+                    <MenuItem value="medium">Medium</MenuItem>
+                    <MenuItem value="high">High</MenuItem>
+                  </Select>
+                )}
+              />
             </FormControl>
             
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Category</InputLabel>
-              <Select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                label="Category"
-                sx={{ borderRadius: 1 }}
-              >
-                <MenuItem value="">None</MenuItem>
-                {categories.map((cat) => (
-                  <MenuItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </MenuItem>
-                ))}
-              </Select>
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    label="Category"
+                    sx={{ borderRadius: 1 }}
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {categories.map((cat) => (
+                      <MenuItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
             </FormControl>
             
-            <DatePicker
-              label="Due Date"
-              value={dueDate}
-              onChange={(newValue) => setDueDate(newValue)}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  sx: { borderRadius: 1 }
-                }
-              }}
+            <Controller
+              name="dueDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  label="Due Date"
+                  value={field.value}
+                  onChange={(newValue) => field.onChange(newValue)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      sx: { borderRadius: 1 }
+                    }
+                  }}
+                />
+              )}
             />
           </Box>
           
@@ -354,15 +434,20 @@ const TaskModal: React.FC<TaskModalProps> = ({
             </Paper>
             
             {expandedSections.description && (
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                variant="outlined"
-                sx={{ mt: 2, borderRadius: 1 }}
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    multiline
+                    rows={4}
+                    label="Description"
+                    variant="outlined"
+                    sx={{ mt: 2, borderRadius: 1 }}
+                  />
+                )}
               />
             )}
           </Box>
@@ -394,27 +479,26 @@ const TaskModal: React.FC<TaskModalProps> = ({
             {expandedSections.subtasks && (
               <Box sx={{ mt: 2 }}>
                 <List>
-                  {subtasks.map((subtask) => (
-                    <ListItem key={subtask.id} sx={{ px: 2, py: 1 }}>
-                      <TextField
-                        fullWidth
-                        value={subtask.title}
-                        onChange={(e) => {
-                          setSubtasks(prev => 
-                            prev.map(s => 
-                              s.id === subtask.id ? { ...s, title: e.target.value } : s
-                            )
-                          );
-                        }}
-                        placeholder="Subtask"
-                        variant="outlined"
-                        size="small"
-                        sx={{ mr: 2, borderRadius: 1 }}
+                  {subtaskFields.map((field, index) => (
+                    <ListItem key={field.id} sx={{ px: 2, py: 1 }}>
+                      <Controller
+                        name={`subtasks.${index}.title`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            placeholder="Subtask"
+                            variant="outlined"
+                            size="small"
+                            sx={{ mr: 2, borderRadius: 1 }}
+                          />
+                        )}
                       />
                       <IconButton 
                         edge="end" 
                         size="small" 
-                        onClick={() => handleDeleteSubtask(subtask.id)}
+                        onClick={() => removeSubtask(index)}
                         sx={{ color: theme.palette.error.main }}
                       >
                         <DeleteIcon />
@@ -458,15 +542,20 @@ const TaskModal: React.FC<TaskModalProps> = ({
             </Paper>
             
             {expandedSections.notes && (
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                variant="outlined"
-                sx={{ mt: 2, borderRadius: 1 }}
+              <Controller
+                name="notes"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    multiline
+                    rows={4}
+                    label="Notes"
+                    variant="outlined"
+                    sx={{ mt: 2, borderRadius: 1 }}
+                  />
+                )}
               />
             )}
           </Box>
@@ -512,9 +601,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   />
                 </Button>
                 
-                {attachments.length > 0 && (
+                {watch('attachments').length > 0 && (
                   <List>
-                    {attachments.map((attachment) => (
+                    {watch('attachments').map((attachment, index) => (
                       <ListItem key={attachment.id} sx={{ px: 2, py: 1 }}>
                         <ListItemText 
                           primary={attachment.name}
@@ -525,9 +614,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
                             edge="end" 
                             size="small" 
                             onClick={() => {
-                              setAttachments(prev => 
-                                prev.filter(a => a.id !== attachment.id)
-                              );
+                              const currentAttachments = watch('attachments');
+                              setValue('attachments', currentAttachments.filter((_, i) => i !== index));
                             }}
                             sx={{ color: theme.palette.error.main }}
                           >

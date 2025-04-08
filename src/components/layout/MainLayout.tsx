@@ -5,6 +5,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import AddIcon from '@mui/icons-material/Add';
 import Sidebar from './Sidebar';
 import TaskModal from '../modals/TaskModal';
+import WebSocketStatus from '../common/WebSocketStatus';
 import { Task } from '../../types';
 
 interface MainLayoutProps {
@@ -55,11 +56,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static">
+      <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             2DU
           </Typography>
+          <WebSocketStatus />
+          {userName && (
+            <Typography variant="body1" sx={{ mx: 2 }}>
+              {userName}
+            </Typography>
+          )}
         </Toolbar>
       </AppBar>
       <Box

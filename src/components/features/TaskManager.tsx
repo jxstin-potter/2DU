@@ -13,6 +13,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ShareIcon from '@mui/icons-material/Share';
 import EnhancedTaskList from './EnhancedTaskList';
 import CalendarView from './CalendarView';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 
 // Default tags if none are found in the database
 const DEFAULT_TAGS: Tag[] = [
@@ -155,14 +157,34 @@ const TaskManager: React.FC = () => {
   const toggleTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
+      // Add micro-interaction feedback
+      const taskElement = document.getElementById(`task-${taskId}`);
+      if (taskElement) {
+        taskElement.classList.add('animate-status-change');
+        setTimeout(() => {
+          taskElement.classList.remove('animate-status-change');
+        }, 500);
+      }
+      
       await handleTaskUpdate(taskId, { completed: !task.completed });
     }
   };
 
   const deleteTask = async (taskId: string) => {
     try {
-      await deleteDoc(doc(db, 'tasks', taskId));
-      setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+      // Add micro-interaction feedback
+      const taskElement = document.getElementById(`task-${taskId}`);
+      if (taskElement) {
+        taskElement.classList.add('animate-shake');
+        setTimeout(async () => {
+          taskElement.classList.remove('animate-shake');
+          await deleteDoc(doc(db, 'tasks', taskId));
+          setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+        }, 500);
+      } else {
+        await deleteDoc(doc(db, 'tasks', taskId));
+        setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+      }
     } catch (error) {
       console.error('Error deleting task:', error);
       setError('Failed to delete task');
@@ -229,6 +251,15 @@ const TaskManager: React.FC = () => {
     setIsShareModalOpen(true);
   };
 
+  const handleButtonClick = (event: React.MouseEvent<HTMLElement>) => {
+    // Add ripple effect to button
+    const button = event.currentTarget;
+    button.classList.add('button-click');
+    setTimeout(() => {
+      button.classList.remove('button-click');
+    }, 600);
+  };
+
   const filteredTasks = selectedCategory
     ? tasks.filter(task => task.categoryId === selectedCategory)
     : tasks;
@@ -271,7 +302,10 @@ const TaskManager: React.FC = () => {
               ))}
             </ButtonGroup>
             <IconButton
-              onClick={() => setIsCategoryManagerOpen(true)}
+              onClick={(e) => {
+                handleButtonClick(e);
+                setIsCategoryManagerOpen(true);
+              }}
               title="Manage Categories"
             >
               <SettingsIcon />
@@ -280,20 +314,41 @@ const TaskManager: React.FC = () => {
 
           <Button
             variant="contained"
-            color="primary"
-            onClick={() => {
+            startIcon={<AddIcon />}
+            onClick={(e) => {
+              handleButtonClick(e);
               setSelectedTask(null);
               setIsModalOpen(true);
             }}
+            className="animate-scale-in"
           >
-            Add New Task
+            Add Task
           </Button>
         </Box>
 
         {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
+          <Box 
+            sx={{ 
+              p: 2, 
+              mb: 2, 
+              bgcolor: 'error.light', 
+              color: 'error.contrastText',
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              animation: 'shake 0.5s ease-in-out'
+            }}
+          >
+            <Typography>{error}</Typography>
+            <IconButton 
+              size="small" 
+              onClick={() => setError(null)}
+              sx={{ color: 'error.contrastText' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
         )}
 
         {view === 'list' ? (
@@ -303,7 +358,10 @@ const TaskManager: React.FC = () => {
               toggle: toggleTask,
               delete: deleteTask,
               update: handleTaskUpdate,
-              edit: handleTaskUpdate,
+              edit: (task) => {
+                setSelectedTask(task);
+                setIsModalOpen(true);
+              },
               share: handleShareClick,
             }}
             draggable={true}
@@ -315,7 +373,10 @@ const TaskManager: React.FC = () => {
               toggle: toggleTask,
               delete: deleteTask,
               update: handleTaskUpdate,
-              edit: handleTaskUpdate,
+              edit: (task) => {
+                setSelectedTask(task);
+                setIsModalOpen(true);
+              },
               share: handleShareClick,
             }}
           />

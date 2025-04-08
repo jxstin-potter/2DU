@@ -1,9 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { Task, Tag, User } from '../types';
+import { Task, Tag, User, Todo } from '../types';
 import { measureApiCall } from '../utils/performanceMonitoring';
 
 // API configuration
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.2du.app/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 const API_TIMEOUT = 30000; // 30 seconds
 
 // Create axios instance with default config
@@ -57,6 +57,29 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public data?: any
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      errorData.message || 'An error occurred',
+      response.status,
+      errorData
+    );
+  }
+  return response.json();
+}
 
 // API endpoints
 export const apiService = {
@@ -145,6 +168,44 @@ export const apiService = {
       );
     },
   },
+
+  // Todo endpoints
+  todos: {
+    getAll: () => measureApiCall('getAllTodos', async () => {
+      const response = await fetch(`${API_BASE_URL}/todos`);
+      return handleResponse<Todo[]>(response);
+    }),
+
+    create: (todo: Omit<Todo, 'id'>) => measureApiCall('createTodo', async () => {
+      const response = await fetch(`${API_BASE_URL}/todos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todo),
+      });
+      return handleResponse<Todo>(response);
+    }),
+
+    update: (todo: Todo) => measureApiCall('updateTodo', async () => {
+      const response = await fetch(`${API_BASE_URL}/todos/${todo.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todo),
+      });
+      return handleResponse<Todo>(response);
+    }),
+
+    delete: (id: string) => measureApiCall('deleteTodo', async () => {
+      const response = await fetch(`${API_BASE_URL}/todos/${id}`, {
+        method: 'DELETE',
+      });
+      return handleResponse<void>(response);
+    }),
+  },
 };
 
-export default apiService; 
+export default apiService;
+export type { ApiError }; 

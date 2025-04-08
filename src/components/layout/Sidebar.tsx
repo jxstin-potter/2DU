@@ -86,7 +86,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <Drawer
       variant="permanent"
-      className={`sidebar ${isCollapsed ? 'sidebar-collapsed' : ''}`}
       sx={{
         width: isCollapsed ? 64 : 240,
         flexShrink: 0,
@@ -99,11 +98,19 @@ const Sidebar: React.FC<SidebarProps> = ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
           }),
+          overflowX: 'hidden',
         },
       }}
     >
-      <Box className="logo-container">
-        <Box className="logo-link">
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        p: 2,
+        minHeight: 64,
+        borderBottom: `1px solid ${theme.palette.divider}`
+      }}>
+        {!isCollapsed && (
           <Typography
             variant="h6"
             sx={{
@@ -115,13 +122,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             2DU
           </Typography>
-        </Box>
-        <IconButton onClick={onToggleCollapse}>
+        )}
+        <IconButton 
+          onClick={onToggleCollapse}
+          sx={{ 
+            ml: isCollapsed ? 'auto' : 0,
+            color: theme.palette.text.secondary,
+            '&:hover': {
+              color: theme.palette.primary.main,
+            }
+          }}
+        >
           {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
         </IconButton>
       </Box>
-      
-      <Divider />
       
       {!isCollapsed && (
         <Box sx={{ p: 2 }}>
@@ -131,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </Box>
       )}
       
-      <List className="nav-list">
+      <List sx={{ px: 1 }}>
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -139,7 +153,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`nav-item ${isActive ? 'active' : ''}`}
               sx={{
                 minHeight: 48,
                 justifyContent: isCollapsed ? 'center' : 'initial',
@@ -157,6 +170,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   },
                 },
               }}
+              className={isActive ? 'active' : ''}
             >
               {isCollapsed ? (
                 <Tooltip title={item.text} placement="right">
@@ -188,7 +202,9 @@ const Sidebar: React.FC<SidebarProps> = ({
         })}
       </List>
       
-      <Box sx={{ mt: 'auto', p: 1 }}>
+      <Box sx={{ flexGrow: 1 }} />
+      
+      <List sx={{ px: 1 }}>
         <ListItem
           button
           onClick={onOpenShortcutsHelp}
@@ -198,9 +214,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             px: 2.5,
             borderRadius: 1,
             mb: 0.5,
-            '&:hover': {
-              bgcolor: 'action.hover',
-            },
           }}
         >
           {isCollapsed ? (
@@ -211,7 +224,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   justifyContent: 'center',
                 }}
               >
-                <HelpIcon />
+                <KeyboardIcon />
               </ListItemIcon>
             </Tooltip>
           ) : (
@@ -223,22 +236,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                   justifyContent: 'center',
                 }}
               >
-                <HelpIcon />
+                <KeyboardIcon />
               </ListItemIcon>
-              <ListItemText
-                primary={t('Keyboard Shortcuts')}
-                sx={{ opacity: 1 }}
-              />
+              <ListItemText primary={t('sidebar.keyboardShortcuts')} />
             </>
           )}
         </ListItem>
-      </Box>
-      
-      <Box sx={{ flexGrow: 1 }} />
-      
-      <Divider />
-      
-      <List>
+        
         <ListItem
           button
           onClick={toggleDarkMode}
@@ -251,7 +255,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           }}
         >
           {isCollapsed ? (
-            <Tooltip title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"} placement="right">
+            <Tooltip title={darkMode ? t('sidebar.lightMode') : t('sidebar.darkMode')} placement="right">
               <ListItemIcon
                 sx={{
                   minWidth: 0,
@@ -272,7 +276,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </ListItemIcon>
-              <ListItemText primary={darkMode ? "Light Mode" : "Dark Mode"} />
+              <ListItemText primary={darkMode ? t('sidebar.lightMode') : t('sidebar.darkMode')} />
             </>
           )}
         </ListItem>
@@ -288,7 +292,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           }}
         >
           {isCollapsed ? (
-            <Tooltip title="Logout" placement="right">
+            <Tooltip title={t('sidebar.logout')} placement="right">
               <ListItemIcon
                 sx={{
                   minWidth: 0,
@@ -309,7 +313,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <LogoutIcon />
               </ListItemIcon>
-              <ListItemText primary="Logout" />
+              <ListItemText primary={t('sidebar.logout')} />
             </>
           )}
         </ListItem>

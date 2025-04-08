@@ -1,11 +1,11 @@
 {
-  "name": "2DU Task Management",
+  "name": "2DU - Todo App",
   "short_name": "2DU",
-  "description": "A simple and elegant task management application",
+  "description": "A modern todo application with offline support",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4a90e2",
+  "theme_color": "#1976d2",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

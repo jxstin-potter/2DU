@@ -1,17 +1,16 @@
 import { Task, Tag } from '../types';
-
-type WebSocketEventType = 
-  | 'TASK_CREATED'
-  | 'TASK_UPDATED'
-  | 'TASK_DELETED'
-  | 'TAG_CREATED'
-  | 'TAG_UPDATED'
-  | 'TAG_DELETED';
-
-interface WebSocketEvent {
-  type: WebSocketEventType;
-  data: any;
-}
+import { store } from '../store';
+import { addTodo, updateTodo, deleteTodo } from '../store/slices/todoSlice';
+import { queryClient } from './queryClient';
+import { 
+  WebSocketEventType, 
+  WebSocketEvent, 
+  WebSocketEventData,
+  TaskCreatedEvent,
+  TaskUpdatedEvent,
+  TaskDeletedEvent,
+  ConnectionStatusEvent
+} from '../types/websocket';
 
 type EventCallback = (data: any) => void;
 
@@ -22,8 +21,15 @@ class WebSocketService {
   private maxReconnectAttempts = 5;
   private reconnectTimeout = 1000; // Start with 1 second
   private isConnecting = false;
+  private isInitialized = false;
 
   constructor() {
+    // Don't auto-connect in constructor, wait for explicit initialization
+  }
+
+  public initialize() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
     this.connect();
   }
 
@@ -38,7 +44,7 @@ class WebSocketService {
       return;
     }
 
-    const wsUrl = process.env.REACT_APP_WS_URL || 'wss://api.2du.app/ws';
+    const wsUrl = import.meta.env.VITE_WS_URL || 'wss://api.2du.app/ws';
     this.ws = new WebSocket(`${wsUrl}?token=${token}`);
 
     this.ws.onopen = () => {
@@ -46,17 +52,27 @@ class WebSocketService {
       this.reconnectAttempts = 0;
       this.reconnectTimeout = 1000;
       this.isConnecting = false;
+      
+      // Notify connection status
+      this.notifyConnectionStatus(true);
     };
 
     this.ws.onclose = () => {
       console.log('WebSocket disconnected');
       this.isConnecting = false;
+      
+      // Notify connection status
+      this.notifyConnectionStatus(false);
+      
       this.handleReconnect();
     };
 
     this.ws.onerror = (error) => {
       console.error('WebSocket error:', error);
       this.isConnecting = false;
+      
+      // Notify connection status
+      this.notifyConnectionStatus(false);
     };
 
     this.ws.onmessage = (event) => {
@@ -67,6 +83,14 @@ class WebSocketService {
         console.error('Error parsing WebSocket message:', error);
       }
     };
+  }
+
+  private notifyConnectionStatus(connected: boolean) {
+    const event: ConnectionStatusEvent = {
+      type: 'CONNECTION_STATUS',
+      data: connected
+    };
+    this.handleEvent(event);
   }
 
   private handleReconnect() {
@@ -85,6 +109,33 @@ class WebSocketService {
   }
 
   private handleEvent(event: WebSocketEvent) {
+    // Handle event with Redux store
+    switch (event.type) {
+      case 'TASK_CREATED': {
+        const taskEvent = event as TaskCreatedEvent;
+        store.dispatch(addTodo(taskEvent.data));
+        // Invalidate React Query cache to refetch data
+        queryClient.invalidateQueries({ queryKey: ['todos'] });
+        break;
+      }
+      case 'TASK_UPDATED': {
+        const taskEvent = event as TaskUpdatedEvent;
+        store.dispatch(updateTodo(taskEvent.data));
+        // Invalidate React Query cache to refetch data
+        queryClient.invalidateQueries({ queryKey: ['todos'] });
+        break;
+      }
+      case 'TASK_DELETED': {
+        const taskEvent = event as TaskDeletedEvent;
+        store.dispatch(deleteTodo(taskEvent.data.id));
+        // Invalidate React Query cache to refetch data
+        queryClient.invalidateQueries({ queryKey: ['todos'] });
+        break;
+      }
+      // Handle other event types as needed
+    }
+
+    // Also call any registered callbacks
     const handlers = this.eventHandlers.get(event.type);
     if (handlers) {
       handlers.forEach(callback => callback(event.data));
@@ -108,6 +159,7 @@ class WebSocketService {
       this.ws.close();
       this.ws = null;
     }
+    this.isInitialized = false;
   }
 }
 

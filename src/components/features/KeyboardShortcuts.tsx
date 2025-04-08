@@ -1,6 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../contexts/I18nContext';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  Typography,
+  Box,
+  useTheme,
+  Divider,
+} from '@mui/material';
 
 interface KeyboardShortcutsProps {
   onCreateTask: () => void;
@@ -21,6 +35,23 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({
 }) => {
   const navigate = useNavigate();
   const { t } = useI18n();
+  const theme = useTheme();
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  const shortcuts = [
+    { key: 'Ctrl + N', description: t('shortcuts.createTask') },
+    { key: 'Ctrl + B', description: t('shortcuts.toggleSidebar') },
+    { key: 'Ctrl + D', description: t('shortcuts.toggleDarkMode') },
+    { key: 'Ctrl + F', description: t('shortcuts.search') },
+    { key: 'Ctrl + [', description: t('shortcuts.filter') },
+    { key: 'Ctrl + ]', description: t('shortcuts.sort') },
+    { key: 'Ctrl + 1', description: t('shortcuts.today') },
+    { key: 'Ctrl + 2', description: t('shortcuts.upcoming') },
+    { key: 'Ctrl + 3', description: t('shortcuts.calendar') },
+    { key: 'Ctrl + 4', description: t('shortcuts.tags') },
+    { key: 'Ctrl + 5', description: t('shortcuts.completed') },
+    { key: 'Ctrl + 6', description: t('shortcuts.settings') },
+  ];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -76,6 +107,9 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({
           case ']':
             onSort();
             break;
+          case '?':
+            setIsHelpOpen(true);
+            break;
         }
       }
 
@@ -97,10 +131,6 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({
       // Quick navigation without modifiers
       if (!isCtrlOrCmd && !isShift && !isAlt) {
         switch (event.key) {
-          case '?':
-            // Show keyboard shortcuts help
-            // TODO: Implement help modal
-            break;
           case 'Escape':
             // Close any open modals or menus
             // TODO: Implement modal/menu closing
@@ -113,7 +143,53 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate, onCreateTask, onToggleSidebar, onToggleDarkMode, onSearch, onFilter, onSort]);
 
-  return null; // This is a utility component that doesn't render anything
+  return (
+    <>
+      <Dialog
+        open={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{t('shortcuts.title')}</DialogTitle>
+        <DialogContent>
+          <List>
+            {shortcuts.map((shortcut, index) => (
+              <React.Fragment key={shortcut.key}>
+                <ListItem>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body1">{shortcut.description}</Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            bgcolor: theme.palette.action.hover,
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1,
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          {shortcut.key}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </ListItem>
+                {index < shortcuts.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsHelpOpen(false)}>
+            {t('common.close')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
 };
 
 export default KeyboardShortcuts; 
