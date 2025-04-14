@@ -1,7 +1,14 @@
 import React from 'react';
-import { Box, CircularProgress, Typography, Skeleton } from '@mui/material';
-import '../../styles/animations.css';
-import '../../styles.css';
+import {
+  Box,
+  Skeleton,
+  Typography,
+  Button,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { t } from '../../utils/i18n';
 
 interface LoadingStateProps {
   isLoading: boolean;
@@ -18,68 +25,87 @@ const LoadingState: React.FC<LoadingStateProps> = ({
   isLoading,
   error,
   children,
-  loadingText = 'Loading...',
-  errorText = 'An error occurred. Please try again.',
+  loadingText = t('common.loading'),
+  errorText = t('error.defaultError'),
   retryAction,
   variant = 'overlay',
-  fullScreen = false
+  fullScreen = false,
 }) => {
-  // If there's an error, show error state
+  // Handle error state
   if (error) {
+    const errorMessage = typeof error === 'string' ? error : error?.message || errorText;
+    
     return (
       <Box
-        className="animate-slide-in"
         sx={{
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          p: 3,
-          textAlign: 'center',
-          height: fullScreen ? '100vh' : 'auto',
-          width: '100%'
+          p: 2,
+          animation: 'fadeIn 0.3s ease-out forwards',
         }}
       >
-        <Typography variant="h6" color="error" gutterBottom>
-          {errorText}
-        </Typography>
-        {typeof error === 'string' ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {error.message}
-          </Typography>
-        )}
-        {retryAction && (
-          <button
-            onClick={retryAction}
-            className="retry-button"
-          >
-            Try Again
-          </button>
-        )}
+        <Alert
+          severity="error"
+          action={
+            retryAction && (
+              <Button
+                color="inherit"
+                size="small"
+                onClick={retryAction}
+                startIcon={<RefreshIcon />}
+                sx={{
+                  animation: 'fadeIn 0.3s ease-out forwards',
+                }}
+              >
+                {t('error.tryAgain')}
+              </Button>
+            )
+          }
+        >
+          <Typography variant="body1">{errorMessage}</Typography>
+        </Alert>
       </Box>
     );
   }
 
-  // If loading, show loading state based on variant
+  // Handle loading state
   if (isLoading) {
     if (variant === 'skeleton') {
       return (
-        <Box className="animate-fade-in" sx={{ width: '100%' }}>
-          <Skeleton variant="rectangular" height={60} className="skeleton-loading" sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} className="skeleton-loading" sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} className="skeleton-loading" sx={{ mb: 1 }} />
-          <Skeleton variant="rectangular" height={60} className="skeleton-loading" />
+        <Box
+          sx={{
+            animation: 'slideIn 0.3s ease-out forwards',
+            width: '100%',
+          }}
+        >
+          {[...Array(4)].map((_, index) => (
+            <Skeleton
+              key={index}
+              variant="rectangular"
+              height={60}
+              sx={{
+                mb: index < 3 ? 1 : 0,
+                background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s infinite',
+                borderRadius: 1,
+              }}
+            />
+          ))}
         </Box>
       );
     }
 
     if (variant === 'inline') {
       return (
-        <Box className="animate-fade-in" sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            p: 2,
+            animation: 'fadeIn 0.3s ease-out forwards',
+          }}
+        >
           <CircularProgress size={20} sx={{ mr: 2 }} />
           <Typography variant="body2">{loadingText}</Typography>
         </Box>
@@ -89,7 +115,6 @@ const LoadingState: React.FC<LoadingStateProps> = ({
     // Default overlay variant
     return (
       <Box
-        className="animate-fade-in"
         sx={{
           position: 'absolute',
           top: 0,
@@ -102,7 +127,8 @@ const LoadingState: React.FC<LoadingStateProps> = ({
           justifyContent: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           zIndex: 1000,
-          height: fullScreen ? '100vh' : '100%'
+          height: fullScreen ? '100vh' : '100%',
+          animation: 'fadeIn 0.3s ease-out forwards',
         }}
       >
         <CircularProgress size={40} sx={{ mb: 2 }} />
@@ -111,7 +137,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
     );
   }
 
-  // If not loading and no error, render children
+  // Render children when not loading and no error
   return <>{children}</>;
 };
 

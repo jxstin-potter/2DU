@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -9,9 +9,49 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  styled,
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+
+// Styled TextField component with enhanced autofill fixes
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  marginBottom: '16px',
+  '& .MuiInputBase-root': {
+    position: 'relative',
+    minHeight: '56px', // Ensure consistent height
+  },
+  '& .MuiInputBase-input': {
+    padding: '16px 14px', // Consistent padding
+    '&:-webkit-autofill': {
+      // Better autofill styling
+      WebkitBoxShadow: theme.palette.mode === 'dark' 
+        ? '0 0 0 100px #333 inset' 
+        : '0 0 0 100px #f5f5f5 inset',
+      WebkitTextFillColor: theme.palette.text.primary,
+      caretColor: theme.palette.primary.main,
+      borderRadius: 'inherit',
+      // Longer transition to ensure it stays applied
+      transition: 'background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    // Ensure label transitions properly with autofilled inputs
+    '&.MuiFormLabel-filled': {
+      transform: 'translate(14px, -9px) scale(0.75)',
+    },
+    // Fix animation for smoother transition
+    transition: theme.transitions.create(['transform', 'color'], {
+      duration: theme.transitions.duration.shorter,
+      easing: theme.transitions.easing.easeOut,
+    }),
+  },
+  // Special handling for autofilled state
+  '& .MuiInputBase-input:-webkit-autofill + .MuiInputLabel-root': {
+    transform: 'translate(14px, -9px) scale(0.75)',
+    color: theme.palette.primary.main,
+  },
+}));
 
 const AuthForm: React.FC = () => {
   const { login, signup } = useAuth();
@@ -24,6 +64,32 @@ const AuthForm: React.FC = () => {
     password: '',
     name: '',
   });
+  
+  // Force update on mounted to handle autofill
+  useEffect(() => {
+    // Force a re-render after a short delay to handle autofill
+    const timer = setTimeout(() => {
+      // This forces the component to recognize autofilled fields
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => {
+        const value = input.value;
+        // Trigger change event if the input has a value
+        if (value) {
+          const event = new Event('input', { bubbles: true });
+          input.dispatchEvent(event);
+          // Update our state if the input has a name that matches our form fields
+          if (input.name && input.name in formData) {
+            setFormData(prev => ({
+              ...prev,
+              [input.name]: value
+            }));
+          }
+        }
+      });
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const validateForm = () => {
     if (!formData.email || !formData.password) {
@@ -135,38 +201,38 @@ const AuthForm: React.FC = () => {
 
         <form onSubmit={handleSubmit}>
           {!isLogin && (
-            <TextField
+            <StyledTextField
               fullWidth
               label="Name"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              margin="normal"
               required
               disabled={isLoading}
+              variant="outlined"
             />
           )}
-          <TextField
+          <StyledTextField
             fullWidth
             label="Email"
             name="email"
             type="email"
             value={formData.email}
             onChange={handleChange}
-            margin="normal"
             required
             disabled={isLoading}
+            variant="outlined"
           />
-          <TextField
+          <StyledTextField
             fullWidth
             label="Password"
             name="password"
             type="password"
             value={formData.password}
             onChange={handleChange}
-            margin="normal"
             required
             disabled={isLoading}
+            variant="outlined"
           />
           <Button
             type="submit"
@@ -178,7 +244,7 @@ const AuthForm: React.FC = () => {
             {isLoading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              isLogin ? 'Login' : 'Sign Up'
+              isLogin ? 'Sign In' : 'Sign Up'
             )}
           </Button>
         </form>

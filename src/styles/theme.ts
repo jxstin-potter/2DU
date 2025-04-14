@@ -210,8 +210,81 @@ const shape = {
   borderRadius: 8,
 };
 
-// Define components
+// Define animation keyframes
+export const keyframes = {
+  completeTask: `
+    0% { opacity: 1; transform: translateX(0); }
+    40% { opacity: 0.7; transform: translateX(5px); }
+    100% { opacity: 0; transform: translateX(20px); }
+  `,
+  uncompleteTask: `
+    0% { opacity: 0; transform: translateX(20px); }
+    100% { opacity: 1; transform: translateX(0); }
+  `,
+  checkmarkAppear: `
+    0% { opacity: 0; transform: scale(0); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
+  `,
+  checkboxPulse: `
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  `,
+  fadeIn: `
+    from { opacity: 0; }
+    to { opacity: 1; }
+  `,
+  slideIn: `
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  `,
+  scaleIn: `
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  `,
+  shake: `
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  `,
+  statusChange: `
+    0% { background-color: transparent; }
+    50% { background-color: rgba(16, 185, 129, 0.1); }
+    100% { background-color: transparent; }
+  `,
+};
+
+// Define component styles
 const components = {
+  MuiCssBaseline: {
+    styleOverrides: (theme) => ({
+      body: {
+        backgroundColor: theme.palette.mode === 'dark' ? colors.neutral[900] : colors.neutral[50],
+        color: theme.palette.mode === 'dark' ? colors.neutral[100] : colors.neutral[900],
+        fontFamily: typography.fontFamily,
+        lineHeight: 1.6,
+        margin: 0,
+        padding: 0,
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        fontSize: '14px',
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+      },
+      // Reset and base styles
+      '*': {
+        margin: 0,
+        padding: 0,
+        boxSizing: 'border-box',
+      },
+      a: {
+        textDecoration: 'none',
+        color: 'inherit',
+      },
+    }),
+  },
   MuiButton: {
     styleOverrides: {
       root: {
@@ -248,104 +321,303 @@ const components = {
       root: {
         '& .MuiOutlinedInput-root': {
           borderRadius: 8,
+          '& fieldset': {
+            borderColor: 'rgba(0, 0, 0, 0.1)',
+          },
+          '&:hover fieldset': {
+            borderColor: 'rgba(0, 0, 0, 0.2)',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: colors.primary.main,
+          },
         },
+      },
+    },
+  },
+  MuiCheckbox: {
+    styleOverrides: {
+      root: {
+        color: colors.primary.main,
+      },
+    },
+  },
+  MuiSwitch: {
+    styleOverrides: {
+      root: {
+        width: 42,
+        height: 26,
+        padding: 0,
+        margin: 8,
+      },
+      switchBase: {
+        padding: 1,
+        '&.Mui-checked': {
+          transform: 'translateX(16px)',
+          color: '#fff',
+          '& + .MuiSwitch-track': {
+            backgroundColor: colors.primary.main,
+            opacity: 1,
+            border: 'none',
+          },
+        },
+        '&.Mui-focusVisible .MuiSwitch-thumb': {
+          color: colors.primary.main,
+          border: '6px solid #fff',
+        },
+      },
+      thumb: {
+        width: 24,
+        height: 24,
+      },
+      track: {
+        borderRadius: 26 / 2,
+        border: `1px solid ${colors.neutral[400]}`,
+        backgroundColor: colors.neutral[300],
+        opacity: 1,
+        transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+    },
+  },
+  MuiList: {
+    styleOverrides: {
+      root: {
+        padding: 0,
+      },
+    },
+  },
+  MuiListItem: {
+    styleOverrides: {
+      root: {
+        borderRadius: 8,
+        '&:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.04)',
+        },
+      },
+    },
+  },
+  MuiTabs: {
+    styleOverrides: {
+      root: {
+        minHeight: '48px',
+        borderBottom: `1px solid rgba(0, 0, 0, 0.1)`,
+      },
+      indicator: {
+        height: 3,
+        borderTopLeftRadius: 3,
+        borderTopRightRadius: 3,
+      },
+    },
+  },
+  MuiTab: {
+    styleOverrides: {
+      root: {
+        textTransform: 'none',
+        minHeight: '48px',
+        fontWeight: 500,
+      },
+    },
+  },
+  MuiIconButton: {
+    styleOverrides: {
+      root: {
+        borderRadius: 8,
+      },
+    },
+  },
+  MuiAvatar: {
+    styleOverrides: {
+      root: {
+        backgroundColor: colors.primary.main,
       },
     },
   },
   MuiChip: {
     styleOverrides: {
       root: {
-        borderRadius: 16,
+        borderRadius: '6px',
+        fontWeight: 500,
       },
     },
   },
-  MuiFab: {
+  MuiDivider: {
     styleOverrides: {
       root: {
-        borderRadius: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
       },
     },
   },
-  MuiAppBar: {
+  MuiTooltip: {
     styleOverrides: {
-      root: {
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+      tooltip: {
+        backgroundColor: colors.neutral[900],
+        borderRadius: 4,
+        fontSize: '0.75rem',
+        padding: '8px 12px',
       },
     },
   },
 };
 
-// Create light theme
-export const lightTheme = createTheme({
+// Create theme for light mode
+const lightTheme = createTheme({
   palette: {
     mode: 'light',
     primary: colors.primary,
     secondary: colors.secondary,
-    error: colors.error,
-    warning: colors.warning,
-    info: colors.info,
-    success: colors.success,
+    success: {
+      main: colors.success.main,
+      light: colors.success.light,
+      dark: colors.success.dark,
+    },
+    warning: {
+      main: colors.warning.main,
+      light: colors.warning.light,
+      dark: colors.warning.dark,
+    },
+    error: {
+      main: colors.error.main,
+      light: colors.error.light,
+      dark: colors.error.dark,
+    },
+    info: {
+      main: colors.info.main,
+      light: colors.info.light,
+      dark: colors.info.dark,
+    },
     background: {
       default: colors.neutral[50],
-      paper: '#ffffff',
+      paper: '#FFFFFF',
     },
     text: {
       primary: colors.neutral[900],
-      secondary: colors.neutral[700],
+      secondary: colors.neutral[600],
     },
-    divider: colors.neutral[200],
+    divider: 'rgba(0, 0, 0, 0.08)',
   },
   typography,
   spacing,
   breakpoints,
+  shape,
   shadows,
   transitions,
   zIndex,
-  shape,
   components,
 });
 
-// Create dark theme
-export const darkTheme = createTheme({
+// Create theme for dark mode
+const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: colors.primary,
     secondary: colors.secondary,
-    error: colors.error,
-    warning: colors.warning,
-    info: colors.info,
-    success: colors.success,
+    success: {
+      main: colors.success.main,
+      light: colors.success.light,
+      dark: colors.success.dark,
+    },
+    warning: {
+      main: colors.warning.main,
+      light: colors.warning.light,
+      dark: colors.warning.dark,
+    },
+    error: {
+      main: colors.error.main,
+      light: colors.error.light,
+      dark: colors.error.dark,
+    },
+    info: {
+      main: colors.info.main,
+      light: colors.info.light,
+      dark: colors.info.dark,
+    },
     background: {
-      default: colors.neutral[900],
-      paper: colors.neutral[800],
+      default: '#191919',
+      paper: '#2d2d2d',
     },
     text: {
-      primary: colors.neutral[50],
-      secondary: colors.neutral[300],
+      primary: colors.neutral[100],
+      secondary: colors.neutral[400],
     },
-    divider: colors.neutral[700],
+    divider: 'rgba(255, 255, 255, 0.08)',
   },
   typography,
   spacing,
   breakpoints,
+  shape,
   shadows,
   transitions,
   zIndex,
-  shape,
   components,
 });
 
-// Export theme options for reuse
-export const themeOptions: ThemeOptions = {
-  typography,
-  spacing,
-  breakpoints,
-  shadows,
-  transitions,
-  zIndex,
-  shape,
-  components,
+// Export theme based on mode
+export const getTheme = (mode: 'light' | 'dark') => {
+  const baseTheme: ThemeOptions = {
+    palette: {
+      mode,
+      primary: {
+        main: mode === 'light' ? '#1976d2' : '#90caf9',
+      },
+      secondary: {
+        main: mode === 'light' ? '#dc004e' : '#f48fb1',
+      },
+      background: {
+        default: mode === 'light' ? '#f5f5f5' : '#121212',
+        paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
+      },
+      text: {
+        primary: mode === 'light' ? 'rgba(0, 0, 0, 0.87)' : '#ffffff',
+        secondary: mode === 'light' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+      },
+    },
+    typography: {
+      fontFamily: [
+        '-apple-system',
+        'BlinkMacSystemFont',
+        '"Segoe UI"',
+        'Roboto',
+        '"Helvetica Neue"',
+        'Arial',
+        'sans-serif',
+        '"Apple Color Emoji"',
+        '"Segoe UI Emoji"',
+        '"Segoe UI Symbol"',
+      ].join(','),
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            scrollbarColor: mode === 'light' ? '#6b6b6b #2b2b2b' : '#2b2b2b #6b6b6b',
+            '&::-webkit-scrollbar, & *::-webkit-scrollbar': {
+              backgroundColor: mode === 'light' ? '#f5f5f5' : '#121212',
+            },
+            '&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb': {
+              borderRadius: 8,
+              backgroundColor: mode === 'light' ? '#6b6b6b' : '#2b2b2b',
+              minHeight: 24,
+              border: mode === 'light' ? '3px solid #f5f5f5' : '3px solid #121212',
+            },
+            '&::-webkit-scrollbar-thumb:focus, & *::-webkit-scrollbar-thumb:focus': {
+              backgroundColor: mode === 'light' ? '#2b2b2b' : '#6b6b6b',
+            },
+            '&::-webkit-scrollbar-thumb:active, & *::-webkit-scrollbar-thumb:active': {
+              backgroundColor: mode === 'light' ? '#2b2b2b' : '#6b6b6b',
+            },
+            '&::-webkit-scrollbar-thumb:hover, & *::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: mode === 'light' ? '#2b2b2b' : '#6b6b6b',
+            },
+            '&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner': {
+              backgroundColor: mode === 'light' ? '#f5f5f5' : '#121212',
+            },
+          },
+        },
+      },
+    },
+  };
+
+  return createTheme(baseTheme);
 };
 
-// Export colors for direct use
-export { colors }; 
+export { colors, typography, spacing, breakpoints, shape, shadows, transitions, zIndex };
+export default getTheme; 

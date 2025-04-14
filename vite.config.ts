@@ -1,13 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { splitVendorChunkPlugin } from 'vite'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
-    splitVendorChunkPlugin()
+    react()
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   optimizeDeps: {
     include: [
       '@mui/material',
@@ -36,21 +40,19 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': [
-            'react',
-            'react-dom',
-            'react-router-dom',
-            'firebase'
-          ],
-          'mui': [
-            '@mui/material',
-            '@mui/icons-material',
-            '@mui/x-date-pickers'
-          ],
-          'utils': [
-            'date-fns'
-          ]
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@mui')) {
+              return 'mui'
+            }
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom') || id.includes('firebase')) {
+              return 'vendor'
+            }
+            if (id.includes('date-fns')) {
+              return 'utils'
+            }
+            return 'vendor'
+          }
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
@@ -62,6 +64,9 @@ export default defineConfig({
   },
   server: {
     port: 4000,
-    strictPort: false
+    strictPort: true,
+    hmr: {
+      port: 4000
+    }
   }
 })

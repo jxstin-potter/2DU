@@ -1,6 +1,7 @@
 /* Global Styles for 2DU Task Management */
 
-/* Base styles */
+/* ========== CSS RESET & FALLBACK STYLES ========== */
+/* These are minimal styles that will be overridden by MUI's CssBaseline */
 * {
   margin: 0;
   padding: 0;
@@ -14,325 +15,124 @@ body {
   line-height: 1.5;
 }
 
-/* App container */
-.app-container {
-  display: flex;
-  min-height: 100vh;
+/* ========== CUSTOM ANIMATIONS ========== */
+/* These animations complement MUI transitions */
+@keyframes complete-task {
+  0% { opacity: 1; transform: translateX(0); }
+  40% { opacity: 0.7; transform: translateX(5px); }
+  100% { opacity: 0; transform: translateX(20px); }
 }
 
-/* Sidebar styles */
-.sidebar {
-  width: 240px;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 10;
-  transition: width 0.3s ease;
-  border-right: 1px solid var(--divider);
+@keyframes uncomplete-task {
+  0% { opacity: 0; transform: translateX(20px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
-.sidebar-collapsed {
-  width: 64px;
+@keyframes checkmark-appear {
+  0% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
-/* Logo styles */
-.logo-container {
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+@keyframes checkbox-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-.logo-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: var(--text-primary);
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.logo-link h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-left: 0.5rem;
-  background: linear-gradient(135deg, var(--primary-main), var(--secondary-main));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.logo-subtitle {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
-/* Navigation styles */
-.nav-list {
-  list-style: none;
-  padding: 0.5rem;
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.nav-item {
-  margin-bottom: 0.25rem;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-.nav-link {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
 }
 
-.nav-link:hover {
-  background-color: var(--hover);
-  color: var(--text-primary);
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
 }
 
-.nav-link.active {
-  background-color: var(--primary-main);
-  color: white;
+@keyframes statusChange {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(16, 185, 129, 0.1); }
+  100% { background-color: transparent; }
 }
 
-.nav-icon {
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
+/* ========== UTILITY CLASSES ========== */
+/* These classes apply animations or utility styles */
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
 }
 
-/* Main content */
-.main-content {
-  flex: 1;
-  margin-left: 240px;
-  padding: 2rem;
-  transition: margin-left 0.3s ease;
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
-.main-content-collapsed {
-  margin-left: 64px;
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
 }
 
-/* Task styles */
-.task-container {
-  margin-bottom: 1rem;
+.animate-checkmark {
+  animation: checkmark-appear 0.3s ease-out forwards;
 }
 
-.task-item {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  background-color: var(--paper);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-  border: 1px solid var(--divider);
+.animate-pulse {
+  animation: pulse 1s infinite;
 }
 
-.task-item:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
-.task-checkbox {
-  margin-right: 1rem;
+.animate-status-change {
+  animation: statusChange 0.5s ease-in-out;
 }
 
-.task-content {
-  flex: 1;
+.checkmark-animate {
+  animation: checkmark-appear 0.3s ease-out forwards;
 }
 
-.task-title {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  color: var(--text-primary);
+.skeleton-loading {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.1), 
+    rgba(255, 255, 255, 0.2), 
+    rgba(255, 255, 255, 0.1)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
 }
 
-.task-description {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
+.user-select-none {
+  user-select: none;
 }
 
-.task-meta {
-  display: flex;
-  align-items: center;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.task-date {
-  margin-right: 1rem;
-}
-
-.task-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.task-tag {
-  padding: 0.25rem 0.5rem;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: white;
-}
-
-.task-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Button styles */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  outline: none;
-}
-
-.btn-primary {
-  background-color: var(--primary-main);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-dark);
-}
-
-.btn-secondary {
-  background-color: var(--secondary-main);
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: var(--secondary-dark);
-}
-
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid var(--divider);
-  color: var(--text-primary);
-}
-
-.btn-outline:hover {
-  background-color: var(--hover);
-}
-
-.btn-icon {
-  padding: 0.5rem;
-  border-radius: 50%;
-}
-
-/* Form styles */
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--divider);
-  background-color: var(--input-bg);
-  color: var(--text-primary);
-  transition: all 0.2s ease;
-}
-
-.form-control:focus {
-  border-color: var(--primary-main);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-/* Card styles */
-.card {
-  background-color: var(--paper);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid var(--divider);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Empty state */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-.empty-state-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: var(--text-secondary);
-}
-
-.empty-state-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
-.empty-state-description {
-  font-size: 0.875rem;
-  max-width: 400px;
-}
-
-/* Responsive styles */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 64px;
-  }
-  
-  .main-content {
-    margin-left: 64px;
-  }
-  
-  .logo-subtitle,
-  .nav-link span {
-    display: none;
-  }
-  
-  .nav-icon {
-    margin-right: 0;
-  }
-}
-
-/* Accessibility */
+/* ========== ACCESSIBILITY ========== */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -345,24 +145,12 @@ body {
   border-width: 0;
 }
 
-/* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--primary-main);
+  outline: 2px solid #2eaadc;
   outline-offset: 2px;
 }
 
-/* High contrast mode */
-.high-contrast {
-  --primary-main: #0066cc;
-  --primary-dark: #004c99;
-  --text-primary: #000000;
-  --text-secondary: #333333;
-  --paper: #ffffff;
-  --hover: #f0f0f0;
-  --divider: #000000;
-}
-
-/* Reduced motion */
+/* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -370,4 +158,66 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-} 
+  
+  .animate-slide-in,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-checkmark,
+  .animate-pulse,
+  .animate-shake,
+  .animate-status-change,
+  .checkmark-animate {
+    animation: none !important;
+  }
+  
+  .transition-all,
+  .transition-transform,
+  .transition-opacity {
+    transition: none !important;
+  }
+}
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 64px !important;
+  }
+  
+  .main-content {
+    margin-left: 64px !important;
+  }
+}
+
+/* Collapsible Sidebar Styles */
+.sidebar-collapsed {
+  width: 64px !important;
+  transition: width 0.3s ease;
+}
+
+.sidebar-expanded {
+  width: 240px !important;
+  transition: width 0.3s ease;
+}
+
+.main-content-collapsed {
+  margin-left: 64px !important;
+  width: calc(100% - 64px) !important;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.main-content-expanded {
+  margin-left: 240px !important;
+  width: calc(100% - 240px) !important;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* Mobile styles */
+@media (max-width: 600px) {
+  .main-content-collapsed,
+  .main-content-expanded {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+/* Any remaining specific utility classes that aren't covered by MUI */ 

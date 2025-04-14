@@ -1,160 +1,84 @@
+import { logger } from './logger';
+
 /**
- * Error logging utility for the 2DU Task Management application
- * This provides a centralized way to log errors and send them to monitoring services
+ * Enhanced error logging utility
+ * Provides structured error logging with context and severity levels
  */
 
-// Error severity levels
-export enum ErrorSeverity {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical'
-}
-
-// Error context interface
-export interface ErrorContext {
-  componentName?: string;
-  actionName?: string;
+interface ErrorContext {
+  component?: string;
+  service?: string;
+  hook?: string;
+  action?: string;
   userId?: string;
-  additionalData?: Record<string, any>;
-}
-
-interface ErrorLogData {
-  componentName: string;
-  actionName: string;
-  userId?: string;
-  additionalData?: Record<string, any>;
+  taskId?: string;
+  [key: string]: any;
 }
 
 /**
- * Simple error logging utility for development
+ * Log an error with additional context and severity level
+ * 
+ * In a production app, this would typically send the error to a logging service
+ * while maintaining the same structured format
  */
+export const logError = (
+  error: Error,
+  message: string,
+  context: ErrorContext = {},
+  severity: 'error' | 'warn' | 'info' = 'error'
+) => {
+  const errorContext = {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+    ...context
+  };
 
-export const logError = (error: Error, message: string, context?: Record<string, any>) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error:', {
-      message,
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
-      context,
-    });
-  }
-};
-
-export const logWarning = (message: string, context?: Record<string, any>) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.warn('Warning:', { message, context });
+  switch (severity) {
+    case 'error':
+      logger.error(message, errorContext);
+      break;
+    case 'warn':
+      logger.warn(message, errorContext);
+      break;
+    case 'info':
+      logger.info(message, errorContext);
+      break;
   }
 };
 
 /**
- * Retrieves stored error logs
- * @returns Array of error logs
+ * Log a component error with context
  */
-export const getErrorLogs = (): any[] => {
-  try {
-    return JSON.parse(localStorage.getItem('errorLogs') || '[]');
-  } catch (e) {
-    console.error('Failed to retrieve error logs:', e);
-    return [];
-  }
+export const logComponentError = (
+  error: Error,
+  componentName: string,
+  message: string,
+  context: Omit<ErrorContext, 'component'> = {}
+) => {
+  logError(error, message, { component: componentName, ...context });
 };
 
 /**
- * Clears all stored error logs
+ * Log a service error with context
  */
-export const clearErrorLogs = () => {
-  try {
-    localStorage.removeItem('errorLogs');
-  } catch (e) {
-    console.error('Failed to clear error logs:', e);
-  }
+export const logServiceError = (
+  error: Error,
+  serviceName: string,
+  message: string,
+  context: Omit<ErrorContext, 'service'> = {}
+) => {
+  logError(error, message, { service: serviceName, ...context });
 };
 
-// Firebase-specific error logging
-export const logFirebaseError = (
+/**
+ * Log a hook error with context
+ */
+export const logHookError = (
   error: Error,
-  operation: string,
-  context?: ErrorContext
-): void => {
-  logError(
-    error,
-    ErrorSeverity.HIGH,
-    {
-      ...context,
-      actionName: `firebase_${operation}`,
-      additionalData: {
-        ...context?.additionalData,
-        firebaseErrorCode: (error as any).code,
-        firebaseErrorMessage: (error as any).message
-      }
-    }
-  );
-};
-
-// API error logging
-export const logApiError = (
-  error: Error,
-  endpoint: string,
-  method: string,
-  context?: ErrorContext
-): void => {
-  logError(
-    error,
-    ErrorSeverity.MEDIUM,
-    {
-      ...context,
-      actionName: `api_${method.toLowerCase()}_${endpoint.replace(/\//g, '_')}`,
-      additionalData: {
-        ...context?.additionalData,
-        endpoint,
-        method
-      }
-    }
-  );
-};
-
-// Authentication error logging
-export const logAuthError = (
-  error: Error,
-  action: string,
-  context?: ErrorContext
-): void => {
-  logError(
-    error,
-    ErrorSeverity.HIGH,
-    {
-      ...context,
-      actionName: `auth_${action}`,
-      additionalData: {
-        ...context?.additionalData,
-        authAction: action
-      }
-    }
-  );
-};
-
-// Task operation error logging
-export const logTaskError = (
-  error: Error,
-  operation: string,
-  taskId?: string,
-  context?: ErrorContext
-): void => {
-  logError(
-    error,
-    ErrorSeverity.MEDIUM,
-    {
-      ...context,
-      actionName: `task_${operation}`,
-      additionalData: {
-        ...context?.additionalData,
-        taskId,
-        operation
-      }
-    }
-  );
+  hookName: string,
+  message: string,
+  context: Omit<ErrorContext, 'hook'> = {}
+) => {
+  logError(error, message, { hook: hookName, ...context });
 }; 

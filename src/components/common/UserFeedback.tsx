@@ -1,6 +1,5 @@
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { Snackbar, Alert, AlertTitle, Button, Box, Typography } from '@mui/material';
-import { analytics } from '../../utils/analytics';
 
 // Feedback types
 export enum FeedbackType {
@@ -53,11 +52,11 @@ export const FeedbackProvider: React.FC<FeedbackProviderProps> = ({ children }) 
 
     setFeedbacks((prev) => [...prev, newFeedback]);
 
-    // Track feedback in analytics
-    analytics.trackEvent(analytics.AnalyticsEventType.FEATURE_USED, {
-      featureName: 'user_feedback',
+    // Track feedback with console log instead of analytics
+    console.log('User Feedback:', {
       feedbackType: feedback.type,
       feedbackTitle: feedback.title,
+      feedbackMessage: feedback.message
     });
 
     // Auto-hide after duration
