@@ -79,6 +79,7 @@ const translations: Translations = {
     'settings.accessibility.focusVisibleDescription': 'Enhance the visibility of focused elements',
     'settings.accessibility.screenReader': 'Screen Reader Mode',
     'settings.accessibility.screenReaderDescription': 'Optimize the application for screen readers',
+    'settings.theme.toggle': 'Toggle Theme',
     
     // Sidebar
     'sidebar.today': 'Today',
@@ -90,7 +91,9 @@ const translations: Translations = {
     'sidebar.settings': 'Settings',
     'sidebar.welcome': 'Welcome, {userName}',
     'sidebar.user': 'User',
-    'sidebar.keyboardShortcuts': 'Keyboard Shortcuts',
+    
+    // Shortcuts
+    'shortcuts.title': 'Keyboard Shortcuts',
     
     // Authentication
     'auth.login': 'Login',
@@ -170,6 +173,22 @@ const translations: Translations = {
     'a11y.focusVisible': 'Focus Visible',
     'a11y.screenReaderOnly': 'Screen Reader Only',
     'a11y.resetAllSettings': 'Reset All Settings',
+    
+    // Error states
+    'error.somethingWentWrong': 'Something went wrong',
+    'error.unexpectedError': 'An unexpected error occurred',
+    'error.reloadPage': 'Reload Page',
+    'error.tryAgain': 'Try Again',
+    'error.pageLoadFailed': 'Error loading page. Please refresh.',
+    'common.loading': 'Loading...',
+    'error.defaultError': 'An error occurred. Please try again.',
+    
+    // Task Dialog
+    'task.dialog.titleRequired': 'Title is required',
+    'task.dialog.description': 'Description (optional)',
+    'task.dialog.taskTitle': 'Task Title',
+    'common.cancel': 'Cancel',
+    'common.save': 'Save',
   },
   es: {
     // Spanish translations (partial example)

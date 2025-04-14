@@ -1,223 +1,110 @@
-# 2DU - Task Management App
+# 2DU Task Manager - MVP
 
-A modern, responsive task management application built with React, TypeScript, and Material-UI.
+A simple task management application built with React, TypeScript, and Firebase.
 
-## Features
+## Features (MVP)
 
-- 📱 Responsive design with collapsible sidebar
-- 🌓 Dark/Light mode support
-- 🔐 User authentication
-- 📅 Multiple views (Today, Upcoming, Calendar, Tags, Completed)
-- 🎨 Beautiful Material-UI components
-- 📦 Drag and drop task reordering
-- 🏷️ Tag-based task organization
-- 📝 Rich task details (title, description, due date, tags)
-- 📊 Task analytics and reporting
-- 🔄 Real-time updates
-- 📤 Import/Export functionality
-- 🔍 Advanced search and filtering
-- 📱 PWA support
+- User Authentication (signup/login/logout)
+- Create Tasks with title and description
+- List Tasks in a simple UI
+- Mark Tasks as completed
+- Delete Tasks
+- Dark/Light theme toggle
 
-## Tech Stack
-
-- React 18
-- TypeScript 5
-- Material-UI 5
-- React Router 6
-- React Beautiful DnD
-- Date-fns
-- Firebase (Authentication, Firestore)
-- Vite
-- Jest & Cypress for testing
-- Sentry for error tracking
-- Analytics integration
-
-## Getting Started
+## Setup Instructions
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- npm (v8 or higher) or yarn (v1.22 or higher)
+- Node.js (v14 or later)
+- npm or yarn
 - Firebase account
+
+### Firebase Setup
+
+1. Create a new Firebase project at https://console.firebase.google.com/
+2. Enable Email/Password Authentication:
+   - Go to Authentication > Sign-in method > Email/Password > Enable
+3. Create a Firestore database:
+   - Go to Firestore Database > Create database
+   - Start in production mode
+   - Choose a location close to your users
+
+### Environment Variables
+
+Create a `.env` file in the root of the project with the following variables:
+
+```
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+```
+
+Replace all values with your Firebase project settings found in the Firebase console under Project settings > General > Your apps > Firebase SDK snippet > Config.
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/2du.git
-cd 2du
-```
-
+1. Clone the repository
 2. Install dependencies:
-```bash
-npm install
-# or
-yarn install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-Edit the `.env` file with your Firebase configuration and other required variables.
-
-4. Start the development server:
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-5. Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## Environment Variables
-
-The following environment variables are required:
-
-```env
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-
-# Sentry Configuration
-VITE_SENTRY_DSN=your_sentry_dsn
-
-# Analytics Configuration
-VITE_ANALYTICS_ID=your_analytics_id
-
-# Application Configuration
-VITE_APP_NAME=2DU
-VITE_APP_VERSION=1.0.0
-```
+   ```
+   npm install
+   ```
+   or
+   ```
+   yarn
+   ```
+3. Start the development server:
+   ```
+   npm run dev
+   ```
+   or
+   ```
+   yarn dev
+   ```
+4. Open http://localhost:5173 in your browser
 
 ## Deployment
 
-### Production Build
+To build the application for production:
 
-1. Create a production build:
-```bash
+```
 npm run build
-# or
+```
+
+or
+
+```
 yarn build
 ```
 
-2. Preview the production build:
-```bash
-npm run preview
-# or
-yarn preview
-```
+The built files will be in the `dist` folder.
 
-### Firebase Deployment
+## CSS Architecture
 
-1. Install Firebase CLI:
-```bash
-npm install -g firebase-tools
-```
+The application uses a well-structured CSS approach:
 
-2. Login to Firebase:
-```bash
-firebase login
-```
+- **Global Stylesheet**: All general styles (resets, variables, base typography, animations, and utility classes) are consolidated in `src/styles/global.css`, which is imported in the root component.
 
-3. Initialize Firebase:
-```bash
-firebase init
-```
+- **CSS Modules**: Component-specific styles are implemented using CSS Modules (`.module.css` files) to ensure style encapsulation and prevent class name collisions. This approach is used for reusable components like `CustomCheckbox` and `EmptyState`.
 
-4. Deploy to Firebase:
-```bash
-firebase deploy
-```
+- **MUI Integration**: The app uses Material UI (MUI) components with a customized theme defined in `src/styles/theme.ts`. This allows for consistent styling across components while leveraging MUI's component library.
 
-## Testing
+- **CSS Variables**: Theme colors, spacing, and other design tokens are defined as CSS variables in the global stylesheet, allowing for easy theming and consistent styling.
 
-### Unit Tests
+- **Animation System**: Keyframe animations and animation utility classes are centralized in the global stylesheet, promoting reuse and consistency.
 
-Run unit tests:
-```bash
-npm test
-# or
-yarn test
-```
+- **Responsive Design**: The stylesheet includes responsive breakpoints and utilities to ensure the application works well on different screen sizes.
 
-### End-to-End Tests
+## Future Improvements (Beyond MVP)
 
-Run E2E tests:
-```bash
-npm run test:e2e
-# or
-yarn test:e2e
-```
-
-### Test Coverage
-
-Generate test coverage report:
-```bash
-npm run test:coverage
-# or
-yarn test:coverage
-```
-
-## Project Structure
-
-```
-src/
-├── components/          # React components
-│   ├── routes/         # Route components
-│   ├── AuthForm.tsx    # Authentication form
-│   ├── Sidebar.tsx     # Navigation sidebar
-│   ├── TaskList.tsx    # Task list component
-│   └── TaskModal.tsx   # Task creation/editing modal
-├── contexts/           # React contexts
-│   ├── AuthContext.tsx # Authentication context
-│   └── ThemeContext.tsx # Theme context
-├── hooks/              # Custom React hooks
-├── utils/              # Utility functions
-│   ├── analytics.ts    # Analytics integration
-│   ├── errorReporting.ts # Error reporting
-│   └── sentry.ts       # Sentry integration
-├── types/              # TypeScript type definitions
-├── styles/             # Global styles
-├── assets/             # Static assets
-└── App.tsx            # Main application component
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Firebase Authentication Issues**
-   - Verify Firebase configuration in `.env`
-   - Check Firebase Console for authentication settings
-   - Ensure proper CORS configuration
-
-2. **Build Issues**
-   - Clear node_modules and reinstall dependencies
-   - Check for version conflicts in package.json
-   - Verify TypeScript configuration
-
-3. **Testing Issues**
-   - Clear Jest cache: `npm test -- --clearCache`
-   - Update Cypress: `npx cypress update`
-   - Check test environment variables
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support, please open an issue in the GitHub repository or contact the maintainers.
+- Subtasks
+- Due dates
+- Priority levels
+- Tags/Categories
+- Task filtering
+- Task attachments
+- Task sharing
+- Mobile responsiveness improvements
+- Advanced analytics

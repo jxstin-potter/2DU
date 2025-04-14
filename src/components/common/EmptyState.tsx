@@ -1,11 +1,12 @@
 import React from 'react';
-import { Box, Typography, Button, useTheme, alpha } from '@mui/material';
+import { useTheme, Typography, Button, Box, SxProps, Theme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import InboxIcon from '@mui/icons-material/Inbox';
 import EventIcon from '@mui/icons-material/Event';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LabelIcon from '@mui/icons-material/Label';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import styles from './EmptyState.module.css';
 
 interface EmptyStateProps {
   type: 'today' | 'upcoming' | 'completed' | 'tags' | 'calendar';
@@ -15,20 +16,44 @@ interface EmptyStateProps {
 const EmptyState: React.FC<EmptyStateProps> = ({ type, onCreateTask }) => {
   const theme = useTheme();
   
-  const getIcon = () => {
+  const getIconContainerClass = () => {
     switch (type) {
       case 'today':
-        return <InboxIcon sx={{ fontSize: 60, color: theme.palette.primary.main }} />;
+        return styles.iconToday;
       case 'upcoming':
-        return <EventIcon sx={{ fontSize: 60, color: theme.palette.primary.main }} />;
+        return styles.iconUpcoming;
       case 'completed':
-        return <CheckCircleIcon sx={{ fontSize: 60, color: theme.palette.success.main }} />;
+        return styles.iconCompleted;
       case 'tags':
-        return <LabelIcon sx={{ fontSize: 60, color: theme.palette.primary.main }} />;
+        return styles.iconTags;
       case 'calendar':
-        return <CalendarMonthIcon sx={{ fontSize: 60, color: theme.palette.primary.main }} />;
+        return styles.iconCalendar;
       default:
-        return <InboxIcon sx={{ fontSize: 60, color: theme.palette.primary.main }} />;
+        return styles.iconToday;
+    }
+  };
+  
+  const getIcon = () => {
+    const iconSx: SxProps<Theme> = { 
+      fontSize: 60,
+      color: type === 'completed' 
+        ? theme.palette.success.main 
+        : theme.palette.primary.main
+    };
+    
+    switch (type) {
+      case 'today':
+        return <InboxIcon sx={iconSx} />;
+      case 'upcoming':
+        return <EventIcon sx={iconSx} />;
+      case 'completed':
+        return <CheckCircleIcon sx={iconSx} />;
+      case 'tags':
+        return <LabelIcon sx={iconSx} />;
+      case 'calendar':
+        return <CalendarMonthIcon sx={iconSx} />;
+      default:
+        return <InboxIcon sx={iconSx} />;
     }
   };
   
@@ -67,53 +92,43 @@ const EmptyState: React.FC<EmptyStateProps> = ({ type, onCreateTask }) => {
   };
   
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        py: 8,
-        px: 2,
-        textAlign: 'center',
-        borderRadius: 2,
-        bgcolor: alpha(theme.palette.background.paper, 0.5),
-        border: `1px dashed ${theme.palette.divider}`,
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 100,
-          height: 100,
-          borderRadius: '50%',
-          bgcolor: alpha(theme.palette.primary.main, 0.1),
-          mb: 3,
-        }}
-      >
+    <Box className={styles.container} sx={{
+      borderColor: theme.palette.divider,
+      backgroundColor: theme.palette.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.03)' 
+        : 'rgba(0, 0, 0, 0.02)'
+    }}>
+      <div className={getIconContainerClass()}>
         {getIcon()}
-      </Box>
+      </div>
       
-      <Typography variant="h5" component="h2" gutterBottom fontWeight="medium">
+      <Typography variant="h5" className={styles.title} sx={{ 
+        color: theme.palette.text.primary,
+        mb: 0.5
+      }}>
         {getTitle()}
       </Typography>
       
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 400 }}>
+      <Typography variant="body2" className={styles.description} sx={{ 
+        color: theme.palette.text.secondary,
+        mb: 3,
+        maxWidth: '400px'
+      }}>
         {getDescription()}
       </Typography>
       
       {onCreateTask && (
-        <Button
-          variant="contained"
-          color="primary"
+        <Button 
+          variant="contained" 
+          color="primary" 
           startIcon={<AddIcon />}
           onClick={onCreateTask}
           sx={{ 
-            borderRadius: 1,
-            px: 3,
-            py: 1,
+            borderRadius: '6px',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: theme.shadows[4]
+            }
           }}
         >
           Add New Task

@@ -1,4 +1,5 @@
-import { Task, Tag } from '../types';
+import { Task } from './task';
+import { Tag } from './tag';
 
 export type WebSocketEventType = 
   | 'TASK_CREATED'

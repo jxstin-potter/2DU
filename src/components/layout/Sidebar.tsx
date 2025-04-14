@@ -9,11 +9,12 @@ import {
   Box,
   useTheme,
   Typography,
-  Divider,
   Tooltip,
+  Divider,
+  ListSubheader,
+  Collapse,
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Brightness4 as DarkModeIcon,
@@ -26,7 +27,10 @@ import {
   Logout as LogoutIcon,
   Settings as SettingsIcon,
   Keyboard as KeyboardIcon,
-  Help as HelpIcon,
+  ExpandLess as ExpandLessIcon,
+  ExpandMore as ExpandMoreIcon,
+  Folder as FolderIcon,
+  FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../contexts/I18nContext';
@@ -54,22 +58,78 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useI18n();
+  const [projectsOpen, setProjectsOpen] = React.useState(true);
+  const [filtersOpen, setFiltersOpen] = React.useState(true);
 
-  console.log('Sidebar rendering with props:', {
-    isCollapsed,
-    darkMode,
-    userName,
-    currentPath: location.pathname,
-  });
-
-  const menuItems = [
+  const mainMenuItems = [
     { text: t('sidebar.today'), icon: <InboxIcon />, path: "/today" },
     { text: t('sidebar.upcoming'), icon: <EventIcon />, path: "/upcoming" },
     { text: t('sidebar.calendar'), icon: <CalendarIcon />, path: "/calendar" },
-    { text: t('sidebar.tags'), icon: <TagIcon />, path: "/tags" },
-    { text: t('sidebar.completed'), icon: <CompletedIcon />, path: "/completed" },
-    { text: t('sidebar.settings'), icon: <SettingsIcon />, path: "/settings" },
   ];
+
+  const projectItems = [
+    { text: 'Personal', icon: <FolderIcon />, path: "/projects/personal" },
+    { text: 'Work', icon: <FolderIcon />, path: "/projects/work" },
+    { text: 'Shopping', icon: <FolderIcon />, path: "/projects/shopping" },
+  ];
+
+  const filterItems = [
+    { text: 'Priority 1', icon: <FilterIcon />, path: "/filters/priority-1" },
+    { text: 'Priority 2', icon: <FilterIcon />, path: "/filters/priority-2" },
+    { text: 'Priority 3', icon: <FilterIcon />, path: "/filters/priority-3" },
+  ];
+
+  const renderMenuItem = (item: { text: string; icon: React.ReactNode; path: string }, isCollapsed: boolean) => {
+    const isActive = location.pathname === item.path;
+    return (
+      <ListItem
+        button
+        key={item.path}
+        onClick={() => navigate(item.path)}
+        sx={{
+          minHeight: 48,
+          justifyContent: isCollapsed ? 'center' : 'initial',
+          px: 2.5,
+          borderRadius: 1,
+          mb: 0.5,
+          backgroundColor: isActive ? 'primary.main' : 'transparent',
+          color: isActive ? 'primary.contrastText' : 'inherit',
+          '&:hover': {
+            backgroundColor: isActive ? 'primary.dark' : 'action.hover',
+          },
+          '& .MuiListItemIcon-root': {
+            color: isActive ? 'primary.contrastText' : 'inherit',
+          },
+        }}
+      >
+        {isCollapsed ? (
+          <Tooltip title={item.text} placement="right">
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                justifyContent: 'center',
+              }}
+            >
+              {item.icon}
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
+          <>
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                mr: 2,
+                justifyContent: 'center',
+              }}
+            >
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText primary={item.text} />
+          </>
+        )}
+      </ListItem>
+    );
+  };
 
   useEffect(() => {
     console.log('Sidebar translations:', {
@@ -99,6 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             duration: theme.transitions.duration.enteringScreen,
           }),
           overflowX: 'hidden',
+          borderRight: `1px solid ${theme.palette.divider}`,
         },
       }}
     >
@@ -146,63 +207,80 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
       
       <List sx={{ px: 1 }}>
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <ListItem
-              button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              sx={{
-                minHeight: 48,
-                justifyContent: isCollapsed ? 'center' : 'initial',
-                px: 2.5,
-                borderRadius: 1,
-                mb: 0.5,
-                '&.active': {
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  },
-                  '& .MuiListItemIcon-root': {
-                    color: 'primary.contrastText',
-                  },
-                },
-              }}
-              className={isActive ? 'active' : ''}
-            >
-              {isCollapsed ? (
-                <Tooltip title={item.text} placement="right">
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                </Tooltip>
-              ) : (
-                <>
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: 2,
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </>
-              )}
-            </ListItem>
-          );
-        })}
+        {mainMenuItems.map(item => renderMenuItem(item, isCollapsed))}
       </List>
-      
+
+      <Divider />
+
+      {!isCollapsed && (
+        <ListSubheader sx={{ 
+          backgroundColor: 'transparent',
+          color: 'text.secondary',
+          fontWeight: 'bold',
+          px: 2,
+          py: 1,
+        }}>
+          Projects
+        </ListSubheader>
+      )}
+      <List sx={{ px: 1 }}>
+        {!isCollapsed && (
+          <ListItem
+            button
+            onClick={() => setProjectsOpen(!projectsOpen)}
+            sx={{ minHeight: 48, px: 2.5 }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>
+              <FolderIcon />
+            </ListItemIcon>
+            <ListItemText primary="Projects" />
+            {projectsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItem>
+        )}
+        <Collapse in={projectsOpen || isCollapsed} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {projectItems.map(item => renderMenuItem(item, isCollapsed))}
+          </List>
+        </Collapse>
+      </List>
+
+      <Divider />
+
+      {!isCollapsed && (
+        <ListSubheader sx={{ 
+          backgroundColor: 'transparent',
+          color: 'text.secondary',
+          fontWeight: 'bold',
+          px: 2,
+          py: 1,
+        }}>
+          Filters & Labels
+        </ListSubheader>
+      )}
+      <List sx={{ px: 1 }}>
+        {!isCollapsed && (
+          <ListItem
+            button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            sx={{ minHeight: 48, px: 2.5 }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>
+              <FilterIcon />
+            </ListItemIcon>
+            <ListItemText primary="Filters" />
+            {filtersOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItem>
+        )}
+        <Collapse in={filtersOpen || isCollapsed} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {filterItems.map(item => renderMenuItem(item, isCollapsed))}
+          </List>
+        </Collapse>
+      </List>
+
       <Box sx={{ flexGrow: 1 }} />
+      
+      <Divider />
       
       <List sx={{ px: 1 }}>
         <ListItem
@@ -217,7 +295,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           }}
         >
           {isCollapsed ? (
-            <Tooltip title={t('sidebar.keyboardShortcuts')} placement="right">
+            <Tooltip title={t('shortcuts.title')} placement="right">
               <ListItemIcon
                 sx={{
                   minWidth: 0,
@@ -238,7 +316,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <KeyboardIcon />
               </ListItemIcon>
-              <ListItemText primary={t('sidebar.keyboardShortcuts')} />
+              <ListItemText primary={t('shortcuts.title')} />
             </>
           )}
         </ListItem>
@@ -255,7 +333,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           }}
         >
           {isCollapsed ? (
-            <Tooltip title={darkMode ? t('sidebar.lightMode') : t('sidebar.darkMode')} placement="right">
+            <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'} placement="right">
               <ListItemIcon
                 sx={{
                   minWidth: 0,
@@ -276,11 +354,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </ListItemIcon>
-              <ListItemText primary={darkMode ? t('sidebar.lightMode') : t('sidebar.darkMode')} />
+              <ListItemText primary={darkMode ? 'Light Mode' : 'Dark Mode'} />
             </>
           )}
         </ListItem>
-        
+
         <ListItem
           button
           onClick={onLogout}
@@ -292,7 +370,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           }}
         >
           {isCollapsed ? (
-            <Tooltip title={t('sidebar.logout')} placement="right">
+            <Tooltip title="Logout" placement="right">
               <ListItemIcon
                 sx={{
                   minWidth: 0,
@@ -313,7 +391,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <LogoutIcon />
               </ListItemIcon>
-              <ListItemText primary={t('sidebar.logout')} />
+              <ListItemText primary="Logout" />
             </>
           )}
         </ListItem>

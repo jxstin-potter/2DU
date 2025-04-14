@@ -1,122 +1,192 @@
-import React from 'react';
-import { Box, AppBar, Toolbar, Typography, IconButton, useTheme, Fab } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import React, { useState } from 'react';
+import { 
+  Box, 
+  TextField, 
+  Button, 
+  Stack, 
+  AppBar, 
+  Toolbar, 
+  IconButton, 
+  Typography,
+  Paper,
+  InputAdornment,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import { useTasks } from '../../hooks/useTasks';
+import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import Sidebar from './Sidebar';
-import TaskModal from '../modals/TaskModal';
-import WebSocketStatus from '../common/WebSocketStatus';
-import { Task } from '../../types';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface MainLayoutProps {
-  children: React.ReactNode;
-  isSidebarCollapsed: boolean;
-  onToggleSidebar: () => void;
-  darkMode: boolean;
-  toggleDarkMode: () => void;
-  onLogout: () => void;
-  userName?: string;
-  isTaskModalOpen: boolean;
-  onCloseTaskModal: () => void;
-  onSaveTask: (taskData: Omit<Task, 'id' | 'order'>) => void;
-  editingTask?: Task;
-  tags: { name: string; color: string }[];
-  onCreateTask: () => void;
-  onOpenShortcutsHelp: () => void;
+  children?: React.ReactNode;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({
-  children,
-  isSidebarCollapsed,
-  onToggleSidebar,
-  darkMode,
-  toggleDarkMode,
-  onLogout,
-  userName,
-  isTaskModalOpen,
-  onCloseTaskModal,
-  onSaveTask,
-  editingTask,
-  tags,
-  onCreateTask,
-  onOpenShortcutsHelp
-}) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { addTask } = useTasks();
+  const { mode } = useCustomTheme();
+  const { t } = useI18n();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const handleLogout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      onLogout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // Fallback to window location if the logout handler fails
-      window.location.href = '/auth';
+  const handleAddTask = () => {
+    if (newTaskTitle.trim()) {
+      addTask(newTaskTitle.trim());
+      setNewTaskTitle('');
     }
   };
 
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleAddTask();
+    }
+  };
+
+  const handleLogout = () => {
+    // TODO: Implement logout functionality
+    console.log('Logout clicked');
+  };
+
+  const handleOpenShortcutsHelp = () => {
+    // TODO: Implement shortcuts help dialog
+    console.log('Shortcuts help clicked');
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            2DU
-          </Typography>
-          <WebSocketStatus />
-          {userName && (
-            <Typography variant="body1" sx={{ mx: 2 }}>
-              {userName}
-            </Typography>
-          )}
-        </Toolbar>
-      </AppBar>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        darkMode={mode === 'dark'}
+        toggleDarkMode={useCustomTheme().toggleColorMode}
+        onLogout={handleLogout}
+        onOpenShortcutsHelp={handleOpenShortcutsHelp}
+      />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          backgroundColor: theme.palette.background.default,
-          color: theme.palette.text.primary,
-          marginLeft: isSidebarCollapsed ? '64px' : '280px',
-          width: `calc(100% - ${isSidebarCollapsed ? '64px' : '280px'})`,
+          width: { 
+            xs: '100%',
+            sm: `calc(100% - ${isSidebarCollapsed ? 64 : 240}px)` 
+          },
+          ml: { 
+            xs: 0,
+            sm: `${isSidebarCollapsed ? 64 : 240}px` 
+          },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
         }}
       >
-        {children}
-        
-        <Sidebar
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={onToggleSidebar}
-          darkMode={darkMode}
-          toggleDarkMode={toggleDarkMode}
-          onLogout={handleLogout}
-          userName={userName}
-          onOpenShortcutsHelp={onOpenShortcutsHelp}
-        />
-
-        <Fab
-          color="primary"
-          aria-label="add task"
-          onClick={onCreateTask}
+        <AppBar 
+          position="fixed" 
+          color="default" 
+          elevation={0}
           sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
+            width: { 
+              xs: '100%',
+              sm: `calc(100% - ${isSidebarCollapsed ? 64 : 240}px)` 
+            },
+            ml: { 
+              xs: 0,
+              sm: `${isSidebarCollapsed ? 64 : 240}px` 
+            },
+            transition: theme.transitions.create(['margin', 'width'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+            borderBottom: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <AddIcon />
-        </Fab>
+          <Toolbar>
+            {isMobile && (
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                sx={{ mr: 2 }}
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              {t('app.name')}
+            </Typography>
+            <TextField
+              size="small"
+              placeholder="Search tasks..."
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mr: 2, width: 200 }}
+            />
+          </Toolbar>
+        </AppBar>
 
-        <TaskModal
-          open={isTaskModalOpen}
-          onClose={onCloseTaskModal}
-          onSave={onSaveTask}
-          initialTask={editingTask}
-          tags={tags}
-          categories={[]}
-        />
+        <Box sx={{ 
+          mt: 8, // Height of AppBar
+          p: 3,
+        }}>
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 2,
+              mb: 3,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
+            }}
+          >
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Add a new task..."
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                onKeyPress={handleKeyPress}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AddIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: theme.palette.primary.main,
+                    },
+                  },
+                }}
+              />
+              <Button 
+                variant="contained" 
+                onClick={handleAddTask}
+                disabled={!newTaskTitle.trim()}
+                sx={{
+                  minWidth: 100,
+                  borderRadius: 2,
+                }}
+              >
+                Add Task
+              </Button>
+            </Stack>
+          </Paper>
+          
+          {children}
+        </Box>
       </Box>
     </Box>
   );

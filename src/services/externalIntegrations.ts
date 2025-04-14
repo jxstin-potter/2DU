@@ -5,6 +5,7 @@ export const calendarService = {
   // Google Calendar
   googleCalendar: {
     addEvent: async (task: Task) => {
+      /* 
       const event = {
         summary: task.title,
         description: task.description,
@@ -37,12 +38,16 @@ export const calendarService = {
         console.error('Google Calendar integration error:', error);
         throw error;
       }
+      */
+      console.log('Google Calendar integration temporarily disabled', task);
+      return Promise.resolve({ success: true });
     },
   },
 
   // Microsoft Outlook Calendar
   outlookCalendar: {
     addEvent: async (task: Task) => {
+      /*
       const event = {
         subject: task.title,
         body: {
@@ -78,6 +83,9 @@ export const calendarService = {
         console.error('Outlook Calendar integration error:', error);
         throw error;
       }
+      */
+      console.log('Outlook Calendar integration temporarily disabled', task);
+      return Promise.resolve({ success: true });
     },
   },
 };
@@ -86,6 +94,7 @@ export const calendarService = {
 export const emailService = {
   // Send task reminder
   sendReminder: async (task: Task, recipientEmail: string) => {
+    /*
     const emailData = {
       to: recipientEmail,
       subject: `Reminder: ${task.title}`,
@@ -123,45 +132,14 @@ ${task.tags.length > 0 ? `<p><strong>Tags:</strong> ${task.tags.join(', ')}</p>`
       console.error('Email service error:', error);
       throw error;
     }
+    */
+    console.log('Email reminder service temporarily disabled', task, recipientEmail);
+    return Promise.resolve({ success: true });
   },
 };
 
 // Notification Service
 export const notificationService = {
-  // Push notifications
-  sendPushNotification: async (task: Task, userId: string) => {
-    const notification = {
-      title: task.title,
-      body: task.description || 'Task reminder',
-      data: {
-        taskId: task.id,
-        type: 'task_reminder',
-      },
-    };
-
-    try {
-      const response = await fetch('/api/v1/notifications/push', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          notification,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send push notification');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Push notification error:', error);
-      throw error;
-    }
-  },
-
   // Browser notifications
   requestPermission: async () => {
     if (!('Notification' in window)) {
@@ -191,13 +169,17 @@ export const notificationService = {
 export const socialSharingService = {
   // Share on Twitter
   shareOnTwitter: (task: Task) => {
+    /*
     const text = encodeURIComponent(`Check out my task: ${task.title}`);
     const url = encodeURIComponent(window.location.origin);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+    */
+    console.log('Twitter sharing temporarily disabled', task);
   },
 
   // Share on LinkedIn
   shareOnLinkedIn: (task: Task) => {
+    /*
     const url = encodeURIComponent(window.location.origin);
     const title = encodeURIComponent(`Task: ${task.title}`);
     const summary = encodeURIComponent(task.description || '');
@@ -205,10 +187,13 @@ export const socialSharingService = {
       `https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}&summary=${summary}`,
       '_blank'
     );
+    */
+    console.log('LinkedIn sharing temporarily disabled', task);
   },
 
   // Share via Email
   shareViaEmail: (task: Task, recipientEmail: string) => {
+    /*
     const subject = encodeURIComponent(`Shared Task: ${task.title}`);
     const body = encodeURIComponent(`
 Task Details:
@@ -218,10 +203,13 @@ Due Date: ${task.dueDate.toLocaleString()}
 ${task.tags.length > 0 ? `Tags: ${task.tags.join(', ')}` : ''}
     `.trim());
     window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+    */
+    console.log('Email sharing temporarily disabled', task, recipientEmail);
   },
 
   // Generate shareable link
   generateShareableLink: async (task: Task) => {
+    /*
     try {
       const response = await fetch('/api/v1/tasks/share', {
         method: 'POST',
@@ -241,12 +229,10 @@ ${task.tags.length > 0 ? `Tags: ${task.tags.join(', ')}` : ''}
       console.error('Shareable link generation error:', error);
       throw error;
     }
+    */
+    console.log('Shareable link generation temporarily disabled', task);
+    return Promise.resolve('https://example.com/shared-task');
   },
 };
 
-export default {
-  calendar: calendarService,
-  email: emailService,
-  notifications: notificationService,
-  social: socialSharingService,
-}; 
+export default notificationService; 

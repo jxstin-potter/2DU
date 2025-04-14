@@ -1,0 +1,76 @@
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Box, Typography, Button, Paper } from '@mui/material';
+import { logError } from '../../utils/errorLogging';
+
+// Check if running in a web worker environment
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false,
+    error: null,
+  };
+
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    logError(error, 'Component Error', {
+      componentStack: errorInfo.componentStack,
+    });
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      return (
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            m: 2, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center' 
+          }}
+        >
+          <Typography variant="h4" color="error" gutterBottom>
+            Something went wrong
+          </Typography>
+          
+          <Box sx={{ my: 2 }}>
+            <Typography variant="body1">
+              {this.state.error?.message || 'An unexpected error occurred'}
+            </Typography>
+          </Box>
+          
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={() => window.location.reload()}
+          >
+            Reload Page
+          </Button>
+        </Paper>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export default ErrorBoundary; 

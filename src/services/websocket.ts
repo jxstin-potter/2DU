@@ -1,169 +1,269 @@
-import { Task, Tag } from '../types';
-import { store } from '../store';
-import { addTodo, updateTodo, deleteTodo } from '../store/slices/todoSlice';
-import { queryClient } from './queryClient';
-import { 
-  WebSocketEventType, 
-  WebSocketEvent, 
-  WebSocketEventData,
-  TaskCreatedEvent,
-  TaskUpdatedEvent,
-  TaskDeletedEvent,
-  ConnectionStatusEvent
-} from '../types/websocket';
+import { WebSocketEventType, WebSocketEventData } from '../types/websocket';
+import { logError } from '../utils/errorLogging';
 
 type EventCallback = (data: any) => void;
 
+interface WebSocketError extends Error {
+  code?: number;
+  reason?: string;
+  wasClean?: boolean;
+}
+
+// Create a type guard for WebSocketEventType
+const isValidEventType = (type: any): type is WebSocketEventType => {
+  const validTypes = ['CONNECTION_STATUS', 'TASK_UPDATE', 'TASK_DELETE', 'TASK_CREATE'] as const;
+  return typeof type === 'string' && validTypes.includes(type as typeof validTypes[number]);
+};
+
 class WebSocketService {
   private ws: WebSocket | null = null;
-  private eventHandlers: Map<WebSocketEventType, Set<EventCallback>> = new Map();
+  private eventListeners: Map<WebSocketEventType, Set<EventCallback>> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectTimeout = 1000; // Start with 1 second
+  private reconnectTimeout: NodeJS.Timeout | null = null;
   private isConnecting = false;
-  private isInitialized = false;
+  private lastConnectionAttempt: number = 0;
+  private readonly MIN_RECONNECT_INTERVAL = 1000; // 1 second
+  private readonly MAX_RECONNECT_INTERVAL = 30000; // 30 seconds
 
-  constructor() {
-    // Don't auto-connect in constructor, wait for explicit initialization
-  }
+  private readonly WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080';
 
-  public initialize() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
-    this.connect();
-  }
-
-  private connect() {
-    if (this.isConnecting) return;
+  public initialize(): void {
+    if (this.ws || this.isConnecting) {
+      console.warn('WebSocket connection already in progress or established');
+      return;
+    }
+    
+    // Validate WebSocket URL
+    if (!this.WS_URL.startsWith('ws://') && !this.WS_URL.startsWith('wss://')) {
+      const error = new Error('Invalid WebSocket URL format. Must start with ws:// or wss://');
+      logError(error, 'WebSocket URL validation failed', { url: this.WS_URL });
+      return;
+    }
+    
     this.isConnecting = true;
+    this.lastConnectionAttempt = Date.now();
+    
+    try {
+      this.ws = new WebSocket(this.WS_URL);
 
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      console.warn('No auth token available for WebSocket connection');
-      this.isConnecting = false;
-      return;
+      this.ws.onopen = this.handleOpen.bind(this);
+      this.ws.onclose = this.handleClose.bind(this);
+      this.ws.onerror = this.handleError.bind(this);
+      this.ws.onmessage = this.handleMessage.bind(this);
+    } catch (error) {
+      this.handleConnectionError(error as Error);
+    }
+  }
+
+  private handleConnectionError(error: Error): void {
+    logError(error, 'Failed to create WebSocket connection', {
+      url: this.WS_URL,
+      reconnectAttempt: this.reconnectAttempts
+    });
+    
+    this.isConnecting = false;
+    this.notifyConnectionStatus(false);
+    
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.attemptReconnect();
+    } else {
+      this.setupFallbackMechanism();
+    }
+  }
+
+  public disconnect(): void {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
     }
 
-    const wsUrl = import.meta.env.VITE_WS_URL || 'wss://api.2du.app/ws';
-    this.ws = new WebSocket(`${wsUrl}?token=${token}`);
-
-    this.ws.onopen = () => {
-      console.log('WebSocket connected');
-      this.reconnectAttempts = 0;
-      this.reconnectTimeout = 1000;
-      this.isConnecting = false;
-      
-      // Notify connection status
-      this.notifyConnectionStatus(true);
-    };
-
-    this.ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      this.isConnecting = false;
-      
-      // Notify connection status
-      this.notifyConnectionStatus(false);
-      
-      this.handleReconnect();
-    };
-
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      this.isConnecting = false;
-      
-      // Notify connection status
-      this.notifyConnectionStatus(false);
-    };
-
-    this.ws.onmessage = (event) => {
+    if (this.ws) {
       try {
-        const wsEvent: WebSocketEvent = JSON.parse(event.data);
-        this.handleEvent(wsEvent);
+        this.ws.close(1000, 'Client disconnecting');
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+        logError(error as Error, 'Error during WebSocket disconnect', {
+          readyState: this.ws.readyState
+        });
       }
-    };
-  }
-
-  private notifyConnectionStatus(connected: boolean) {
-    const event: ConnectionStatusEvent = {
-      type: 'CONNECTION_STATUS',
-      data: connected
-    };
-    this.handleEvent(event);
-  }
-
-  private handleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
-      return;
+      this.ws = null;
     }
 
-    this.reconnectAttempts++;
-    this.reconnectTimeout *= 2; // Exponential backoff
-
-    setTimeout(() => {
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      this.connect();
-    }, this.reconnectTimeout);
+    this.isConnecting = false;
+    this.reconnectAttempts = 0;
+    this.notifyConnectionStatus(false);
   }
 
-  private handleEvent(event: WebSocketEvent) {
-    // Handle event with Redux store
-    switch (event.type) {
-      case 'TASK_CREATED': {
-        const taskEvent = event as TaskCreatedEvent;
-        store.dispatch(addTodo(taskEvent.data));
-        // Invalidate React Query cache to refetch data
-        queryClient.invalidateQueries({ queryKey: ['todos'] });
-        break;
-      }
-      case 'TASK_UPDATED': {
-        const taskEvent = event as TaskUpdatedEvent;
-        store.dispatch(updateTodo(taskEvent.data));
-        // Invalidate React Query cache to refetch data
-        queryClient.invalidateQueries({ queryKey: ['todos'] });
-        break;
-      }
-      case 'TASK_DELETED': {
-        const taskEvent = event as TaskDeletedEvent;
-        store.dispatch(deleteTodo(taskEvent.data.id));
-        // Invalidate React Query cache to refetch data
-        queryClient.invalidateQueries({ queryKey: ['todos'] });
-        break;
-      }
-      // Handle other event types as needed
+  public subscribe(eventType: WebSocketEventType, callback: EventCallback): () => void {
+    if (!this.eventListeners.has(eventType)) {
+      this.eventListeners.set(eventType, new Set());
     }
-
-    // Also call any registered callbacks
-    const handlers = this.eventHandlers.get(event.type);
-    if (handlers) {
-      handlers.forEach(callback => callback(event.data));
-    }
-  }
-
-  public subscribe(eventType: WebSocketEventType, callback: EventCallback) {
-    if (!this.eventHandlers.has(eventType)) {
-      this.eventHandlers.set(eventType, new Set());
-    }
-    this.eventHandlers.get(eventType)?.add(callback);
+    
+    this.eventListeners.get(eventType)!.add(callback);
 
     // Return unsubscribe function
     return () => {
-      this.eventHandlers.get(eventType)?.delete(callback);
+      const listeners = this.eventListeners.get(eventType);
+      if (listeners) {
+        listeners.delete(callback);
+        if (listeners.size === 0) {
+          this.eventListeners.delete(eventType);
+        }
+      }
     };
   }
 
-  public disconnect() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+  private handleOpen(): void {
+    this.isConnecting = false;
+    this.reconnectAttempts = 0;
+    this.notifyConnectionStatus(true);
+  }
+
+  private handleClose(event: CloseEvent): void {
+    const error: WebSocketError = new Error('WebSocket connection closed');
+    error.code = event.code;
+    error.reason = event.reason;
+    error.wasClean = event.wasClean;
+
+    logError(error, 'WebSocket connection closed', {
+      code: event.code,
+      reason: event.reason,
+      wasClean: event.wasClean,
+      reconnectAttempt: this.reconnectAttempts
+    });
+
+    this.isConnecting = false;
+    this.notifyConnectionStatus(false);
+    
+    // Only attempt reconnect if the closure wasn't clean (unexpected)
+    if (!event.wasClean) {
+      this.attemptReconnect();
     }
-    this.isInitialized = false;
+  }
+
+  private handleError(error: Event): void {
+    const wsError = error as ErrorEvent;
+    const errorObj = new Error(wsError.message || 'Unknown WebSocket error');
+    errorObj.name = 'WebSocketError';
+    
+    const errorDetails = {
+      message: wsError.message || 'Unknown error',
+      type: wsError.type,
+      timestamp: new Date().toISOString(),
+      readyState: this.ws?.readyState,
+      url: this.WS_URL,
+      reconnectAttempt: this.reconnectAttempts + 1
+    };
+    
+    logError(errorObj, 'WebSocket error occurred', errorDetails);
+    
+    this.isConnecting = false;
+    this.notifyConnectionStatus(false);
+    
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.attemptReconnect();
+    } else {
+      this.setupFallbackMechanism();
+    }
+  }
+
+  private handleMessage(event: MessageEvent): void {
+    try {
+      if (typeof event.data !== 'string') {
+        throw new Error('Received non-string message data');
+      }
+
+      const message = JSON.parse(event.data);
+      
+      // Validate message structure
+      if (!message || typeof message !== 'object') {
+        throw new Error('Invalid message format: not an object');
+      }
+      
+      if (!message.type || !isValidEventType(message.type)) {
+        throw new Error(`Invalid message type: ${message.type}`);
+      }
+      
+      const listeners = this.eventListeners.get(message.type);
+      if (listeners) {
+        listeners.forEach(callback => {
+          try {
+            callback(message.data);
+          } catch (callbackError) {
+            logError(callbackError as Error, 'Error in WebSocket event callback', {
+              eventType: message.type,
+              data: message.data
+            });
+          }
+        });
+      }
+    } catch (error) {
+      logError(error as Error, 'Error processing WebSocket message', {
+        rawData: event.data,
+        readyState: this.ws?.readyState
+      });
+    }
+  }
+
+  private attemptReconnect(): void {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      logError(
+        new Error('Max reconnection attempts reached'),
+        'WebSocket reconnection failed',
+        { maxAttempts: this.maxReconnectAttempts }
+      );
+      this.setupFallbackMechanism();
+      return;
+    }
+    
+    const timeSinceLastAttempt = Date.now() - this.lastConnectionAttempt;
+    if (timeSinceLastAttempt < this.MIN_RECONNECT_INTERVAL) {
+      // Ensure minimum time between reconnection attempts
+      const delay = this.MIN_RECONNECT_INTERVAL - timeSinceLastAttempt;
+      this.reconnectTimeout = setTimeout(() => this.attemptReconnect(), delay);
+      return;
+    }
+    
+    this.reconnectAttempts++;
+    const backoffTime = Math.min(
+      this.MIN_RECONNECT_INTERVAL * Math.pow(2, this.reconnectAttempts - 1),
+      this.MAX_RECONNECT_INTERVAL
+    );
+    
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+    }
+    
+    this.reconnectTimeout = setTimeout(() => {
+      this.initialize();
+    }, backoffTime);
+  }
+
+  private notifyConnectionStatus(connected: boolean, mode?: 'websocket' | 'fallback'): void {
+    const listeners = this.eventListeners.get('CONNECTION_STATUS');
+    if (listeners) {
+      listeners.forEach(callback => {
+        try {
+          callback({ connected, mode: mode || 'websocket' });
+        } catch (error) {
+          logError(error as Error, 'Error in connection status callback', {
+            connected,
+            mode
+          });
+        }
+      });
+    }
+  }
+
+  private setupFallbackMechanism(): void {
+    logError(
+      new Error('WebSocket connection failed'),
+      'Switching to fallback mechanism',
+      { reconnectAttempts: this.reconnectAttempts }
+    );
+    this.notifyConnectionStatus(false, 'fallback');
   }
 }
 
-// Create singleton instance
 const websocketService = new WebSocketService();
-
 export default websocketService; 

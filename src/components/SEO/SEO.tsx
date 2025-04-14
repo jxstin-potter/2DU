@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import StructuredData from './StructuredData';
 import CanonicalUrl from './CanonicalUrl';
-import { trackPageView } from '../../utils/analytics';
 
 interface SEOProps {
   title: string;
@@ -45,9 +44,9 @@ const SEO: React.FC<SEOProps> = ({
   const currentUrl = url || `https://2du.app${location.pathname}`;
   const defaultImage = image || 'https://2du.app/og-image.jpg';
 
-  // Track page view in Google Analytics
+  // Track page view in console (replacing analytics)
   useEffect(() => {
-    trackPageView(location.pathname, title);
+    console.log(`Page view: ${location.pathname} - ${title}`);
   }, [location.pathname, title]);
 
   return (

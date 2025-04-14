@@ -1,0 +1,74 @@
+.container {
+  display: flex;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  width: 24px;
+  height: 24px;
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: var(--input-bg, transparent);
+  border: 2px solid var(--text-secondary, #a0a0a0);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.container:hover .checkmark {
+  border-color: var(--primary-main, #3b82f6);
+  background-color: var(--card-bg-light, rgba(255, 255, 255, 0.05));
+}
+
+.input:checked ~ .checkmark {
+  background-color: var(--primary-main, #3b82f6);
+  border-color: var(--primary-main, #3b82f6);
+}
+
+.checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.input:checked ~ .checkmark::after {
+  display: block;
+}
+
+.animate {
+  animation: checkmark-appear 0.3s forwards;
+}
+
+@keyframes checkmark-appear {
+  0% {
+    transform: scale(0) rotate(45deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2) rotate(45deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(45deg);
+    opacity: 1;
+  }
+} 
