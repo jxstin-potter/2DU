@@ -134,6 +134,9 @@ export const createTaskFromData = async (
     if (taskData.status) {
       cleanData.status = taskData.status;
     }
+    if (taskData.priority) {
+      cleanData.priority = taskData.priority;
+    }
 
     // Remove undefined values
     const finalData = Object.fromEntries(

@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
   CircularProgress,
-  Tabs,
-  Tab,
   IconButton,
-  Paper,
   Container,
   Button,
 } from '@mui/material';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTaskModal } from '../../contexts/TaskModalContext';
+import { useSearchModal } from '../../contexts/SearchModalContext';
 import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../../services/tasksService';
 import { taskDocumentToTask, taskToTaskDocument } from '../../utils/taskHelpers';
-import TaskView from './TaskView';
-import CategoryManager from './CategoryManager';
+import TaskModal from './TaskModal';
+import SearchModal, { SearchCriteria } from './SearchModal';
 import { Task, Category, Tag, Comment } from '../../types';
-import SettingsIcon from '@mui/icons-material/Settings';
 import AddIcon from '@mui/icons-material/Add';
 import TaskList from './TaskList';
-import CalendarView from './CalendarView';
 
 // Default tags if none are found in the database
 const DEFAULT_TAGS: Tag[] = [
@@ -33,17 +30,16 @@ const DEFAULT_TAGS: Tag[] = [
 
 const TaskManager: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isOpen: isTaskModalOpen, openModal: openTaskModal, closeModal: closeTaskModal } = useTaskModal();
+  const { isOpen: isSearchModalOpen, closeModal: closeSearchModal } = useSearchModal();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
-  const [view, setView] = useState<'list' | 'calendar'>('list');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isTaskViewOpen, setIsTaskViewOpen] = useState(false);
+  const [searchCriteria, setSearchCriteria] = useState<SearchCriteria | null>(null);
 
   // Subscribe to tasks using real-time listener (simplified approach)
   useEffect(() => {
@@ -123,7 +119,8 @@ const TaskManager: React.FC = () => {
 
   const handleTaskSelect = (task: Task) => {
     setSelectedTask(task);
-    setIsTaskViewOpen(true);
+    // For now, we'll just open the modal for editing too
+    openTaskModal();
   };
 
   const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
@@ -209,9 +206,54 @@ const TaskManager: React.FC = () => {
     }
   };
 
-  const filteredTasks = selectedCategory
-    ? tasks.filter(task => task.categoryId === selectedCategory)
-    : tasks;
+  const handleSearch = (criteria: SearchCriteria) => {
+    setSearchCriteria(criteria);
+  };
+
+  const filteredTasks = useMemo(() => {
+    let filtered = tasks;
+
+    // Apply category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(task => task.categoryId === selectedCategory);
+    }
+
+    // Apply search criteria
+    if (searchCriteria) {
+      filtered = filtered.filter(task => {
+        // Title filter (case-insensitive partial match)
+        if (searchCriteria.title && searchCriteria.title.trim()) {
+          const titleMatch = task.title.toLowerCase().includes(searchCriteria.title.toLowerCase());
+          if (!titleMatch) return false;
+        }
+
+        // Description filter (case-insensitive partial match)
+        if (searchCriteria.description && searchCriteria.description.trim()) {
+          const descMatch = task.description?.toLowerCase().includes(searchCriteria.description.toLowerCase());
+          if (!descMatch) return false;
+        }
+
+        // Due date filter (exact date match)
+        if (searchCriteria.dueDate) {
+          const taskDate = task.dueDate ? new Date(task.dueDate) : null;
+          if (!taskDate) return false;
+          const searchDate = new Date(searchCriteria.dueDate);
+          const taskDateStr = taskDate.toDateString();
+          const searchDateStr = searchDate.toDateString();
+          if (taskDateStr !== searchDateStr) return false;
+        }
+
+        // Priority filter (exact match)
+        if (searchCriteria.priority) {
+          if (task.priority !== searchCriteria.priority) return false;
+        }
+
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [tasks, selectedCategory, searchCriteria]);
 
   const handleAddComment = async (taskId: string, comment: string) => {
     if (!user?.id) {
@@ -346,9 +388,9 @@ const TaskManager: React.FC = () => {
       await createTaskFromData(user.id, taskDoc);
       
       // Tasks will automatically update via the real-time subscription
-      // Close the drawer after successful creation
+      // Close the modal after successful creation
       setSelectedTask(null);
-      setIsTaskViewOpen(false);
+      closeTaskModal();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create task';
       setError(errorMessage);
@@ -360,7 +402,6 @@ const TaskManager: React.FC = () => {
 
   const handleAddTask = () => {
     setSelectedTask(null);
-    setIsTaskViewOpen(true);
   };
 
   if (loading) {
@@ -373,96 +414,50 @@ const TaskManager: React.FC = () => {
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ mb: 4 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h4" component="h1">
-            Task Manager
-          </Typography>
-          <Box>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddTask}
-              sx={{ mr: 1 }}
-            >
-              Add Task
-            </Button>
-            <IconButton
-              onClick={() => setIsCategoryManagerOpen(true)}
-              color="primary"
-            >
-              <SettingsIcon />
-            </IconButton>
-          </Box>
-        </Box>
-
-        <Paper sx={{ mb: 2 }}>
-          <Tabs
-            value={view}
-            onChange={(_, newValue) => setView(newValue)}
-            indicatorColor="primary"
-            textColor="primary"
-          >
-            <Tab label="List View" value="list" />
-            <Tab label="Calendar View" value="calendar" />
-          </Tabs>
-        </Paper>
-
-        <DragDropContext onDragEnd={handleDragEnd}>
-          {view === 'list' ? (
-            <TaskList
-              tasks={filteredTasks}
-              loading={loading}
-              error={error}
-              onTaskAction={{
-                toggle: handleTaskToggle,
-                delete: handleTaskDelete,
-                update: async (taskId: string, updates: Partial<Task>) => {
-                  await handleTaskUpdate(taskId, updates);
-                },
-                edit: async (task: Task) => {
-                  setSelectedTask(task);
-                  setIsTaskViewOpen(true);
-                },
-              }}
-              tags={tags}
-              categories={categories}
-            />
-          ) : (
-            <CalendarView
-              tasks={filteredTasks}
-              onTaskUpdate={handleTaskUpdate}
-              onTaskDelete={handleTaskDelete}
-              onTaskToggle={handleTaskToggle}
-              onTaskSelect={handleTaskSelect}
-            />
-          )}
+      <DragDropContext onDragEnd={handleDragEnd}>
+          <TaskList
+            tasks={filteredTasks}
+            loading={loading}
+            error={error}
+            onTaskAction={{
+              toggle: handleTaskToggle,
+              delete: handleTaskDelete,
+              update: async (taskId: string, updates: Partial<Task>) => {
+                await handleTaskUpdate(taskId, updates);
+              },
+              edit: async (task: Task) => {
+                setSelectedTask(task);
+              },
+            }}
+            tags={tags}
+            categories={categories}
+          />
         </DragDropContext>
-      </Box>
 
-      {isTaskViewOpen && (
-        <TaskView
-          open={isTaskViewOpen}
-          onClose={() => {
-            setIsTaskViewOpen(false);
-            setSelectedTask(null);
-          }}
-          task={selectedTask}
-          onTaskUpdate={handleTaskUpdate}
-          onTaskCreate={handleCreateTask}
-          onAddComment={handleAddComment}
-          onAddSubtask={handleAddSubtask}
-          onToggleSubtask={handleToggleSubtask}
-          tags={tags}
-          categories={categories}
-        />
-      )}
+      <TaskModal
+        open={isTaskModalOpen}
+        onClose={() => {
+          closeTaskModal();
+          setSelectedTask(null);
+        }}
+        onSubmit={selectedTask ? 
+          async (taskData) => {
+            if (selectedTask.id) {
+              await handleTaskUpdate(selectedTask.id, taskData);
+              closeTaskModal();
+              setSelectedTask(null);
+            }
+          } : 
+          handleCreateTask
+        }
+        initialTask={selectedTask}
+        loading={loading}
+      />
 
-      <CategoryManager
-        open={isCategoryManagerOpen}
-        onClose={() => setIsCategoryManagerOpen(false)}
-        categories={categories}
-        onUpdate={setCategories}
+      <SearchModal
+        open={isSearchModalOpen}
+        onClose={closeSearchModal}
+        onSearch={handleSearch}
       />
     </Container>
   );

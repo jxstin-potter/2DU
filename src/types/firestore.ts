@@ -48,6 +48,7 @@ export interface TaskDocument {
   estimatedTime?: number;
   actualTime?: number;
   assignedTo?: string;
+  priority?: 'low' | 'medium' | 'high';
 }
 
 export interface TaskFilterParams {

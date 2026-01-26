@@ -11,6 +11,8 @@ import { I18nProvider } from './contexts/I18nContext';
 import { A11yProvider } from './contexts/A11yContext';
 import { FeedbackProvider } from './components/common/UserFeedback';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { TaskModalProvider } from './contexts/TaskModalContext';
+import { SearchModalProvider } from './contexts/SearchModalContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import LoadingState from './components/common/LoadingState';
 import MainLayout from './components/layout/MainLayout';
@@ -62,9 +64,13 @@ const App: React.FC = () => {
           <I18nProvider>
             <A11yProvider>
               <FeedbackProvider>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <AppContent />
-                </LocalizationProvider>
+                <TaskModalProvider>
+                  <SearchModalProvider>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <AppContent />
+                    </LocalizationProvider>
+                  </SearchModalProvider>
+                </TaskModalProvider>
               </FeedbackProvider>
             </A11yProvider>
           </I18nProvider>

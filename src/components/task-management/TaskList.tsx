@@ -3,8 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  TextField,
-  InputAdornment,
   Menu,
   MenuItem,
   ListItemText,
@@ -14,7 +12,6 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
   Sort as SortIcon,
 } from '@mui/icons-material';
 import { Droppable, Draggable, DragDropContext, DropResult } from 'react-beautiful-dnd';
@@ -58,29 +55,7 @@ const TaskList: React.FC<TaskListProps> = ({
   const theme = useTheme();
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [sortBy, setSortBy] = useState<SortOption>('dueDate');
-  const [searchQuery, setSearchQuery] = useState('');
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Debounced search handler
-  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearchQuery(value);
-    }, 300);
-  }, []);
 
   const handleTaskAction = useCallback(async (action: keyof TaskListProps['onTaskAction'], ...args: any[]) => {
     if (actionInProgress) return;
@@ -147,18 +122,10 @@ const TaskList: React.FC<TaskListProps> = ({
     });
   }, [tasks, sortBy]);
 
-  const searchFilteredTasks = useMemo(() => {
-    return searchQuery
-      ? sortedTasks.filter(task => 
-          task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()))
-        )
-      : sortedTasks;
-  }, [sortedTasks, searchQuery]);
 
   // Virtualized list item renderer
   const Row = useCallback(({ index, style }: ListChildComponentProps) => {
-    const task = searchFilteredTasks[index];
+    const task = sortedTasks[index];
     if (!task) return null;
     
     return (
@@ -196,7 +163,7 @@ const TaskList: React.FC<TaskListProps> = ({
         )}
       </div>
     );
-  }, [searchFilteredTasks, tags, categories, actionInProgress, draggable, handleTaskAction]);
+  }, [sortedTasks, tags, categories, actionInProgress, draggable, handleTaskAction]);
 
   // Throttle scroll handler to prevent excessive calls
   const scrollThrottleRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -264,7 +231,7 @@ const TaskList: React.FC<TaskListProps> = ({
     <FixedSizeList
       height={listHeight}
       width="100%"
-      itemCount={searchFilteredTasks.length}
+      itemCount={sortedTasks.length}
       itemSize={72} // Adjust based on your TaskItem height
       onScroll={handleScroll}
     >
@@ -290,21 +257,6 @@ const TaskList: React.FC<TaskListProps> = ({
           Sort: {sortBy === 'dueDate' ? 'Due Date' : 
                 sortBy === 'title' ? 'Title' : 'Created'}
         </Button>
-        
-        <TextField
-          size="small"
-          placeholder="Search tasks..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          sx={{ minWidth: 200 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" color="action" />
-              </InputAdornment>
-            ),
-          }}
-        />
       </Box>
 
       {draggable ? (
