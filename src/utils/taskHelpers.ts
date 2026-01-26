@@ -52,6 +52,7 @@ export const taskDocumentToTask = (doc: any): Task => {
     estimatedTime: doc.estimatedTime,
     actualTime: doc.actualTime,
     assignedTo: doc.assignedTo,
+    priority: doc.priority,
   };
 };
 
@@ -74,6 +75,7 @@ export const taskToTaskDocument = (task: Partial<Task>): Partial<TaskDocument> =
   if (task.categoryId !== undefined) doc.categoryId = task.categoryId;
   if (task.category !== undefined) doc.category = task.category;
   if (task.status !== undefined) doc.status = task.status;
+  if (task.priority !== undefined) doc.priority = task.priority;
   
   // Only include fields that are defined (not undefined)
   return Object.fromEntries(

@@ -1,20 +1,15 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { 
   Box, 
-  TextField, 
   AppBar, 
   Toolbar, 
   IconButton, 
-  Typography,
-  InputAdornment,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import Sidebar from './Sidebar';
-import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,7 +20,6 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { mode } = useCustomTheme();
-  const { t } = useI18n();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { logout } = useAuth();
@@ -79,7 +73,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    borderBottom: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.default,
   }), [sidebarWidth, theme]);
 
   return (
@@ -98,7 +92,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       >
         <AppBar 
           position="fixed" 
-          color="default" 
           elevation={0}
           sx={appBarStyles}
         >
@@ -114,27 +107,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <MenuIcon />
               </IconButton>
             )}
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              {t('app.name')}
-            </Typography>
-            <TextField
-              size="small"
-              placeholder="Search tasks..."
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ mr: 2, width: 200 }}
-            />
           </Toolbar>
         </AppBar>
 
         <Box sx={{ 
           mt: 8, // Height of AppBar
           p: 3,
+          px: { xs: 2, sm: 3 },
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100%',
         }}>
           {children}
         </Box>

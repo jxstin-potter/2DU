@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { Task, Tag, Category } from '../../types';
 import { useTheme } from '@mui/material/styles';
+import { format, isBefore, startOfDay } from 'date-fns';
 
 interface TaskItemProps {
   task: Task;
@@ -45,6 +46,18 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const taskTags = useMemo(() => {
     return task.tags?.map(tagId => tags.find(t => t.id === tagId)).filter(Boolean) as Tag[] || [];
   }, [task.tags, tags]);
+
+  const isOverdue = useMemo(() => {
+    if (!task.dueDate || task.completed) return false;
+    const taskDate = startOfDay(new Date(task.dueDate));
+    const today = startOfDay(new Date());
+    return isBefore(taskDate, today);
+  }, [task.dueDate, task.completed]);
+
+  const formattedDate = useMemo(() => {
+    if (!task.dueDate) return '';
+    return format(new Date(task.dueDate), 'MMM d yyyy');
+  }, [task.dueDate]);
 
   const handleToggleComplete = useCallback(() => {
     onToggleComplete(task.id);
@@ -106,19 +119,18 @@ const TaskItem: React.FC<TaskItemProps> = ({
         secondary={
           <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
             {task.dueDate && (
-              <Tooltip title="Due Date">
-                <Chip
-                  size="small"
-                  icon={<CalendarIcon fontSize="small" />}
-                  label={new Date(task.dueDate).toLocaleDateString()}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <CalendarIcon fontSize="small" sx={{ fontSize: '0.875rem' }} />
+                <Typography
+                  variant="body2"
                   sx={{
-                    bgcolor: 'background.default',
-                    '& .MuiChip-label': {
-                      px: 1,
-                    },
+                    color: isOverdue ? 'error.main' : 'text.secondary',
+                    fontSize: '0.875rem',
                   }}
-                />
-              </Tooltip>
+                >
+                  {formattedDate}
+                </Typography>
+              </Box>
             )}
             {category && (
               <Tooltip title="Category">

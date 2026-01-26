@@ -446,6 +446,14 @@ const components = {
       },
     },
   },
+  MuiDrawer: {
+    styleOverrides: {
+      paper: {
+        border: 'none',
+        borderRight: 'none',
+      },
+    },
+  },
   MuiTooltip: {
     styleOverrides: {
       tooltip: {

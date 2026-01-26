@@ -33,6 +33,7 @@ export interface Task {
   estimatedTime?: number;
   actualTime?: number;
   assignedTo?: string;
+  priority?: 'low' | 'medium' | 'high';
 }
 
 export interface Subtask {

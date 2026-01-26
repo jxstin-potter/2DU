@@ -1,0 +1,221 @@
+import React, { useState, useMemo } from 'react';
+import {
+  Box,
+  Typography,
+  Collapse,
+  IconButton,
+  Link,
+  Button,
+} from '@mui/material';
+import {
+  ChevronRight as ChevronRightIcon,
+  ExpandMore as ExpandMoreIcon,
+  CheckCircle as CheckCircleIcon,
+  Add as AddIcon,
+} from '@mui/icons-material';
+import { format, isBefore, isToday, startOfDay } from 'date-fns';
+import { Task, Tag, Category } from '../../types';
+import TaskItem from './TaskItem';
+import { useTaskModal } from '../../contexts/TaskModalContext';
+
+interface TodayViewProps {
+  tasks: Task[];
+  onTaskAction: {
+    toggle: (taskId: string) => Promise<void>;
+    delete: (taskId: string) => Promise<void>;
+    update: (taskId: string, updates: Partial<Task>) => Promise<void>;
+    edit: (task: Task) => void;
+  };
+  tags: Tag[];
+  categories: Category[];
+}
+
+const TodayView: React.FC<TodayViewProps> = ({
+  tasks,
+  onTaskAction,
+  tags,
+  categories,
+}) => {
+  const { openModal } = useTaskModal();
+  const [overdueExpanded, setOverdueExpanded] = useState(true);
+
+  const today = startOfDay(new Date());
+
+  const { overdueTasks, todayTasks, taskCount } = useMemo(() => {
+    const overdue: Task[] = [];
+    const today: Task[] = [];
+    let count = 0;
+
+    tasks.forEach(task => {
+      if (task.completed) return;
+      
+      if (task.dueDate) {
+        const taskDate = startOfDay(new Date(task.dueDate));
+        
+        if (isBefore(taskDate, today)) {
+          overdue.push(task);
+          count++;
+        } else if (isToday(taskDate)) {
+          today.push(task);
+          count++;
+        }
+      }
+    });
+
+    // Sort overdue by dueDate (oldest first)
+    overdue.sort((a, b) => {
+      if (!a.dueDate || !b.dueDate) return 0;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+
+    // Sort today tasks by dueDate or creation date
+    today.sort((a, b) => {
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+
+    return { overdueTasks: overdue, todayTasks: today, taskCount: count };
+  }, [tasks, today]);
+
+  const formattedDate = format(new Date(), "MMM d 'Today' - EEEE");
+
+  return (
+    <Box>
+      {/* Today Title */}
+      <Typography 
+        variant="h6" 
+        component="div" 
+        sx={{ 
+          fontWeight: 'bold',
+          mb: 2,
+        }}
+      >
+        Today
+      </Typography>
+
+      {/* Task Count Display */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+        <CheckCircleIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+          {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
+        </Typography>
+      </Box>
+
+      {/* Overdue Section */}
+      {overdueTasks.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 1,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton
+                size="small"
+                onClick={() => setOverdueExpanded(!overdueExpanded)}
+                sx={{ p: 0.5 }}
+              >
+                {overdueExpanded ? (
+                  <ExpandMoreIcon fontSize="small" />
+                ) : (
+                  <ChevronRightIcon fontSize="small" />
+                )}
+              </IconButton>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                Overdue
+              </Typography>
+            </Box>
+            <Link
+              component="button"
+              variant="body2"
+              onClick={() => {
+                // TODO: Implement reschedule functionality
+              }}
+              sx={{
+                color: 'warning.main',
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline',
+                },
+              }}
+            >
+              Reschedule
+            </Link>
+          </Box>
+
+          <Collapse in={overdueExpanded}>
+            <Box>
+              {overdueTasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggleComplete={onTaskAction.toggle}
+                  onDelete={onTaskAction.delete}
+                  onEdit={onTaskAction.edit}
+                  tags={tags}
+                  categories={categories}
+                />
+              ))}
+            </Box>
+          </Collapse>
+        </Box>
+      )}
+
+      {/* Today Section */}
+      <Box>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            mb: 2,
+          }}
+        >
+          {formattedDate}
+        </Typography>
+
+        {todayTasks.length > 0 ? (
+          <Box>
+            {todayTasks.map((task) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onToggleComplete={onTaskAction.toggle}
+                onDelete={onTaskAction.delete}
+                onEdit={onTaskAction.edit}
+                tags={tags}
+                categories={categories}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Box sx={{ py: 2, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              No tasks for today
+            </Typography>
+          </Box>
+        )}
+
+        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={openModal}
+            sx={{
+              textTransform: 'none',
+              color: 'text.secondary',
+            }}
+          >
+            Add task
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+export default TodayView;
