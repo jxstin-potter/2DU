@@ -12,6 +12,8 @@ import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import KeyboardShortcutsHelp from '../features/KeyboardShortcutsHelp';
+import SettingsModal from '../features/SettingsModal';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -19,10 +21,12 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const { mode } = useCustomTheme();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = useCallback(async () => {
@@ -35,7 +39,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, [logout, navigate]);
 
   const handleOpenShortcutsHelp = useCallback(() => {
-    // TODO: Implement shortcuts help dialog
+    setIsShortcutsModalOpen(true);
+  }, []);
+
+  const handleCloseShortcutsHelp = useCallback(() => {
+    setIsShortcutsModalOpen(false);
+  }, []);
+
+  const handleOpenSettings = useCallback(() => {
+    setIsSettingsModalOpen(true);
+  }, []);
+
+  const handleCloseSettings = useCallback(() => {
+    setIsSettingsModalOpen(false);
   }, []);
 
   const toggleDarkMode = useCustomTheme().toggleColorMode;
@@ -84,7 +100,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         darkMode={mode === 'dark'}
         toggleDarkMode={toggleDarkMode}
         onLogout={handleLogout}
+        user={user}
+        userName={user?.name}
         onOpenShortcutsHelp={handleOpenShortcutsHelp}
+        onOpenSettings={handleOpenSettings}
+      />
+      <KeyboardShortcutsHelp
+        open={isShortcutsModalOpen}
+        onClose={handleCloseShortcutsHelp}
+      />
+      <SettingsModal
+        open={isSettingsModalOpen}
+        onClose={handleCloseSettings}
       />
       <Box
         component="main"
@@ -111,12 +138,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </AppBar>
 
         <Box sx={{ 
-          mt: 8, // Height of AppBar
-          p: 3,
+          mt: { xs: 7, sm: 8 },
+          py: 3,
           px: { xs: 2, sm: 3 },
           display: 'flex',
           justifyContent: 'center',
+          alignItems: 'flex-start',
           width: '100%',
+          minHeight: 'calc(100vh - 64px)',
         }}>
           {children}
         </Box>

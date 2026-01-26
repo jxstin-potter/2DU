@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import {
   Drawer,
   List,
@@ -10,10 +10,13 @@ import {
   useTheme,
   Typography,
   Tooltip,
+  Menu,
+  MenuItem,
+  Avatar,
+  Divider,
+  Button,
 } from '@mui/material';
 import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
   Inbox as InboxIcon,
@@ -25,11 +28,15 @@ import {
   Keyboard as KeyboardIcon,
   Add as AddIcon,
   Search as SearchIcon,
+  HelpOutline as HelpIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../contexts/I18nContext';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 import { useSearchModal } from '../../contexts/SearchModalContext';
+import { User } from '../../types';
+import SidebarToggleIcon from '../common/SidebarToggleIcon';
+import ThinArrowDownIcon from '../common/ThinArrowDownIcon';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -38,7 +45,9 @@ interface SidebarProps {
   toggleDarkMode: () => void;
   onLogout: () => void;
   userName?: string;
+  user?: User | null;
   onOpenShortcutsHelp: () => void;
+  onOpenSettings?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -48,7 +57,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   toggleDarkMode,
   onLogout,
   userName,
+  user,
   onOpenShortcutsHelp,
+  onOpenSettings,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -56,6 +67,48 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { t } = useI18n();
   const { openModal } = useTaskModal();
   const { openModal: openSearchModal } = useSearchModal();
+  
+  // Menu anchor states
+  const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
+  const [helpAnchorEl, setHelpAnchorEl] = useState<null | HTMLElement>(null);
+  
+  const displayName = user?.name || userName || t('sidebar.user');
+  const profilePicture = user?.profilePicture;
+  
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+  
+  const handleProfileMenuClose = () => {
+    setProfileAnchorEl(null);
+  };
+  
+  const handleHelpMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setHelpAnchorEl(event.currentTarget);
+  };
+  
+  const handleHelpMenuClose = () => {
+    setHelpAnchorEl(null);
+  };
+  
+  const handleSettings = () => {
+    handleProfileMenuClose();
+    if (onOpenSettings) {
+      onOpenSettings();
+    } else {
+      navigate('/settings');
+    }
+  };
+  
+  const handleLogout = () => {
+    handleProfileMenuClose();
+    onLogout();
+  };
+  
+  const handleKeyboardShortcuts = () => {
+    handleHelpMenuClose();
+    onOpenShortcutsHelp();
+  };
 
   // Shared icon spacing configuration - edit this value to change spacing for all sidebar items
   const iconSpacing = useMemo(() => 0.75, []);
@@ -75,11 +128,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         key={item.path}
         onClick={() => navigate(item.path)}
         sx={{
-          minHeight: 40,
+          minHeight: 32,
           justifyContent: isCollapsed ? 'center' : 'initial',
           px: 2,
+          py: 0.5,
           borderRadius: 1,
-          mb: 0.5,
+          mb: 0.25,
           backgroundColor: isActive ? 'primary.main' : 'transparent',
           color: isActive ? 'primary.contrastText' : 'text.primary',
           '&:hover': {
@@ -165,53 +219,110 @@ const Sidebar: React.FC<SidebarProps> = ({
   }), [drawerWidth, theme]);
 
   return (
-    <Drawer
-      variant="permanent"
-      sx={drawerStyles}
-    >
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: isCollapsed ? 'center' : 'space-between',
-        p: 1.5,
-        minHeight: 48,
-      }}> 
-        {!isCollapsed && (
-          <Typography
-            variant="body2"
-            sx={{
-              fontWeight: 'bold',
-              fontSize: '0.875rem',
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+    <>
+      <Drawer
+        variant="permanent"
+        sx={drawerStyles}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: isCollapsed ? 'center' : 'space-between',
+          p: 1,
+          px: 1.5,
+          minHeight: 40,
+          height: 40,
+        }}> 
+          {!isCollapsed ? (
+            <Button
+              onClick={handleProfileMenuOpen}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                textTransform: 'none',
+                color: theme.palette.text.primary,
+                p: 0.5,
+                minWidth: 0,
+                flex: 1,
+                justifyContent: 'flex-start',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
+              <Avatar
+                src={profilePicture}
+                alt={displayName}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  fontSize: '0.75rem',
+                  bgcolor: theme.palette.primary.main,
+                }}
+              >
+                {displayName.charAt(0).toUpperCase()}
+              </Avatar>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  maxWidth: 140,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {displayName}
+              </Typography>
+              <ThinArrowDownIcon sx={{ fontSize: '1rem', ml: 0.01 }} />
+            </Button>
+          ) : (
+            <IconButton
+              onClick={handleProfileMenuOpen}
+              sx={{
+                color: theme.palette.text.primary,
+                p: 0.5,
+              }}
+            >
+              <Avatar
+                src={profilePicture}
+                alt={displayName}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  fontSize: '0.75rem',
+                  bgcolor: theme.palette.primary.main,
+                }}
+              >
+                {displayName.charAt(0).toUpperCase()}
+              </Avatar>
+            </IconButton>
+          )}
+          <IconButton 
+            onClick={onToggleCollapse}
+            aria-label={isCollapsed ? 'Open sidebar' : 'Close sidebar'}
+            aria-controls="sidebar"
+            aria-expanded={!isCollapsed}
+            sx={{ 
+              ml: isCollapsed ? 0 : -0.5,
+              mr: isCollapsed ? 0 : -0.5,
+              color: theme.palette.text.secondary,
+              p: 0.5,
+              '&:hover': {
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.action.hover,
+              },
+              transition: 'all 0.2s ease',
             }}
           >
-            2DU
-          </Typography>
-        )}
-        <IconButton 
-          onClick={onToggleCollapse}
-          sx={{ 
-            ml: isCollapsed ? 0 : 0,
-            color: theme.palette.text.secondary,
-            '&:hover': {
-              color: theme.palette.primary.main,
-            }
-          }}
-        >
-          {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-        </IconButton>
-      </Box>
+            <SidebarToggleIcon isCollapsed={isCollapsed} sx={{ fontSize: '1rem' }} />
+          </IconButton>
+        </Box>
       
       {!isCollapsed && (
         <>
-          <Box sx={{ p: 1.5 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              {t('sidebar.welcome', { userName: userName || t('sidebar.user') })}
-            </Typography>
-          </Box>
-          
           <List sx={{ 
             px: 1,
             '& .MuiListItemIcon-root': {
@@ -222,11 +333,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               button
               onClick={openModal}
                 sx={{
-                  minHeight: 40,
+                  minHeight: 32,
                   justifyContent: 'initial',
                   px: 2,
+                  py: 0.5,
                   borderRadius: 1,
-                  mb: 0.5,
+                  mb: 0.25,
                   backgroundColor: 'transparent',
                   color: 'text.primary',
                   '&:hover': {
@@ -278,11 +390,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               button
               onClick={openSearchModal}
               sx={{
-                minHeight: 40,
+                minHeight: 32,
                 justifyContent: 'initial',
                 px: 2,
+                py: 0.5,
                 borderRadius: 1,
-                mb: 0.5,
+                mb: 0.25,
                 backgroundColor: 'transparent',
                 color: 'text.primary',
                 '&:hover': {
@@ -327,13 +440,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           }}>
             <ListItem
               button
-              onClick={onOpenShortcutsHelp}
+              onClick={handleHelpMenuOpen}
               sx={{
-                minHeight: 40,
+                minHeight: 32,
                 justifyContent: 'initial',
                 px: 2,
+                py: 0.5,
                 borderRadius: 1,
-                mb: 0.5,
+                mb: 0.25,
                 color: 'text.primary',
                 '&:hover': {
                   backgroundColor: 'action.hover',
@@ -346,77 +460,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <ListItemIcon
                 sx={{
-                  minWidth: 0,
-                  justifyContent: 'center',
-                }}
-              >
-                <KeyboardIcon />
-              </ListItemIcon>
-              <ListItemText 
-                primary={t('shortcuts.title')}
-                primaryTypographyProps={{ 
-                  variant: 'body2',
-                  sx: { fontSize: '0.8125rem' }
-                }}
-              />
-            </ListItem>
-            
-            <ListItem
-              button
-              onClick={toggleDarkMode}
-              sx={{
-                minHeight: 40,
-                justifyContent: 'initial',
-                px: 2,
-                borderRadius: 1,
-                mb: 0.5,
-                color: 'text.primary',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-                '& .MuiListItemIcon-root': {
-                  color: 'text.secondary',
                   minWidth: 36,
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 0,
                   justifyContent: 'center',
+                  color: 'text.secondary',
+                  '& svg': {
+                    fontSize: '1.25rem',
+                  },
                 }}
               >
-                {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+                <HelpIcon />
               </ListItemIcon>
               <ListItemText 
-                primary={darkMode ? 'Light Mode' : 'Dark Mode'}
-                primaryTypographyProps={{ 
-                  variant: 'body2',
-                  sx: { fontSize: '0.8125rem' }
-                }}
-              />
-            </ListItem>
-
-            <ListItem
-              button
-              onClick={onLogout}
-              sx={{
-                minHeight: 48,
-                justifyContent: 'initial',
-                px: 2.5,
-                borderRadius: 1,
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 0,
-                  justifyContent: 'center',
-                }}
-              >
-                <LogoutIcon />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Logout"
+                primary={t('sidebar.helpResources')}
                 primaryTypographyProps={{ 
                   variant: 'body2',
                   sx: { fontSize: '0.8125rem' }
@@ -426,7 +481,61 @@ const Sidebar: React.FC<SidebarProps> = ({
           </List>
         </>
       )}
-    </Drawer>
+      </Drawer>
+      
+      {/* Profile Dropdown Menu */}
+      <Menu
+        anchorEl={profileAnchorEl}
+        open={Boolean(profileAnchorEl)}
+        onClose={handleProfileMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        disablePortal={false}
+      >
+        <MenuItem onClick={handleSettings}>
+          <ListItemIcon>
+            <SettingsIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('sidebar.settings')} />
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('sidebar.logout')} />
+        </MenuItem>
+      </Menu>
+      
+      {/* Help & Resources Dropdown Menu */}
+      <Menu
+        anchorEl={helpAnchorEl}
+        open={Boolean(helpAnchorEl)}
+        onClose={handleHelpMenuClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        disablePortal={false}
+      >
+        <MenuItem onClick={handleKeyboardShortcuts}>
+          <ListItemIcon>
+            <KeyboardIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('sidebar.keyboardShortcuts')} />
+        </MenuItem>
+      </Menu>
+    </>
   );
 };
 

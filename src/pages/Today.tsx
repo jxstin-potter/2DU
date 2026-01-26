@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Box } from '@mui/material';
+import { Container, Box, useTheme } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToTasks } from '../services/tasksService';
 import { taskDocumentToTask } from '../utils/taskHelpers';
@@ -22,6 +22,7 @@ const DEFAULT_TAGS: Tag[] = [
 ];
 
 const Today: React.FC = () => {
+  const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
   const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
   const { isOpen: isSearchModalOpen, closeModal: closeSearchModal } = useSearchModal();
@@ -238,6 +239,7 @@ const Today: React.FC = () => {
     <Box sx={{ 
       display: 'flex', 
       justifyContent: 'center',
+      alignItems: 'flex-start',
       width: '100%',
     }}>
       <Container 
@@ -249,7 +251,10 @@ const Today: React.FC = () => {
           alignItems: 'center',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 600 }}>
+        <Box sx={{ 
+          width: '100%',
+          maxWidth: theme.breakpoints.values.sm,
+        }}>
           <TodayView
             tasks={filteredTasks}
             onTaskAction={{
