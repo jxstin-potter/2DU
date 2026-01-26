@@ -82,7 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await enablePersistence();
         } catch (persistError) {
           // Persistence may already be enabled, ignore error
-          console.log('Persistence setup:', persistError);
         }
         
         // Now listen for auth state changes

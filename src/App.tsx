@@ -9,17 +9,16 @@ import { getTheme } from './styles/theme';
 import { AuthProvider } from './contexts/AuthContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { A11yProvider } from './contexts/A11yContext';
-import { FeedbackProvider } from './components/common/UserFeedback';
+import { FeedbackProvider } from './components/ui/UserFeedback';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { TaskModalProvider } from './contexts/TaskModalContext';
 import { SearchModalProvider } from './contexts/SearchModalContext';
-import ErrorBoundary from './components/common/ErrorBoundary';
-import LoadingState from './components/common/LoadingState';
+import ErrorBoundary from './components/ui/ErrorBoundary';
+import LoadingState from './components/ui/LoadingState';
 import MainLayout from './components/layout/MainLayout';
 import { useTheme } from './contexts/ThemeContext';
 
 // Lazy load pages with error handling
-const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Login = lazy(() => import('./pages/Login'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Today = lazy(() => import('./pages/Today'));

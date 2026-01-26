@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '../__tests__/test-utils';
+import { render, screen, fireEvent, waitFor } from './test-utils';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import TaskManager from '../TaskManager';
-import { mockTasks, mockCategories, mockTags } from '../__tests__/test-utils';
+import TaskManager from '../../components/task-management/TaskManager';
+import { mockTasks, mockCategories, mockTags } from './test-utils';
 
 // Mock the Firebase functions
 const mockGetDocs = getDocs as jest.Mock;

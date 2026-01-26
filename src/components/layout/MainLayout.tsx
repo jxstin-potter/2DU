@@ -12,8 +12,8 @@ import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import KeyboardShortcutsHelp from '../features/KeyboardShortcutsHelp';
-import SettingsModal from '../features/SettingsModal';
+import KeyboardShortcutsHelp from '../modals/KeyboardShortcutsHelp';
+import SettingsModal from '../modals/SettingsModal';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -96,7 +96,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar
         isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={useCallback(() => setIsSidebarCollapsed(prev => !prev), [])}
+        onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
         darkMode={mode === 'dark'}
         toggleDarkMode={toggleDarkMode}
         onLogout={handleLogout}

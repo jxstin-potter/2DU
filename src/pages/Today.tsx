@@ -5,21 +5,13 @@ import { subscribeToTasks } from '../services/tasksService';
 import { taskDocumentToTask } from '../utils/taskHelpers';
 import { Task, Category, Tag } from '../types';
 import TodayView from '../components/task-management/TodayView';
-import TaskModal from '../components/task-management/TaskModal';
-import SearchModal, { SearchCriteria } from '../components/task-management/SearchModal';
+import TaskModal from '../components/modals/TaskModal';
+import SearchModal, { SearchCriteria } from '../components/modals/SearchModal';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import { useSearchModal } from '../contexts/SearchModalContext';
 import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
 import { taskToTaskDocument } from '../utils/taskHelpers';
-
-// Default tags if none are found in the database
-const DEFAULT_TAGS: Tag[] = [
-  { id: '1', name: 'Work', color: '#4CAF50' },
-  { id: '2', name: 'Personal', color: '#2196F3' },
-  { id: '3', name: 'Shopping', color: '#FF9800' },
-  { id: '4', name: 'Urgent', color: '#f44336' },
-  { id: '5', name: 'Important', color: '#9c27b0' },
-];
+import { DEFAULT_TAGS } from '../constants/defaultTags';
 
 const Today: React.FC = () => {
   const theme = useTheme();
