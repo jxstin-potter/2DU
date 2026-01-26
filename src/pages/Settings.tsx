@@ -1,8 +1,8 @@
 import React from 'react';
 import { Container, Typography, Box, Tabs, Tab, Paper } from '@mui/material';
 import { useI18n } from '../contexts/I18nContext';
-import AccessibilitySettings from '../components/features/AccessibilitySettings';
-import LanguageSelector from '../components/common/LanguageSelector';
+import AccessibilitySettings from '../components/settings/AccessibilitySettings';
+import LanguageSelector from '../components/ui/LanguageSelector';
 
 interface TabPanelProps {
   children?: React.ReactNode;

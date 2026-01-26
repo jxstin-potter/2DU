@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import Authentication from '../Authentication';
+import AuthForm from '../../components/forms/AuthForm';
 import { AuthContext } from '../../contexts/AuthContext';
 
 // Mock the Firebase auth functions

@@ -9,7 +9,7 @@ import './styles/global.css' // Import our consolidated global CSS
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/service-worker.js')
+      .register('/sw.js')
       .catch(() => {
         // Service worker registration failed - app will still work
       });

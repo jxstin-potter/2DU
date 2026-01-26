@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Drawer,
   List,
@@ -17,8 +17,6 @@ import {
   Button,
 } from '@mui/material';
 import {
-  Brightness4 as DarkModeIcon,
-  Brightness7 as LightModeIcon,
   Inbox as InboxIcon,
   Event as EventIcon,
   LocalOffer as TagIcon,
@@ -110,15 +108,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     onOpenShortcutsHelp();
   };
 
-  // Shared icon spacing configuration - edit this value to change spacing for all sidebar items
-  const iconSpacing = useMemo(() => 0.75, []);
+  const iconSpacing = 0.75;
 
-  const mainMenuItems = useMemo(() => [
+  const mainMenuItems = [
     { text: t('sidebar.today'), icon: <InboxIcon />, path: "/today" },
     { text: t('sidebar.upcoming'), icon: <EventIcon />, path: "/upcoming" },
     { text: t('sidebar.tags'), icon: <TagIcon />, path: "/tags" },
     { text: t('sidebar.completed'), icon: <CompletedIcon />, path: "/completed" },
-  ], [t]);
+  ];
 
   const renderMenuItem = useCallback((item: { text: string; icon: React.ReactNode; path: string }, isCollapsed: boolean) => {
     const isActive = location.pathname === item.path;
@@ -188,10 +185,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     );
   }, [location.pathname, navigate, isCollapsed]);
 
-  // Memoize drawer styles to prevent recalculation
-  const drawerWidth = useMemo(() => isCollapsed ? 64 : 240, [isCollapsed]);
+  const drawerWidth = isCollapsed ? 64 : 240;
   
-  const drawerStyles = useMemo(() => ({
+  const drawerStyles = {
     width: drawerWidth,
     flexShrink: 0,
     '& .MuiDrawer-paper': {
@@ -199,24 +195,17 @@ const Sidebar: React.FC<SidebarProps> = ({
       boxSizing: 'border-box',
       backgroundColor: theme.palette.background.default,
       color: theme.palette.text.primary,
-      // Use transform instead of width transition to prevent layout thrashing
-      // Width changes trigger layout recalculation, transform only triggers repaint
       transition: theme.transitions.create(['width', 'transform'], {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.enteringScreen,
       }),
       overflowX: 'hidden',
-      border: 'none !important',
-      borderRight: 'none !important',
-      borderLeft: 'none !important',
-      borderTop: 'none !important',
-      borderBottom: 'none !important',
+      border: 'none',
       outline: 'none',
       boxShadow: 'none',
-      // Force GPU acceleration for smoother transitions
       willChange: 'width',
     },
-  }), [drawerWidth, theme]);
+  };
 
   return (
     <>

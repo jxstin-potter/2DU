@@ -13,20 +13,12 @@ import { useTaskModal } from '../../contexts/TaskModalContext';
 import { useSearchModal } from '../../contexts/SearchModalContext';
 import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../../services/tasksService';
 import { taskDocumentToTask, taskToTaskDocument } from '../../utils/taskHelpers';
-import TaskModal from './TaskModal';
-import SearchModal, { SearchCriteria } from './SearchModal';
+import TaskModal from '../modals/TaskModal';
+import SearchModal, { SearchCriteria } from '../modals/SearchModal';
 import { Task, Category, Tag, Comment } from '../../types';
 import AddIcon from '@mui/icons-material/Add';
 import TaskList from './TaskList';
-
-// Default tags if none are found in the database
-const DEFAULT_TAGS: Tag[] = [
-  { id: '1', name: 'Work', color: '#4CAF50' },
-  { id: '2', name: 'Personal', color: '#2196F3' },
-  { id: '3', name: 'Shopping', color: '#FF9800' },
-  { id: '4', name: 'Urgent', color: '#f44336' },
-  { id: '5', name: 'Important', color: '#9c27b0' },
-];
+import { DEFAULT_TAGS } from '../../constants/defaultTags';
 
 const TaskManager: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -227,7 +219,7 @@ const TaskManager: React.FC = () => {
           if (!titleMatch) return false;
         }
 
-        // Description filter (case-insensitive partial match)
+        // Description filter (case-insensitive pa9rtial match)
         if (searchCriteria.description && searchCriteria.description.trim()) {
           const descMatch = task.description?.toLowerCase().includes(searchCriteria.description.toLowerCase());
           if (!descMatch) return false;

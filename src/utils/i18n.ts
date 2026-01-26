@@ -244,34 +244,17 @@ export const getLanguage = (): Language => {
 
 // Function to initialize the language from localStorage
 export const initLanguage = (): void => {
-  console.log('Initializing language from localStorage');
   const savedLanguage = localStorage.getItem('language') as Language;
-  console.log('Saved language from localStorage:', savedLanguage);
   
   if (savedLanguage && translations[savedLanguage]) {
-    console.log(`Setting language to ${savedLanguage}`);
     currentLanguage = savedLanguage;
   } else {
-    console.log(`No valid saved language found, using default: ${DEFAULT_LANGUAGE}`);
     currentLanguage = DEFAULT_LANGUAGE;
   }
-  
-  console.log('Current language after initialization:', currentLanguage);
 };
 
 // Function to translate a key
 export const t = (key: string, params?: Record<string, string>): string => {
-  console.log(`Translating key: ${key}, current language: ${currentLanguage}`);
-  
-  // Check if the key exists in the current language
-  if (translations[currentLanguage]?.[key]) {
-    console.log(`Found translation for ${key} in ${currentLanguage}: ${translations[currentLanguage][key]}`);
-  } else if (translations[DEFAULT_LANGUAGE]?.[key]) {
-    console.log(`Using default language translation for ${key}: ${translations[DEFAULT_LANGUAGE][key]}`);
-  } else {
-    console.log(`No translation found for ${key}, using key as fallback`);
-  }
-  
   const translation = translations[currentLanguage]?.[key] || translations[DEFAULT_LANGUAGE]?.[key] || key;
   
   if (params) {

@@ -39,7 +39,6 @@ export const calendarService = {
         throw error;
       }
       */
-      console.log('Google Calendar integration temporarily disabled', task);
       return Promise.resolve({ success: true });
     },
   },
@@ -84,7 +83,6 @@ export const calendarService = {
         throw error;
       }
       */
-      console.log('Outlook Calendar integration temporarily disabled', task);
       return Promise.resolve({ success: true });
     },
   },
@@ -133,7 +131,6 @@ ${task.tags.length > 0 ? `<p><strong>Tags:</strong> ${task.tags.join(', ')}</p>`
       throw error;
     }
     */
-    console.log('Email reminder service temporarily disabled', task, recipientEmail);
     return Promise.resolve({ success: true });
   },
 };
@@ -174,7 +171,6 @@ export const socialSharingService = {
     const url = encodeURIComponent(window.location.origin);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
     */
-    console.log('Twitter sharing temporarily disabled', task);
   },
 
   // Share on LinkedIn
@@ -188,7 +184,6 @@ export const socialSharingService = {
       '_blank'
     );
     */
-    console.log('LinkedIn sharing temporarily disabled', task);
   },
 
   // Share via Email
@@ -204,7 +199,6 @@ ${task.tags.length > 0 ? `Tags: ${task.tags.join(', ')}` : ''}
     `.trim());
     window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
     */
-    console.log('Email sharing temporarily disabled', task, recipientEmail);
   },
 
   // Generate shareable link
@@ -230,7 +224,6 @@ ${task.tags.length > 0 ? `Tags: ${task.tags.join(', ')}` : ''}
       throw error;
     }
     */
-    console.log('Shareable link generation temporarily disabled', task);
     return Promise.resolve('https://example.com/shared-task');
   },
 };

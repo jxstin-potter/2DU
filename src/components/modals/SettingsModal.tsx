@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,8 +24,6 @@ import {
   Person as PersonIcon,
   Settings as SettingsIcon,
   Search as SearchIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -47,9 +45,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   const [name, setName] = useState(user?.name || '');
 
   React.useEffect(() => {
-    if (user?.name) {
-      setName(user.name);
-    }
+    setName(user?.name || '');
   }, [user?.name]);
 
   const handleTabChange = (tab: SettingsTab) => {
@@ -62,7 +58,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
 
   const handleSaveName = () => {
     // TODO: Implement name update to Firestore
-    // For now, just update local state
   };
 
   const handleChangePhoto = () => {

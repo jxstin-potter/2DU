@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
 
 // Mock Firebase
-jest.mock('../firebase', () => ({
+jest.mock('../../firebase', () => ({
   db: {},
 }));
 

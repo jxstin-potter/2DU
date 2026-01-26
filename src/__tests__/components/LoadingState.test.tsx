@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import LoadingState from '../LoadingState';
+import LoadingState from '../../components/ui/LoadingState';
 
 describe('LoadingState Component', () => {
   it('renders children when not loading and no error', () => {
