@@ -6,6 +6,7 @@ import {
   IconButton,
   Link,
   Button,
+  useTheme,
 } from '@mui/material';
 import {
   ChevronRight as ChevronRightIcon,
@@ -36,6 +37,7 @@ const TodayView: React.FC<TodayViewProps> = ({
   tags,
   categories,
 }) => {
+  const theme = useTheme();
   const { openModal } = useTaskModal();
   const [overdueExpanded, setOverdueExpanded] = useState(true);
 
@@ -82,43 +84,56 @@ const TodayView: React.FC<TodayViewProps> = ({
   const formattedDate = format(new Date(), "MMM d 'Today' - EEEE");
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       {/* Today Title */}
       <Typography 
         variant="h6" 
         component="div" 
         sx={{ 
-          fontWeight: 'bold',
-          mb: 2,
+          fontWeight: theme.typography.fontWeightBold,
+          mb: theme.spacing(2),
+          fontSize: theme.typography.h6.fontSize,
         }}
       >
         Today
       </Typography>
 
       {/* Task Count Display */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-        <CheckCircleIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
-        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: theme.spacing(1), 
+        mb: theme.spacing(3) 
+      }}>
+        <CheckCircleIcon sx={{ 
+          fontSize: theme.typography.body2.fontSize, 
+          color: 'text.secondary' 
+        }} />
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ fontSize: theme.typography.body2.fontSize }}
+        >
           {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
         </Typography>
       </Box>
 
       {/* Overdue Section */}
       {overdueTasks.length > 0 && (
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: theme.spacing(3) }}>
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              mb: 1,
+              mb: theme.spacing(1),
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: theme.spacing(1) }}>
               <IconButton
                 size="small"
                 onClick={() => setOverdueExpanded(!overdueExpanded)}
-                sx={{ p: 0.5 }}
+                sx={{ p: theme.spacing(0.5) }}
               >
                 {overdueExpanded ? (
                   <ExpandMoreIcon fontSize="small" />
@@ -126,7 +141,13 @@ const TodayView: React.FC<TodayViewProps> = ({
                   <ChevronRightIcon fontSize="small" />
                 )}
               </IconButton>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: theme.typography.fontWeightBold, 
+                  fontSize: theme.typography.body1.fontSize 
+                }}
+              >
                 Overdue
               </Typography>
             </Box>
@@ -171,16 +192,16 @@ const TodayView: React.FC<TodayViewProps> = ({
         <Typography
           variant="h6"
           sx={{
-            fontWeight: 'bold',
-            fontSize: '1rem',
-            mb: 2,
+            fontWeight: theme.typography.fontWeightBold,
+            fontSize: theme.typography.body1.fontSize,
+            mb: theme.spacing(2),
           }}
         >
           {formattedDate}
         </Typography>
 
         {todayTasks.length > 0 ? (
-          <Box>
+          <>
             {todayTasks.map((task) => (
               <TaskItem
                 key={task.id}
@@ -192,27 +213,49 @@ const TodayView: React.FC<TodayViewProps> = ({
                 categories={categories}
               />
             ))}
-          </Box>
+            <Box sx={{ 
+              mt: theme.spacing(3), 
+              display: 'flex', 
+              justifyContent: 'center' 
+            }}>
+              <Button
+                startIcon={<AddIcon />}
+                onClick={openModal}
+                sx={{
+                  textTransform: 'none',
+                  color: 'text.secondary',
+                }}
+              >
+                Add task
+              </Button>
+            </Box>
+          </>
         ) : (
-          <Box sx={{ py: 2, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: theme.spacing(1.5),
+          }}>
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: theme.typography.body2.fontSize }}
+            >
               No tasks for today
             </Typography>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={openModal}
+              sx={{
+                textTransform: 'none',
+                color: 'text.secondary',
+              }}
+            >
+              Add task
+            </Button>
           </Box>
         )}
-
-        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-          <Button
-            startIcon={<AddIcon />}
-            onClick={openModal}
-            sx={{
-              textTransform: 'none',
-              color: 'text.secondary',
-            }}
-          >
-            Add task
-          </Button>
-        </Box>
       </Box>
     </Box>
   );

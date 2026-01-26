@@ -91,6 +91,9 @@ const translations: Translations = {
     'sidebar.settings': 'Settings',
     'sidebar.welcome': 'Welcome, {userName}',
     'sidebar.user': 'User',
+    'sidebar.helpResources': 'Help & resources',
+    'sidebar.keyboardShortcuts': 'Keyboard shortcuts',
+    'sidebar.logout': 'Log out',
     
     // Shortcuts
     'shortcuts.title': 'Keyboard Shortcuts',

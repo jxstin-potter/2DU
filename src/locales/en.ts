@@ -7,7 +7,10 @@ export default {
     completed: 'Completed',
     settings: 'Settings',
     welcome: 'Welcome, {userName}',
-    user: 'User'
+    user: 'User',
+    helpResources: 'Help & resources',
+    keyboardShortcuts: 'Keyboard shortcuts',
+    logout: 'Log out',
   },
   today: {
     description: 'View and manage your tasks for today'
