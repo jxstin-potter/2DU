@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -7,7 +7,7 @@ import {
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db, temporarilyDisableNetwork, enableNetworkAccess, enablePersistence } from '../firebase';
+import { auth, db, enablePersistence } from '../firebase';
 import { User } from '../types';
 
 // Define the shape of our auth context
@@ -58,10 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: firebaseUser.email || '',
           name: firebaseUser.displayName || '',
           preferences: {
-            theme: 'light',
+            theme: 'light' as const,
             highContrast: false,
             notifications: true,
-            defaultView: 'today'
+            defaultView: 'today' as const
           }
         };
       }
@@ -77,8 +77,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const setupAuth = async () => {
       try {
-        // Enable persistence safely
-        await enablePersistence();
+        // Enable persistence (simplified - let it fail gracefully if already enabled)
+        try {
+          await enablePersistence();
+        } catch (persistError) {
+          // Persistence may already be enabled, ignore error
+          console.log('Persistence setup:', persistError);
+        }
         
         // Now listen for auth state changes
         authUnsubscribe = onAuthStateChanged(auth, async (authUser) => {
@@ -90,24 +95,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Wait before trying Firestore operations
               await new Promise(resolve => setTimeout(resolve, 1000));
               
-              const userData = await fetchUserData(authUser);
-              setUser(userData);
+              try {
+                const userData = await fetchUserData(authUser);
+                setUser(userData);
+              } catch (fetchError) {
+                // If Firestore fetch fails (e.g., offline), create user from Firebase Auth data
+                // This ensures the user can still use the app even if Firestore is unavailable
+                const fallbackUser: User = {
+                  id: authUser.uid,
+                  email: authUser.email || '',
+                  name: authUser.displayName || '',
+                  preferences: {
+                    theme: 'light' as const,
+                    highContrast: false,
+                    notifications: true,
+                    defaultView: 'today' as const
+                  }
+                };
+                setUser(fallbackUser);
+              }
             } else {
               // User is signed out
               setFirebaseUser(null);
               setUser(null);
             }
           } catch (error) {
-            console.error('Error during auth state change:', error);
-            setFirebaseUser(null);
-            setUser(null);
+            // Only clear user if we don't have a valid authUser
+            if (!authUser) {
+              setFirebaseUser(null);
+              setUser(null);
+            }
           } finally {
             setIsLoading(false);
             setIsAuthReady(true);
           }
         });
       } catch (error) {
-        console.error('Error setting up auth:', error);
         setIsAuthReady(true);
         setIsLoading(false);
       }
@@ -123,54 +146,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       setIsLoading(true);
       
-      // Temporarily disable Firestore network operations to avoid race conditions
-      await temporarilyDisableNetwork();
-      
-      // Handle the authentication
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Wait a bit before re-enabling network
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Re-enable Firestore network access
-      await enableNetworkAccess();
-      
-      return userCredential;
+      // Handle the authentication (simplified - no network manipulation)
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      // Make sure to re-enable network access even on error
-      try {
-        await enableNetworkAccess();
-      } catch (netError) {
-        console.error('Error re-enabling network:', netError);
-      }
-      
-      console.error('Login error:', error);
       throw new Error('Invalid email or password');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const signup = async (email: string, password: string, name: string) => {
+  const signup = useCallback(async (email: string, password: string, name: string) => {
     try {
       setIsLoading(true);
       
-      // Temporarily disable Firestore network operations
-      await temporarilyDisableNetwork();
-      
-      // Create user in Firebase Auth
+      // Create user in Firebase Auth (simplified - no network manipulation)
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const authUser = userCredential.user;
-      
-      // Wait a bit before Firestore operations
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Re-enable network for Firestore operations
-      await enableNetworkAccess();
       
       // Create user document in Firestore
       const userData: Omit<User, 'id'> = {
@@ -186,14 +181,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       await setDoc(doc(db, 'users', authUser.uid), userData);
     } catch (error) {
-      // Make sure to re-enable network access even on error
-      try {
-        await enableNetworkAccess();
-      } catch (netError) {
-        console.error('Error re-enabling network:', netError);
-      }
-      
-      console.error('Signup error:', error);
       if (error instanceof Error && error.message.includes('already in use')) {
         throw new Error('Email already exists');
       }
@@ -201,23 +188,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error('Error during logout:', error);
       throw new Error('Failed to log out');
     }
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    user,
+    loading: isLoading,
+    login,
+    signup,
+    logout,
+  }), [user, isLoading, login, signup, logout]);
 
   if (!isAuthReady) {
     return <div>Initializing authentication...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading: isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

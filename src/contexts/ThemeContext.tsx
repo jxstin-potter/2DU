@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -19,12 +19,17 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.setItem('themeMode', mode);
   }, [mode]);
 
-  const toggleColorMode = () => {
+  const toggleColorMode = useCallback(() => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    mode,
+    toggleColorMode,
+  }), [mode, toggleColorMode]);
 
   return (
-    <ThemeContext.Provider value={{ mode, toggleColorMode }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

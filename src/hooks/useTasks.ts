@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Task } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -7,7 +7,6 @@ import {
   deleteTask, 
   subscribeToTasks,
   loadMoreTasks,
-  batchUpdateTasks,
   TaskFilterParams
 } from '../services/tasksService';
 import { TaskDocument, TaskQueryResult } from '../types/firestore';
@@ -105,7 +104,7 @@ export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<TaskError | null>(null);
-  const [filterParams, setFilterParams] = useState<TaskFilterParams>({
+  const [filterParamsState, setFilterParamsState] = useState<TaskFilterParams>({
     completionStatus: 'all',
     sortBy: 'creationDate',
     sortOrder: 'desc',
@@ -116,6 +115,9 @@ export const useTasks = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { user } = useAuth();
+
+  // Memoize filterParams to prevent unnecessary re-subscriptions
+  const filterParams = useMemo(() => filterParamsState, [filterParamsState]);
 
   // Helper function to set error state with proper typing
   const setTaskError = (message: string, code: TaskError['code'], details?: any) => {
@@ -178,7 +180,7 @@ export const useTasks = () => {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [user, lastVisible, hasMore, isLoadingMore, filterParams, tasks.length]);
+  }, [user, lastVisible, hasMore, isLoadingMore, filterParams]);
 
   useEffect(() => {
     if (!user) {
@@ -258,32 +260,32 @@ export const useTasks = () => {
   }, [user, filterParams]);
 
   // Set the view filter (today, upcoming, calendar, etc.)
-  const setView = (view: 'today' | 'upcoming' | 'calendar' | 'completed' | null) => {
+  const setView = useCallback((view: 'today' | 'upcoming' | 'calendar' | 'completed' | null) => {
     tasksHookLogger.info('Updating task view', { 
       userId: user?.id, 
       newView: view 
     });
-    setFilterParams(prevFilters => ({
+    setFilterParamsState(prevFilters => ({
       ...prevFilters,
       view: view || undefined
     }));
-  };
+  }, [user?.id]);
 
   // Update filters
-  const updateFilters = (newFilters: Partial<TaskFilterParams>) => {
+  const updateFilters = useCallback((newFilters: Partial<TaskFilterParams>) => {
     tasksHookLogger.info('Updating task filters', { 
       userId: user?.id, 
       newFilters 
     });
-    setFilterParams(prevFilters => ({
+    setFilterParamsState(prevFilters => ({
       ...prevFilters,
       ...newFilters
     }));
     setLastVisible(null);
     setHasMore(true);
-  };
+  }, [user?.id]);
 
-  const addTask = async (title: string) => {
+  const addTask = useCallback(async (title: string) => {
     if (!user) {
       setTaskError('Please log in to add tasks', 'AUTH_REQUIRED');
       return;
@@ -296,15 +298,10 @@ export const useTasks = () => {
     
     try {
       clearError();
-      const newTaskId = await createTask(
-        user.id,
-        title
-      );
+      await createTask(user.id, title);
       tasksHookLogger.info('Task created successfully', { 
-        userId: user.id, 
-        taskId: newTaskId 
+        userId: user.id
       });
-      // No need to update state here as the subscription will handle it
     } catch (err) {
       setTaskError(
         'Failed to create new task',
@@ -312,9 +309,9 @@ export const useTasks = () => {
         { error: err, taskTitle: title }
       );
     }
-  };
+  }, [user]);
 
-  const removeTask = async (taskId: string) => {
+  const removeTask = useCallback(async (taskId: string) => {
     if (!user) {
       setTaskError('Please log in to remove tasks', 'AUTH_REQUIRED');
       return;
@@ -339,9 +336,9 @@ export const useTasks = () => {
         { error: err, taskId }
       );
     }
-  };
+  }, [user]);
 
-  const toggleComplete = async (taskId: string, completed: boolean) => {
+  const toggleComplete = useCallback(async (taskId: string, completed: boolean) => {
     if (!user) {
       setTaskError('Please log in to update tasks', 'AUTH_REQUIRED');
       return;
@@ -368,7 +365,7 @@ export const useTasks = () => {
         { error: err, taskId, completed }
       );
     }
-  };
+  }, [user]);
 
   const editTask = async (task: Partial<Task> & { id: string }) => {
     if (!user) {
@@ -399,7 +396,7 @@ export const useTasks = () => {
     }
   };
 
-  return {
+  return useMemo(() => ({
     tasks,
     loading,
     error,
@@ -412,5 +409,5 @@ export const useTasks = () => {
     hasMore,
     setView,
     updateFilters
-  };
+  }), [tasks, loading, error, addTask, removeTask, toggleComplete, editTask, loadMore, isLoadingMore, hasMore, setView, updateFilters]);
 }; 

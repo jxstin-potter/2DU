@@ -48,18 +48,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return new Date(a).getTime() - new Date(b).getTime();
   });
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return theme.palette.error.main;
-      case 'medium':
-        return theme.palette.warning.main;
-      case 'low':
-        return theme.palette.success.main;
-      default:
-        return theme.palette.primary.main;
-    }
-  };
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -140,16 +128,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {task.priority && (
-                    <Chip
-                      label={task.priority}
-                      size="small"
-                      sx={{
-                        backgroundColor: getPriorityColor(task.priority),
-                        color: 'white',
-                      }}
-                    />
-                  )}
                   <IconButton
                     size="small"
                     onClick={() => onTaskSelect(task)}

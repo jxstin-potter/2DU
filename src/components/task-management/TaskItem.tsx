@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   ListItem,
   ListItemText,
@@ -14,7 +14,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Label as LabelIcon,
-  Flag as FlagIcon,
   CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { Task, Tag, Category } from '../../types';
@@ -27,6 +26,7 @@ interface TaskItemProps {
   onEdit: (task: Task) => void;
   tags: Tag[];
   categories: Category[];
+  isActionInProgress?: boolean;
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({
@@ -36,25 +36,27 @@ const TaskItem: React.FC<TaskItemProps> = ({
   onEdit,
   tags,
   categories,
+  isActionInProgress = false,
 }) => {
-  const theme = useTheme();
+  const category = useMemo(() => {
+    return task.category ? categories.find(c => c.id === task.category) : undefined;
+  }, [task.category, categories]);
 
-  const getPriorityColor = (priority: 'low' | 'medium' | 'high') => {
-    switch (priority) {
-      case 'high':
-        return theme.palette.error.main;
-      case 'medium':
-        return theme.palette.warning.main;
-      case 'low':
-        return theme.palette.success.main;
-      default:
-        return theme.palette.grey[500];
-    }
-  };
+  const taskTags = useMemo(() => {
+    return task.tags?.map(tagId => tags.find(t => t.id === tagId)).filter(Boolean) as Tag[] || [];
+  }, [task.tags, tags]);
 
-  const getCategory = (categoryId: string) => {
-    return categories.find(c => c.id === categoryId);
-  };
+  const handleToggleComplete = useCallback(() => {
+    onToggleComplete(task.id);
+  }, [onToggleComplete, task.id]);
+
+  const handleDelete = useCallback(() => {
+    onDelete(task.id);
+  }, [onDelete, task.id]);
+
+  const handleEdit = useCallback(() => {
+    onEdit(task);
+  }, [onEdit, task]);
 
   return (
     <ListItem
@@ -80,7 +82,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
       <Checkbox
         edge="start"
         checked={task.completed}
-        onChange={() => onToggleComplete(task.id)}
+        onChange={handleToggleComplete}
+        disabled={isActionInProgress}
         sx={{
           color: task.completed ? 'success.main' : 'action.active',
           '&.Mui-checked': {
@@ -95,7 +98,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
             sx={{
               textDecoration: task.completed ? 'line-through' : 'none',
               color: task.completed ? 'text.secondary' : 'text.primary',
-              fontWeight: task.priority === 'high' ? 600 : 400,
             }}
           >
             {task.title}
@@ -118,28 +120,12 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 />
               </Tooltip>
             )}
-            {task.priority && (
-              <Tooltip title={`Priority: ${task.priority}`}>
-                <Chip
-                  size="small"
-                  icon={<FlagIcon fontSize="small" />}
-                  label={task.priority}
-                  sx={{
-                    bgcolor: getPriorityColor(task.priority),
-                    color: 'white',
-                    '& .MuiChip-label': {
-                      px: 1,
-                    },
-                  }}
-                />
-              </Tooltip>
-            )}
-            {task.category && (
+            {category && (
               <Tooltip title="Category">
                 <Chip
                   size="small"
                   icon={<LabelIcon fontSize="small" />}
-                  label={getCategory(task.category)?.name || 'Uncategorized'}
+                  label={category.name}
                   sx={{
                     bgcolor: 'background.default',
                     '& .MuiChip-label': {
@@ -149,38 +135,37 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 />
               </Tooltip>
             )}
-            {task.tags?.map((tagId) => {
-              const tag = tags.find(t => t.id === tagId);
-              return tag ? (
-                <Tooltip key={tagId} title={tag.name}>
-                  <Chip
-                    size="small"
-                    label={tag.name}
-                    sx={{
-                      bgcolor: tag.color || 'background.default',
-                      color: 'white',
-                      '& .MuiChip-label': {
-                        px: 1,
-                      },
-                    }}
-                  />
-                </Tooltip>
-              ) : null;
-            })}
+            {taskTags.map((tag) => (
+              <Tooltip key={tag.id} title={tag.name}>
+                <Chip
+                  size="small"
+                  label={tag.name}
+                  sx={{
+                    bgcolor: tag.color || 'background.default',
+                    color: 'white',
+                    '& .MuiChip-label': {
+                      px: 1,
+                    },
+                  }}
+                />
+              </Tooltip>
+            ))}
           </Box>
         }
       />
       <ListItemSecondaryAction>
         <IconButton
           edge="end"
-          onClick={() => onEdit(task)}
+          onClick={handleEdit}
+          disabled={isActionInProgress}
           sx={{ mr: 1 }}
         >
           <EditIcon fontSize="small" />
         </IconButton>
         <IconButton
           edge="end"
-          onClick={() => onDelete(task.id)}
+          onClick={handleDelete}
+          disabled={isActionInProgress}
         >
           <DeleteIcon fontSize="small" />
         </IconButton>
@@ -189,4 +174,4 @@ const TaskItem: React.FC<TaskItemProps> = ({
   );
 };
 
-export default TaskItem; 
+export default React.memo(TaskItem); 

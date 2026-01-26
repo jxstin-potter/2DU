@@ -49,7 +49,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [category, setCategory] = useState('');
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -60,7 +59,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
       setCategory(initialTask.category || '');
       setSelectedTags(initialTask.tags || []);
-      setPriority(initialTask.priority || 'medium');
     } else {
       resetForm();
     }
@@ -72,7 +70,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
     setDueDate(null);
     setCategory('');
     setSelectedTags([]);
-    setPriority('medium');
     setErrors({});
     setIsSubmitting(false);
   };
@@ -98,7 +95,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
         dueDate: dueDate || undefined,
         category,
         tags: selectedTags.map(tag => tag.id),
-        priority,
         status: 'todo',
         createdAt: initialTask?.createdAt || new Date(),
         updatedAt: new Date(),
@@ -108,7 +104,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
       resetForm();
       onClose();
     } catch (error) {
-      console.error('Error submitting task:', error);
       setErrors({
         submit: 'Failed to save task. Please try again.'
       });
@@ -203,20 +198,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
                     {cat.name}
                   </MenuItem>
                 ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Priority</InputLabel>
-              <Select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
-                label="Priority"
-                disabled={isSubmitting}
-              >
-                <MenuItem value="low">Low</MenuItem>
-                <MenuItem value="medium">Medium</MenuItem>
-                <MenuItem value="high">High</MenuItem>
               </Select>
             </FormControl>
 

@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
-import { TimeEntry } from '../types/project';
+import { TimeEntry } from '../types/task';
 import { Task } from '../types';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -29,10 +29,9 @@ import { format, differenceInMinutes } from 'date-fns';
 interface TimeTrackerProps {
   userId: string;
   taskId: string;
-  projectId: string;
 }
 
-const TimeTracker: React.FC<TimeTrackerProps> = ({ userId, taskId, projectId }) => {
+const TimeTracker: React.FC<TimeTrackerProps> = ({ userId, taskId }) => {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,7 +65,6 @@ const TimeTracker: React.FC<TimeTrackerProps> = ({ userId, taskId, projectId }) 
       const active = loadedEntries.find(entry => !entry.endTime);
       setActiveEntry(active || null);
     } catch (error) {
-      console.error('Error loading time entries:', error);
       setError('Failed to load time entries');
     } finally {
       setLoading(false);
@@ -79,7 +77,6 @@ const TimeTracker: React.FC<TimeTrackerProps> = ({ userId, taskId, projectId }) 
 
       const newEntry: Omit<TimeEntry, 'id'> = {
         taskId,
-        projectId,
         userId,
         startTime: new Date(),
         description: '',
@@ -94,7 +91,6 @@ const TimeTracker: React.FC<TimeTrackerProps> = ({ userId, taskId, projectId }) 
       setTimeEntries(prev => [entryWithId, ...prev]);
       setActiveEntry(entryWithId);
     } catch (error) {
-      console.error('Error starting time tracking:', error);
       setError('Failed to start time tracking');
     }
   };
@@ -146,7 +142,6 @@ const TimeTracker: React.FC<TimeTrackerProps> = ({ userId, taskId, projectId }) 
         )
       );
     } catch (error) {
-      console.error('Error updating time entry:', error);
       setError('Failed to update time entry');
     }
   };
