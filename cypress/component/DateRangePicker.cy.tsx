@@ -35,7 +35,7 @@ describe('DateRangePicker Component', () => {
       .type(newStartDate);
     
     // Verify onDateRangeChange was called with updated dates
-    cy.get('@onDateRangeChange').should('have.been.calledWith({
+    cy.get('@onDateRangeChange').should('have.been.calledWith', {
       startDate: new Date(newStartDate),
       endDate: defaultEndDate
     });
@@ -50,7 +50,7 @@ describe('DateRangePicker Component', () => {
       .type(newEndDate);
     
     // Verify onDateRangeChange was called with updated dates
-    cy.get('@onDateRangeChange').should('have.been.calledWith({
+    cy.get('@onDateRangeChange').should('have.been.calledWith', {
       startDate: defaultStartDate,
       endDate: new Date(newEndDate)
     });
@@ -115,7 +115,7 @@ describe('DateRangePicker Component', () => {
     cy.get('[data-testid="start-date-input"]').focus();
     
     // Press Tab to move to end date input
-    cy.focused().tab();
+    cy.get('[data-testid="start-date-input"]').realPress('Tab');
     
     // Verify end date input is focused
     cy.get('[data-testid="end-date-input"]').should('be.focused');

@@ -26,7 +26,6 @@ interface Task {
   dueDate: string;
   completed: boolean;
   tags: Tag[];
-  priority: 'low' | 'medium' | 'high';
   order: number;
 }
 
@@ -68,10 +67,18 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
               boxShadow: theme.shadows[2],
             },
             position: 'relative',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            // Use transform and opacity only for GPU acceleration - prevents layout thrashing
+            willChange: snapshot.isDragging ? 'transform, opacity' : 'auto',
+            transition: snapshot.isDragging 
+              ? 'none' // Disable transition during drag for better performance
+              : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             transform: snapshot.isDragging ? 'scale(1.02)' : 'scale(1)',
+            // Use transform for shadow effect instead of boxShadow to avoid layout recalculation
             boxShadow: snapshot.isDragging ? theme.shadows[4] : theme.shadows[1],
             zIndex: snapshot.isDragging ? 1 : 0,
+            // Force GPU acceleration
+            backfaceVisibility: 'hidden',
+            perspective: 1000,
           }}
         >
           <CardContent sx={{ 

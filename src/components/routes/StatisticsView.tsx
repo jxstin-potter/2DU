@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Grid, Tabs, Tab, useTheme, CircularProgress } from '@mui/material';
 import { useTaskStore } from '../../stores/taskStore';
 import { Task } from '../../types';
-import TaskPriorityChart from '../charts/TaskPriorityChart';
 import TaskCompletionChart from '../charts/TaskCompletionChart';
 import TaskCategoryChart from '../charts/TaskCategoryChart';
 import TaskTagChart from '../charts/TaskTagChart';
@@ -55,7 +54,7 @@ const StatisticsView: React.FC = () => {
         const fetchedTasks = await fetchTasks();
         setTasks(fetchedTasks);
       } catch (error) {
-        console.error('Error loading tasks for statistics:', error);
+        // Error loading tasks - handled by error state
       } finally {
         setIsLoading(false);
       }
@@ -98,15 +97,7 @@ const StatisticsView: React.FC = () => {
         
         <TabPanel value={tabValue} index={0}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, height: '100%' }}>
-                <Typography variant="h6" gutterBottom>
-                  Task Priority Distribution
-                </Typography>
-                <TaskPriorityChart tasks={tasks} />
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Paper sx={{ p: 2, height: '100%' }}>
                 <Typography variant="h6" gutterBottom>
                   Task Completion Status

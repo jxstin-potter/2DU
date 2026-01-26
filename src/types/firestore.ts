@@ -16,11 +16,9 @@ export interface TaskDocument {
   dueDate?: Timestamp | null;
   tags?: string[];
   order?: number;
-  priority?: 'low' | 'medium' | 'high';
   notes?: string;
   categoryId?: string;
   category?: string;
-  projectId?: string;
   status?: 'todo' | 'in_progress' | 'review' | 'done';
   subtasks?: Array<{
     id: string;

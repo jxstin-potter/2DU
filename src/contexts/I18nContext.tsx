@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { Language, setLanguage, getLanguage, initLanguage, t, formatDate, formatRelativeDate, formatDistanceDate, formatNumber, formatCurrency } from '../utils/i18n';
 
 // Define the context type
@@ -35,32 +35,20 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
 
   // Initialize language on mount
   useEffect(() => {
-    console.log('I18nProvider: Initializing language');
     initLanguage();
     const currentLang = getLanguage();
-    console.log('I18nProvider: Current language:', currentLang);
     setLanguageState(currentLang);
-    
-    // Test some translations
-    console.log('I18nProvider: Testing translations:', {
-      sidebarToday: t('sidebar.today'),
-      sidebarUpcoming: t('sidebar.upcoming'),
-      sidebarCalendar: t('sidebar.calendar'),
-      sidebarTags: t('sidebar.tags'),
-      sidebarCompleted: t('sidebar.completed'),
-      sidebarSettings: t('sidebar.settings'),
-    });
   }, []);
 
   // Handle language change
-  const handleSetLanguage = (newLanguage: Language) => {
-    console.log('I18nProvider: Setting language to', newLanguage);
+  const handleSetLanguage = useCallback((newLanguage: Language) => {
     setLanguage(newLanguage);
     setLanguageState(newLanguage);
-  };
+  }, []);
 
-  // Create the context value
-  const contextValue: I18nContextType = {
+  // Create the context value - memoize to prevent unnecessary re-renders
+  // Note: t, formatDate, etc. are imported functions that are stable, so they don't need memoization
+  const contextValue: I18nContextType = useMemo(() => ({
     language,
     setLanguage: handleSetLanguage,
     t,
@@ -69,7 +57,7 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     formatDistanceDate,
     formatNumber,
     formatCurrency,
-  };
+  }), [language, handleSetLanguage]);
 
   return <I18nContext.Provider value={contextValue}>{children}</I18nContext.Provider>;
 };

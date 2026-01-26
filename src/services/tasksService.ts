@@ -89,48 +89,85 @@ const handleFirestoreError = (error: FirestoreError, operation: string, context:
 };
 
 /**
- * Create a new task in Firestore
+ * Create a new task in Firestore (simplified - accepts full task data)
  */
-export const createTask = async (
+export const createTaskFromData = async (
   userId: string,
-  text: string,
-  dueDate?: Date
+  taskData: Partial<TaskDocument>
 ): Promise<string> => {
   try {
     validateUserId(userId);
     
-    if (!text || typeof text !== 'string' || text.trim() === '') {
-      tasksLogger.error('Task creation failed: Invalid text', { userId });
-      throw new Error('Task text is required and cannot be empty');
+    if (!taskData.title || typeof taskData.title !== 'string' || taskData.title.trim() === '') {
+      tasksLogger.error('Task creation failed: Invalid title', { userId });
+      throw new Error('Task title is required and cannot be empty');
     }
 
-    tasksLogger.info('Creating new task', { userId, textLength: text.length, hasDueDate: !!dueDate });
+    tasksLogger.info('Creating new task', { userId, title: taskData.title });
 
-    const taskData: Omit<TaskDocument, 'createdAt'> & { createdAt: any } = {
+    // Prepare task document - filter out undefined values
+    const cleanData: Omit<TaskDocument, 'createdAt' | 'updatedAt'> & { createdAt: any; updatedAt: any } = {
       userId,
-      text: text.trim(),
-      isCompleted: false,
-      createdAt: serverTimestamp()
+      title: taskData.title.trim(),
+      description: taskData.description?.trim() || undefined,
+      completed: taskData.completed ?? false,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
 
-    if (dueDate instanceof Date) {
-      taskData.dueDate = Timestamp.fromDate(dueDate);
+    // Only add optional fields if they have values
+    if (taskData.dueDate) {
+      cleanData.dueDate = taskData.dueDate instanceof Timestamp ? taskData.dueDate : Timestamp.fromDate(taskData.dueDate as any);
     }
+    if (taskData.tags && taskData.tags.length > 0) {
+      cleanData.tags = taskData.tags;
+    }
+    if (taskData.categoryId) {
+      cleanData.categoryId = taskData.categoryId;
+    }
+    if (taskData.category) {
+      cleanData.category = taskData.category;
+    }
+    if (taskData.order !== undefined) {
+      cleanData.order = taskData.order;
+    }
+    if (taskData.status) {
+      cleanData.status = taskData.status;
+    }
+
+    // Remove undefined values
+    const finalData = Object.fromEntries(
+      Object.entries(cleanData).filter(([_, value]) => value !== undefined)
+    );
 
     const docRef = await addDoc(
       collection(db, COLLECTIONS.TASKS),
-      taskData
+      finalData
     );
     
     tasksLogger.info('Task created successfully', { taskId: docRef.id, userId });
     return docRef.id;
   } catch (error) {
     if (error instanceof FirestoreError) {
-      handleFirestoreError(error, 'creating task', { userId, text });
+      handleFirestoreError(error, 'creating task', { userId, taskData });
     }
-    logServiceError(error as Error, 'tasksService', 'Failed to create task', { userId, text });
+    logServiceError(error as Error, 'tasksService', 'Failed to create task', { userId, taskData });
     throw new Error('Failed to create task. Please try again.');
   }
+};
+
+/**
+ * Create a new task in Firestore (legacy - for backward compatibility)
+ */
+export const createTask = async (
+  userId: string,
+  text: string,
+  dueDate?: Date
+): Promise<string> => {
+  return createTaskFromData(userId, {
+    title: text,
+    dueDate: dueDate ? Timestamp.fromDate(dueDate) : undefined,
+  });
 };
 
 /**

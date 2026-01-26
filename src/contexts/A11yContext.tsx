@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { useI18n } from './I18nContext';
 
 // Define the context type
@@ -68,105 +68,119 @@ export const A11yProvider: React.FC<A11yProviderProps> = ({ children }) => {
     applyScreenReaderOnly(savedScreenReaderOnly);
   }, []);
 
-  // Toggle high contrast mode
-  const toggleHighContrast = () => {
-    const newValue = !highContrast;
-    setHighContrast(newValue);
-    localStorage.setItem('highContrast', newValue.toString());
-    applyHighContrast(newValue);
-  };
-
   // Apply high contrast mode
-  const applyHighContrast = (value: boolean) => {
+  const applyHighContrast = useCallback((value: boolean) => {
     if (value) {
       document.documentElement.classList.add('high-contrast');
     } else {
       document.documentElement.classList.remove('high-contrast');
     }
-  };
+  }, []);
 
-  // Toggle reduced motion
-  const toggleReducedMotion = () => {
-    const newValue = !reducedMotion;
-    setReducedMotion(newValue);
-    localStorage.setItem('reducedMotion', newValue.toString());
-    applyReducedMotion(newValue);
-  };
+  // Toggle high contrast mode
+  const toggleHighContrast = useCallback(() => {
+    setHighContrast((prev) => {
+      const newValue = !prev;
+      localStorage.setItem('highContrast', newValue.toString());
+      applyHighContrast(newValue);
+      return newValue;
+    });
+  }, [applyHighContrast]);
 
   // Apply reduced motion
-  const applyReducedMotion = (value: boolean) => {
+  const applyReducedMotion = useCallback((value: boolean) => {
     if (value) {
       document.documentElement.classList.add('reduced-motion');
     } else {
       document.documentElement.classList.remove('reduced-motion');
     }
-  };
+  }, []);
+
+  // Toggle reduced motion
+  const toggleReducedMotion = useCallback(() => {
+    setReducedMotion((prev) => {
+      const newValue = !prev;
+      localStorage.setItem('reducedMotion', newValue.toString());
+      applyReducedMotion(newValue);
+      return newValue;
+    });
+  }, [applyReducedMotion]);
+
+  // Apply font size - use CSS custom property to prevent layout thrashing
+  // This triggers a repaint but not a full layout recalculation
+  const applyFontSize = useCallback((size: number) => {
+    document.documentElement.style.setProperty('--base-font-size', `${size}px`);
+    // Note: body font-size is set via CSS variable in global.css, no direct manipulation needed
+  }, []);
 
   // Increase font size
-  const increaseFontSize = () => {
-    const newSize = Math.min(fontSize + 2, 24);
-    setFontSize(newSize);
-    localStorage.setItem('fontSize', newSize.toString());
-    applyFontSize(newSize);
-  };
+  const increaseFontSize = useCallback(() => {
+    setFontSize((prev) => {
+      const newSize = Math.min(prev + 2, 24);
+      localStorage.setItem('fontSize', newSize.toString());
+      applyFontSize(newSize);
+      return newSize;
+    });
+  }, [applyFontSize]);
 
   // Decrease font size
-  const decreaseFontSize = () => {
-    const newSize = Math.max(fontSize - 2, 12);
-    setFontSize(newSize);
-    localStorage.setItem('fontSize', newSize.toString());
-    applyFontSize(newSize);
-  };
+  const decreaseFontSize = useCallback(() => {
+    setFontSize((prev) => {
+      const newSize = Math.max(prev - 2, 12);
+      localStorage.setItem('fontSize', newSize.toString());
+      applyFontSize(newSize);
+      return newSize;
+    });
+  }, [applyFontSize]);
 
   // Reset font size
-  const resetFontSize = () => {
+  const resetFontSize = useCallback(() => {
     const defaultSize = 16;
     setFontSize(defaultSize);
     localStorage.setItem('fontSize', defaultSize.toString());
     applyFontSize(defaultSize);
-  };
-
-  // Apply font size
-  const applyFontSize = (size: number) => {
-    document.documentElement.style.fontSize = `${size}px`;
-  };
-
-  // Toggle focus visible
-  const toggleFocusVisible = () => {
-    const newValue = !focusVisible;
-    setFocusVisible(newValue);
-    localStorage.setItem('focusVisible', newValue.toString());
-    applyFocusVisible(newValue);
-  };
+  }, [applyFontSize]);
 
   // Apply focus visible
-  const applyFocusVisible = (value: boolean) => {
+  const applyFocusVisible = useCallback((value: boolean) => {
     if (value) {
       document.documentElement.classList.add('focus-visible');
     } else {
       document.documentElement.classList.remove('focus-visible');
     }
-  };
+  }, []);
 
-  // Toggle screen reader only
-  const toggleScreenReaderOnly = () => {
-    const newValue = !screenReaderOnly;
-    setScreenReaderOnly(newValue);
-    localStorage.setItem('screenReaderOnly', newValue.toString());
-    applyScreenReaderOnly(newValue);
-  };
+  // Toggle focus visible
+  const toggleFocusVisible = useCallback(() => {
+    setFocusVisible((prev) => {
+      const newValue = !prev;
+      localStorage.setItem('focusVisible', newValue.toString());
+      applyFocusVisible(newValue);
+      return newValue;
+    });
+  }, [applyFocusVisible]);
 
   // Apply screen reader only
-  const applyScreenReaderOnly = (value: boolean) => {
+  const applyScreenReaderOnly = useCallback((value: boolean) => {
     if (value) {
       document.documentElement.classList.add('screen-reader-only');
     } else {
       document.documentElement.classList.remove('screen-reader-only');
     }
-  };
+  }, []);
 
-  // Create the context value
-  const contextValue: A11yContextType = {
+  // Toggle screen reader only
+  const toggleScreenReaderOnly = useCallback(() => {
+    setScreenReaderOnly((prev) => {
+      const newValue = !prev;
+      localStorage.setItem('screenReaderOnly', newValue.toString());
+      applyScreenReaderOnly(newValue);
+      return newValue;
+    });
+  }, [applyScreenReaderOnly]);
+
+  // Create the context value - memoize to prevent unnecessary re-renders
+  const contextValue: A11yContextType = useMemo(() => ({
     highContrast,
     toggleHighContrast,
     reducedMotion,
@@ -179,7 +193,20 @@ export const A11yProvider: React.FC<A11yProviderProps> = ({ children }) => {
     toggleFocusVisible,
     screenReaderOnly,
     toggleScreenReaderOnly,
-  };
+  }), [
+    highContrast,
+    toggleHighContrast,
+    reducedMotion,
+    toggleReducedMotion,
+    fontSize,
+    increaseFontSize,
+    decreaseFontSize,
+    resetFontSize,
+    focusVisible,
+    toggleFocusVisible,
+    screenReaderOnly,
+    toggleScreenReaderOnly,
+  ]);
 
   return <A11yContext.Provider value={contextValue}>{children}</A11yContext.Provider>;
 };

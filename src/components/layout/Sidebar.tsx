@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import {
   Drawer,
   List,
@@ -11,8 +11,6 @@ import {
   Typography,
   Tooltip,
   Divider,
-  ListSubheader,
-  Collapse,
 } from '@mui/material';
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -27,10 +25,6 @@ import {
   Logout as LogoutIcon,
   Settings as SettingsIcon,
   Keyboard as KeyboardIcon,
-  ExpandLess as ExpandLessIcon,
-  ExpandMore as ExpandMoreIcon,
-  Folder as FolderIcon,
-  FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../contexts/I18nContext';
@@ -58,28 +52,16 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useI18n();
-  const [projectsOpen, setProjectsOpen] = React.useState(true);
-  const [filtersOpen, setFiltersOpen] = React.useState(true);
 
-  const mainMenuItems = [
+  const mainMenuItems = useMemo(() => [
     { text: t('sidebar.today'), icon: <InboxIcon />, path: "/today" },
     { text: t('sidebar.upcoming'), icon: <EventIcon />, path: "/upcoming" },
     { text: t('sidebar.calendar'), icon: <CalendarIcon />, path: "/calendar" },
-  ];
+    { text: t('sidebar.tags'), icon: <TagIcon />, path: "/tags" },
+    { text: t('sidebar.completed'), icon: <CompletedIcon />, path: "/completed" },
+  ], [t]);
 
-  const projectItems = [
-    { text: 'Personal', icon: <FolderIcon />, path: "/projects/personal" },
-    { text: 'Work', icon: <FolderIcon />, path: "/projects/work" },
-    { text: 'Shopping', icon: <FolderIcon />, path: "/projects/shopping" },
-  ];
-
-  const filterItems = [
-    { text: 'Priority 1', icon: <FilterIcon />, path: "/filters/priority-1" },
-    { text: 'Priority 2', icon: <FilterIcon />, path: "/filters/priority-2" },
-    { text: 'Priority 3', icon: <FilterIcon />, path: "/filters/priority-3" },
-  ];
-
-  const renderMenuItem = (item: { text: string; icon: React.ReactNode; path: string }, isCollapsed: boolean) => {
+  const renderMenuItem = useCallback((item: { text: string; icon: React.ReactNode; path: string }, isCollapsed: boolean) => {
     const isActive = location.pathname === item.path;
     return (
       <ListItem
@@ -129,39 +111,36 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </ListItem>
     );
-  };
+  }, [location.pathname, navigate, isCollapsed]);
 
-  useEffect(() => {
-    console.log('Sidebar translations:', {
-      today: t('sidebar.today'),
-      upcoming: t('sidebar.upcoming'),
-      calendar: t('sidebar.calendar'),
-      tags: t('sidebar.tags'),
-      completed: t('sidebar.completed'),
-      settings: t('sidebar.settings'),
-      welcome: t('sidebar.welcome', { userName: userName || t('sidebar.user') }),
-    });
-  }, [t, userName]);
+  // Memoize drawer styles to prevent recalculation
+  const drawerWidth = useMemo(() => isCollapsed ? 64 : 240, [isCollapsed]);
+  
+  const drawerStyles = useMemo(() => ({
+    width: drawerWidth,
+    flexShrink: 0,
+    '& .MuiDrawer-paper': {
+      width: drawerWidth,
+      boxSizing: 'border-box',
+      backgroundColor: theme.palette.background.paper,
+      color: theme.palette.text.primary,
+      // Use transform instead of width transition to prevent layout thrashing
+      // Width changes trigger layout recalculation, transform only triggers repaint
+      transition: theme.transitions.create(['width', 'transform'], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+      overflowX: 'hidden',
+      borderRight: `1px solid ${theme.palette.divider}`,
+      // Force GPU acceleration for smoother transitions
+      willChange: 'width',
+    },
+  }), [drawerWidth, theme]);
 
   return (
     <Drawer
       variant="permanent"
-      sx={{
-        width: isCollapsed ? 64 : 240,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: isCollapsed ? 64 : 240,
-          boxSizing: 'border-box',
-          backgroundColor: theme.palette.background.paper,
-          color: theme.palette.text.primary,
-          transition: theme.transitions.create('width', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-          overflowX: 'hidden',
-          borderRight: `1px solid ${theme.palette.divider}`,
-        },
-      }}
+      sx={drawerStyles}
     >
       <Box sx={{ 
         display: 'flex', 
@@ -170,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         p: 2,
         minHeight: 64,
         borderBottom: `1px solid ${theme.palette.divider}`
-      }}>
+      }}> 
         {!isCollapsed && (
           <Typography
             variant="h6"
@@ -208,74 +187,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       
       <List sx={{ px: 1 }}>
         {mainMenuItems.map(item => renderMenuItem(item, isCollapsed))}
-      </List>
-
-      <Divider />
-
-      {!isCollapsed && (
-        <ListSubheader sx={{ 
-          backgroundColor: 'transparent',
-          color: 'text.secondary',
-          fontWeight: 'bold',
-          px: 2,
-          py: 1,
-        }}>
-          Projects
-        </ListSubheader>
-      )}
-      <List sx={{ px: 1 }}>
-        {!isCollapsed && (
-          <ListItem
-            button
-            onClick={() => setProjectsOpen(!projectsOpen)}
-            sx={{ minHeight: 48, px: 2.5 }}
-          >
-            <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>
-              <FolderIcon />
-            </ListItemIcon>
-            <ListItemText primary="Projects" />
-            {projectsOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </ListItem>
-        )}
-        <Collapse in={projectsOpen || isCollapsed} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {projectItems.map(item => renderMenuItem(item, isCollapsed))}
-          </List>
-        </Collapse>
-      </List>
-
-      <Divider />
-
-      {!isCollapsed && (
-        <ListSubheader sx={{ 
-          backgroundColor: 'transparent',
-          color: 'text.secondary',
-          fontWeight: 'bold',
-          px: 2,
-          py: 1,
-        }}>
-          Filters & Labels
-        </ListSubheader>
-      )}
-      <List sx={{ px: 1 }}>
-        {!isCollapsed && (
-          <ListItem
-            button
-            onClick={() => setFiltersOpen(!filtersOpen)}
-            sx={{ minHeight: 48, px: 2.5 }}
-          >
-            <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>
-              <FilterIcon />
-            </ListItemIcon>
-            <ListItemText primary="Filters" />
-            {filtersOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </ListItem>
-        )}
-        <Collapse in={filtersOpen || isCollapsed} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {filterItems.map(item => renderMenuItem(item, isCollapsed))}
-          </List>
-        </Collapse>
       </List>
 
       <Box sx={{ flexGrow: 1 }} />

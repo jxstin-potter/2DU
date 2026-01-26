@@ -41,20 +41,3 @@ declare module '*/CalendarView' {
   const CalendarView: React.FC<CalendarViewProps>;
   export default CalendarView;
 }
-
-declare module '*/EnhancedTaskList' {
-  interface EnhancedTaskListProps {
-    tasks: Task[];
-    onTaskAction: {
-      toggle: (taskId: string) => void;
-      delete: (taskId: string) => void;
-      update: (taskId: string, updates: Partial<Task>) => void;
-      edit: (task: Task) => void;
-      share: (task: Task) => void;
-    };
-    draggable?: boolean;
-  }
-  
-  const EnhancedTaskList: React.FC<EnhancedTaskListProps>;
-  export default EnhancedTaskList;
-} 

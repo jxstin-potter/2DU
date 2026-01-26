@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../contexts/I18nContext';
 import {
@@ -53,95 +53,122 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({
     { key: 'Ctrl + 6', description: t('shortcuts.settings') },
   ];
 
+  // Use refs to store latest callbacks to avoid re-attaching event listeners
+  const callbacksRef = useRef({
+    navigate,
+    onCreateTask,
+    onToggleSidebar,
+    onToggleDarkMode,
+    onSearch,
+    onFilter,
+    onSort,
+  });
+
+  // Update refs when callbacks change
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Ignore shortcuts when typing in input fields
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-
-      // Check for modifier keys
-      const isCtrlOrCmd = event.ctrlKey || event.metaKey;
-      const isShift = event.shiftKey;
-      const isAlt = event.altKey;
-
-      // Navigation shortcuts
-      if (isCtrlOrCmd) {
-        switch (event.key.toLowerCase()) {
-          case '1':
-            navigate('/today');
-            break;
-          case '2':
-            navigate('/upcoming');
-            break;
-          case '3':
-            navigate('/calendar');
-            break;
-          case '4':
-            navigate('/tags');
-            break;
-          case '5':
-            navigate('/completed');
-            break;
-          case '6':
-            navigate('/settings');
-            break;
-          case 'f':
-            onSearch();
-            break;
-          case 'n':
-            onCreateTask();
-            break;
-          case 'b':
-            onToggleSidebar();
-            break;
-          case 'd':
-            onToggleDarkMode();
-            break;
-          case '[':
-            onFilter();
-            break;
-          case ']':
-            onSort();
-            break;
-          case '?':
-            setIsHelpOpen(true);
-            break;
-        }
-      }
-
-      // Task management shortcuts
-      if (isAlt) {
-        switch (event.key.toLowerCase()) {
-          case 't':
-            onCreateTask();
-            break;
-          case 'f':
-            onFilter();
-            break;
-          case 's':
-            onSort();
-            break;
-        }
-      }
-
-      // Quick navigation without modifiers
-      if (!isCtrlOrCmd && !isShift && !isAlt) {
-        switch (event.key) {
-          case 'Escape':
-            // Close any open modals or menus
-            // TODO: Implement modal/menu closing
-            break;
-        }
-      }
+    callbacksRef.current = {
+      navigate,
+      onCreateTask,
+      onToggleSidebar,
+      onToggleDarkMode,
+      onSearch,
+      onFilter,
+      onSort,
     };
+  }, [navigate, onCreateTask, onToggleSidebar, onToggleDarkMode, onSearch, onFilter, onSort]);
 
+  // Memoize event handler to prevent unnecessary re-attachments
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    // Ignore shortcuts when typing in input fields
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
+    const { navigate, onCreateTask, onToggleSidebar, onToggleDarkMode, onSearch, onFilter, onSort } = callbacksRef.current;
+
+    // Check for modifier keys
+    const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+    const isShift = event.shiftKey;
+    const isAlt = event.altKey;
+
+    // Navigation shortcuts
+    if (isCtrlOrCmd) {
+      switch (event.key.toLowerCase()) {
+        case '1':
+          navigate('/today');
+          break;
+        case '2':
+          navigate('/upcoming');
+          break;
+        case '3':
+          navigate('/calendar');
+          break;
+        case '4':
+          navigate('/tags');
+          break;
+        case '5':
+          navigate('/completed');
+          break;
+        case '6':
+          navigate('/settings');
+          break;
+        case 'f':
+          onSearch();
+          break;
+        case 'n':
+          onCreateTask();
+          break;
+        case 'b':
+          onToggleSidebar();
+          break;
+        case 'd':
+          onToggleDarkMode();
+          break;
+        case '[':
+          onFilter();
+          break;
+        case ']':
+          onSort();
+          break;
+        case '?':
+          setIsHelpOpen(true);
+          break;
+      }
+    }
+
+    // Task management shortcuts
+    if (isAlt) {
+      switch (event.key.toLowerCase()) {
+        case 't':
+          onCreateTask();
+          break;
+        case 'f':
+          onFilter();
+          break;
+        case 's':
+          onSort();
+          break;
+      }
+    }
+
+    // Quick navigation without modifiers
+    if (!isCtrlOrCmd && !isShift && !isAlt) {
+      switch (event.key) {
+        case 'Escape':
+          // Close any open modals or menus
+          // TODO: Implement modal/menu closing
+          break;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [navigate, onCreateTask, onToggleSidebar, onToggleDarkMode, onSearch, onFilter, onSort]);
+  }, [handleKeyDown]);
 
   return (
     <>

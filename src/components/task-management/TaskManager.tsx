@@ -8,14 +8,17 @@ import {
   IconButton,
   Paper,
   Container,
+  Button,
 } from '@mui/material';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { useAuth } from '../../contexts/AuthContext';
+import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../../services/tasksService';
+import { taskDocumentToTask, taskToTaskDocument } from '../../utils/taskHelpers';
 import TaskView from './TaskView';
 import CategoryManager from './CategoryManager';
 import { Task, Category, Tag, Comment } from '../../types';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AddIcon from '@mui/icons-material/Add';
 import TaskList from './TaskList';
 import CalendarView from './CalendarView';
 
@@ -29,6 +32,7 @@ const DEFAULT_TAGS: Tag[] = [
 ];
 
 const TaskManager: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
@@ -41,23 +45,55 @@ const TaskManager: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isTaskViewOpen, setIsTaskViewOpen] = useState(false);
 
-  // Load tasks, categories, and tags from Firebase
+  // Subscribe to tasks using real-time listener (simplified approach)
   useEffect(() => {
-    const loadData = async () => {
+    if (!user?.id) {
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    // Use real-time subscription - automatically updates when tasks change
+    const unsubscribe = subscribeToTasks(
+      user.id,
+      { completionStatus: 'all', sortBy: 'creationDate', sortOrder: 'desc' },
+      (result) => {
+        try {
+          // Convert TaskDocument to Task using helper (with error handling per task)
+          const convertedTasks = result.tasks.map((taskDoc: any) => {
+            try {
+              return taskDocumentToTask(taskDoc);
+            } catch (taskError) {
+              // Return a minimal valid task if conversion fails
+              return {
+                id: taskDoc.id || '',
+                title: taskDoc.title || 'Untitled Task',
+                completed: taskDoc.completed ?? false,
+                userId: taskDoc.userId || '',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              } as Task;
+            }
+          });
+          setTasks(convertedTasks);
+          setLoading(false);
+          setError(null);
+        } catch (error) {
+          setError('Failed to process tasks');
+          setLoading(false);
+        }
+      }
+    );
+
+    // Load categories and tags (one-time load)
+    const loadCategoriesAndTags = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        // Load tasks
-        const tasksQuery = query(collection(db, 'tasks'), orderBy('order'));
-        const tasksSnapshot = await getDocs(tasksQuery);
-        const loadedTasks = tasksSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Task[];
-        setTasks(loadedTasks);
-
-        // Load categories
+        const { collection, getDocs } = await import('firebase/firestore');
+        const { db } = await import('../../firebase');
+        
         const categoriesSnapshot = await getDocs(collection(db, 'categories'));
         const loadedCategories = categoriesSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -65,7 +101,6 @@ const TaskManager: React.FC = () => {
         })) as Category[];
         setCategories(loadedCategories);
 
-        // Load tags
         const tagsSnapshot = await getDocs(collection(db, 'tags'));
         if (!tagsSnapshot.empty) {
           const loadedTags = tagsSnapshot.docs.map(doc => ({
@@ -74,17 +109,17 @@ const TaskManager: React.FC = () => {
           })) as Tag[];
           setTags(loadedTags);
         }
-
-        setLoading(false);
       } catch (error) {
-        console.error('Error loading data:', error);
-        setError('Failed to load data');
-        setLoading(false);
+        console.error('Failed to load categories/tags:', error);
       }
     };
 
-    loadData();
-  }, []);
+    loadCategoriesAndTags();
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.id]);
 
   const handleTaskSelect = (task: Task) => {
     setSelectedTask(task);
@@ -92,62 +127,61 @@ const TaskManager: React.FC = () => {
   };
 
   const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+    if (!user?.id) {
+      setError('Please log in to update tasks');
+      return;
+    }
+
     try {
-      const taskRef = doc(db, 'tasks', taskId);
-      await updateDoc(taskRef, {
-        ...updates,
-        updatedAt: new Date()
-      });
+      // Convert Task updates to TaskDocument format
+      const taskDoc = taskToTaskDocument(updates);
+      taskDoc.updatedAt = (await import('firebase/firestore')).Timestamp.now();
       
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === taskId ? { ...task, ...updates } : task
-        )
-      );
-      
-      // Update selected task if it's the one being edited
-      if (selectedTask?.id === taskId) {
-        setSelectedTask(prev => prev ? { ...prev, ...updates } : null);
-      }
+      await updateTask(taskId, taskDoc, user.id);
+      // Tasks will automatically update via the real-time subscription
     } catch (error) {
-      console.error('Error updating task:', error);
-      setError('Failed to update task');
+      setError(error instanceof Error ? error.message : 'Failed to update task');
     }
   };
 
   const handleTaskDelete = async (taskId: string) => {
+    if (!user?.id) {
+      setError('Please log in to delete tasks');
+      return;
+    }
+
     try {
-      const taskRef = doc(db, 'tasks', taskId);
-      await deleteDoc(taskRef);
-      setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+      await deleteTask(taskId, user.id);
+      // Tasks will automatically update via the real-time subscription
     } catch (error) {
-      console.error('Error deleting task:', error);
-      setError('Failed to delete task');
+      setError(error instanceof Error ? error.message : 'Failed to delete task');
     }
   };
 
   const handleTaskToggle = async (taskId: string) => {
+    if (!user?.id) {
+      setError('Please log in to toggle tasks');
+      return;
+    }
+
     try {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      const taskRef = doc(db, 'tasks', taskId);
       const completed = !task.completed;
-      await updateDoc(taskRef, { completed, updatedAt: new Date() });
+      const taskDoc = taskToTaskDocument({ completed });
+      const { Timestamp } = await import('firebase/firestore');
+      taskDoc.updatedAt = Timestamp.now();
       
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          t.id === taskId ? { ...t, completed } : t
-        )
-      );
+      await updateTask(taskId, taskDoc, user.id);
+      // Tasks will automatically update via the real-time subscription
     } catch (error) {
-      console.error('Error toggling task:', error);
-      setError('Failed to toggle task status');
+      setError(error instanceof Error ? error.message : 'Failed to toggle task status');
     }
   };
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination || !user?.id) return;
 
     const items = Array.from(tasks);
     const [reorderedItem] = items.splice(result.source.index, 1);
@@ -162,15 +196,17 @@ const TaskManager: React.FC = () => {
     setTasks(updatedTasks);
 
     // Update the order in the database
-    updatedTasks.forEach(async (task) => {
-      try {
-        const taskRef = doc(db, 'tasks', task.id);
+    try {
+      const { doc, updateDoc, collection } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
+      
+      for (const task of updatedTasks) {
+        const taskRef = doc(collection(db, 'tasks'), task.id);
         await updateDoc(taskRef, { order: task.order });
-      } catch (error) {
-        console.error('Error updating task order:', error);
-        setError('Failed to update task order');
       }
-    });
+    } catch (error) {
+      setError('Failed to update task order');
+    }
   };
 
   const filteredTasks = selectedCategory
@@ -178,67 +214,95 @@ const TaskManager: React.FC = () => {
     : tasks;
 
   const handleAddComment = async (taskId: string, comment: string) => {
+    if (!user?.id) {
+      setError('Please log in to add comments');
+      return;
+    }
+
     try {
-      const taskRef = doc(db, 'tasks', taskId);
-      const newComment: Comment = {
+      const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
+      const { db } = await import('../../firebase');
+      const { collection } = await import('firebase/firestore');
+      
+      const taskRef = doc(collection(db, 'tasks'), taskId);
+      const newComment = {
         id: Date.now().toString(),
+        userId: user.id,
         text: comment,
-        author: 'Current User', // TODO: Replace with actual user
-        timestamp: new Date()
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
       };
 
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      const updatedComments = [...(task.comments || []), newComment];
-      await updateDoc(taskRef, { 
-        comments: updatedComments,
+      const updatedComments = [...(task.comments || []), {
+        ...newComment,
+        createdAt: new Date(),
         updatedAt: new Date()
-      });
-
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          t.id === taskId ? { ...t, comments: updatedComments } : t
-        )
-      );
+      }];
+      
+      await updateTask(taskId, { 
+        comments: updatedComments.map(c => ({
+          ...c,
+          createdAt: Timestamp.fromDate(c.createdAt),
+          updatedAt: Timestamp.fromDate(c.updatedAt)
+        }))
+      }, user.id);
+      // Tasks will automatically update via the real-time subscription
     } catch (error) {
-      console.error('Error adding comment:', error);
-      setError('Failed to add comment');
+      setError(error instanceof Error ? error.message : 'Failed to add comment');
     }
   };
 
   const handleAddSubtask = async (taskId: string, subtaskTitle: string) => {
-    try {
-      const taskRef = doc(db, 'tasks', taskId);
-      const newSubtask = {
-        id: Date.now().toString(),
-        title: subtaskTitle,
-        completed: false
-      };
+    if (!user?.id) {
+      setError('Please log in to add subtasks');
+      return;
+    }
 
+    try {
+      const { Timestamp } = await import('firebase/firestore');
+      
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      const updatedSubtasks = [...(task.subtasks || []), newSubtask];
-      await updateDoc(taskRef, { 
-        subtasks: updatedSubtasks,
-        updatedAt: new Date()
-      });
+      const newSubtask = {
+        id: Date.now().toString(),
+        title: subtaskTitle,
+        completed: false,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      };
 
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          t.id === taskId ? { ...t, subtasks: updatedSubtasks } : t
-        )
-      );
+      const updatedSubtasks = [...(task.subtasks || []), {
+        ...newSubtask,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }];
+      
+      await updateTask(taskId, { 
+        subtasks: updatedSubtasks.map(s => ({
+          ...s,
+          createdAt: Timestamp.fromDate(s.createdAt),
+          updatedAt: Timestamp.fromDate(s.updatedAt)
+        }))
+      }, user.id);
+      // Tasks will automatically update via the real-time subscription
     } catch (error) {
-      console.error('Error adding subtask:', error);
-      setError('Failed to add subtask');
+      setError(error instanceof Error ? error.message : 'Failed to add subtask');
     }
   };
 
   const handleToggleSubtask = async (taskId: string, subtaskId: string) => {
+    if (!user?.id) {
+      setError('Please log in to toggle subtasks');
+      return;
+    }
+
     try {
-      const taskRef = doc(db, 'tasks', taskId);
+      const { Timestamp } = await import('firebase/firestore');
+      
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
@@ -248,20 +312,55 @@ const TaskManager: React.FC = () => {
           : subtask
       );
 
-      await updateDoc(taskRef, { 
-        subtasks: updatedSubtasks,
-        updatedAt: new Date()
-      });
-
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          t.id === taskId ? { ...t, subtasks: updatedSubtasks } : t
-        )
-      );
+      await updateTask(taskId, { 
+        subtasks: updatedSubtasks?.map(s => ({
+          ...s,
+          createdAt: s.createdAt instanceof Date ? Timestamp.fromDate(s.createdAt) : s.createdAt,
+          updatedAt: Timestamp.now()
+        }))
+      }, user.id);
+      // Tasks will automatically update via the real-time subscription
     } catch (error) {
-      console.error('Error toggling subtask:', error);
-      setError('Failed to toggle subtask');
+      setError(error instanceof Error ? error.message : 'Failed to toggle subtask');
     }
+  };
+
+  const handleCreateTask = async (taskData: Partial<Task>) => {
+    try {
+      if (authLoading) {
+        throw new Error('Please wait for authentication to complete');
+      }
+      if (!user?.id) {
+        throw new Error('Please log in to create tasks');
+      }
+      
+      // Convert Task to TaskDocument format using helper
+      const taskDoc = taskToTaskDocument({
+        ...taskData,
+        userId: user.id,
+        completed: false,
+        order: tasks.length,
+      });
+      
+      // Use simplified service function
+      await createTaskFromData(user.id, taskDoc);
+      
+      // Tasks will automatically update via the real-time subscription
+      // Close the drawer after successful creation
+      setSelectedTask(null);
+      setIsTaskViewOpen(false);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create task';
+      setError(errorMessage);
+      console.error('Failed to create task:', error);
+      // Re-throw the error so the caller can handle it
+      throw error;
+    }
+  };
+
+  const handleAddTask = () => {
+    setSelectedTask(null);
+    setIsTaskViewOpen(true);
   };
 
   if (loading) {
@@ -280,10 +379,17 @@ const TaskManager: React.FC = () => {
             Task Manager
           </Typography>
           <Box>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddTask}
+              sx={{ mr: 1 }}
+            >
+              Add Task
+            </Button>
             <IconButton
               onClick={() => setIsCategoryManagerOpen(true)}
               color="primary"
-              sx={{ mr: 1 }}
             >
               <SettingsIcon />
             </IconButton>
@@ -308,11 +414,16 @@ const TaskManager: React.FC = () => {
               tasks={filteredTasks}
               loading={loading}
               error={error}
-              onTaskToggle={handleTaskToggle}
-              onTaskDelete={handleTaskDelete}
-              onTaskEdit={(task) => {
-                setSelectedTask(task);
-                setIsTaskViewOpen(true);
+              onTaskAction={{
+                toggle: handleTaskToggle,
+                delete: handleTaskDelete,
+                update: async (taskId: string, updates: Partial<Task>) => {
+                  await handleTaskUpdate(taskId, updates);
+                },
+                edit: async (task: Task) => {
+                  setSelectedTask(task);
+                  setIsTaskViewOpen(true);
+                },
               }}
               tags={tags}
               categories={categories}
@@ -329,20 +440,23 @@ const TaskManager: React.FC = () => {
         </DragDropContext>
       </Box>
 
-      <TaskView
-        open={isTaskViewOpen}
-        onClose={() => {
-          setIsTaskViewOpen(false);
-          setSelectedTask(null);
-        }}
-        task={selectedTask}
-        onTaskUpdate={handleTaskUpdate}
-        onAddComment={handleAddComment}
-        onAddSubtask={handleAddSubtask}
-        onToggleSubtask={handleToggleSubtask}
-        tags={tags}
-        categories={categories}
-      />
+      {isTaskViewOpen && (
+        <TaskView
+          open={isTaskViewOpen}
+          onClose={() => {
+            setIsTaskViewOpen(false);
+            setSelectedTask(null);
+          }}
+          task={selectedTask}
+          onTaskUpdate={handleTaskUpdate}
+          onTaskCreate={handleCreateTask}
+          onAddComment={handleAddComment}
+          onAddSubtask={handleAddSubtask}
+          onToggleSubtask={handleToggleSubtask}
+          tags={tags}
+          categories={categories}
+        />
+      )}
 
       <CategoryManager
         open={isCategoryManagerOpen}

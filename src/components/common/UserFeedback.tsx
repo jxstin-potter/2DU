@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import React, { useState, useEffect, createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
 import { Snackbar, Alert, AlertTitle, Button, Box, Typography } from '@mui/material';
 
 // Feedback types
@@ -41,8 +41,13 @@ interface FeedbackProviderProps {
 export const FeedbackProvider: React.FC<FeedbackProviderProps> = ({ children }) => {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
 
+  // Hide feedback
+  const hideFeedback = useCallback((id: string) => {
+    setFeedbacks((prev) => prev.filter((feedback) => feedback.id !== id));
+  }, []);
+
   // Show feedback
-  const showFeedback = (feedback: Omit<Feedback, 'id' | 'timestamp'>) => {
+  const showFeedback = useCallback((feedback: Omit<Feedback, 'id' | 'timestamp'>) => {
     const id = Math.random().toString(36).substring(2, 9);
     const newFeedback: Feedback = {
       ...feedback,
@@ -52,37 +57,25 @@ export const FeedbackProvider: React.FC<FeedbackProviderProps> = ({ children }) 
 
     setFeedbacks((prev) => [...prev, newFeedback]);
 
-    // Track feedback with console log instead of analytics
-    console.log('User Feedback:', {
-      feedbackType: feedback.type,
-      feedbackTitle: feedback.title,
-      feedbackMessage: feedback.message
-    });
-
     // Auto-hide after duration
     if (feedback.autoHideDuration !== 0) {
       setTimeout(() => {
         hideFeedback(id);
       }, feedback.autoHideDuration || 6000);
     }
-  };
-
-  // Hide feedback
-  const hideFeedback = (id: string) => {
-    setFeedbacks((prev) => prev.filter((feedback) => feedback.id !== id));
-  };
+  }, [hideFeedback]);
 
   // Clear all feedback
-  const clearAllFeedback = () => {
+  const clearAllFeedback = useCallback(() => {
     setFeedbacks([]);
-  };
+  }, []);
 
-  // Context value
-  const contextValue: FeedbackContextType = {
+  // Context value - memoize to prevent unnecessary re-renders
+  const contextValue: FeedbackContextType = useMemo(() => ({
     showFeedback,
     hideFeedback,
     clearAllFeedback,
-  };
+  }), [showFeedback, hideFeedback, clearAllFeedback]);
 
   return (
     <FeedbackContext.Provider value={contextValue}>

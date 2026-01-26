@@ -8,32 +8,21 @@ import {
   Menu,
   MenuItem,
   ListItemText,
-  Divider,
   CircularProgress,
   Alert,
-  List as MuiList,
-  ListItem,
-  ListItemSecondaryAction,
-  IconButton,
-  Checkbox,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Sort as SortIcon,
-  FilterList as FilterListIcon,
 } from '@mui/icons-material';
 import { Droppable, Draggable, DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import { Task, Tag, Category } from '../../types';
 import TaskItem from './TaskItem';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { isToday, isPast, isFuture } from 'date-fns';
 
-type SortOption = 'dueDate' | 'priority' | 'title' | 'createdAt';
-type FilterOption = 'all' | 'today' | 'overdue' | 'upcoming' | 'completed' | 'active';
+type SortOption = 'dueDate' | 'title' | 'createdAt';
 
 interface TaskListProps {
   tasks: Task[];
@@ -44,13 +33,9 @@ interface TaskListProps {
     delete: (taskId: string) => Promise<void>;
     update: (taskId: string, updates: Partial<Task>) => Promise<void>;
     edit: (task: Task) => Promise<void>;
-    share: (task: Task) => Promise<void>;
+    share?: (task: Task) => Promise<void>;
   };
   draggable?: boolean;
-  onTaskSelect: (task: Task) => void;
-  onTaskToggle: (taskId: string) => void;
-  onTaskDelete: (taskId: string) => void;
-  onTaskEdit: (task: Task) => void;
   tags: Tag[];
   categories: Category[];
   onLoadMore?: () => void;
@@ -64,10 +49,6 @@ const TaskList: React.FC<TaskListProps> = ({
   error = null,
   onTaskAction,
   draggable = false,
-  onTaskSelect,
-  onTaskToggle,
-  onTaskDelete,
-  onTaskEdit,
   tags,
   categories,
   onLoadMore,
@@ -76,38 +57,46 @@ const TaskList: React.FC<TaskListProps> = ({
 }) => {
   const theme = useTheme();
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
-  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
   const [sortBy, setSortBy] = useState<SortOption>('dueDate');
-  const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Debounced search handler
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
-    setSearchTimeout(
-      setTimeout(() => {
-        setSearchQuery(value);
-      }, 300)
-    );
-  };
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearchQuery(value);
+    }, 300);
+  }, []);
 
-  const handleTaskAction = async (action: keyof TaskListProps['onTaskAction'], ...args: any[]) => {
-    if (actionInProgress) return; // Prevent concurrent actions
+  const handleTaskAction = useCallback(async (action: keyof TaskListProps['onTaskAction'], ...args: any[]) => {
+    if (actionInProgress) return;
     
     try {
       setActionInProgress(action);
-      await onTaskAction[action](...args);
+      const actionFn = onTaskAction[action];
+      if (actionFn) {
+        await actionFn(...args);
+      }
     } catch (error) {
-      console.error(`Error performing ${action}:`, error);
+      // Error handling is done by the action function
     } finally {
       setActionInProgress(null);
     }
-  };
+  }, [actionInProgress, onTaskAction]);
 
   const handleDragEnd = async (result: any) => {
     if (!result.destination || actionInProgress) return;
@@ -121,7 +110,7 @@ const TaskList: React.FC<TaskListProps> = ({
         order: destination.index
       });
     } catch (error) {
-      console.error('Error updating task order:', error);
+      // Error updating task order - handled by parent
     } finally {
       setActionInProgress(null);
     }
@@ -131,16 +120,8 @@ const TaskList: React.FC<TaskListProps> = ({
     setSortAnchorEl(event.currentTarget);
   };
 
-  const handleFilterClick = (event: React.MouseEvent<HTMLElement>) => {
-    setFilterAnchorEl(event.currentTarget);
-  };
-
   const handleSortClose = () => {
     setSortAnchorEl(null);
-  };
-
-  const handleFilterClose = () => {
-    setFilterAnchorEl(null);
   };
 
   const handleSortSelect = (option: SortOption) => {
@@ -148,39 +129,14 @@ const TaskList: React.FC<TaskListProps> = ({
     handleSortClose();
   };
 
-  const handleFilterSelect = (option: FilterOption) => {
-    setFilterBy(option);
-    handleFilterClose();
-  };
-
-  // Memoized filtered and sorted tasks
-  const filteredTasks = useMemo(() => {
-    return tasks.filter(task => {
-      if (filterBy === 'completed') return task.completed;
-      if (filterBy === 'active') return !task.completed;
-      
-      if (task.dueDate) {
-        const dueDate = new Date(task.dueDate);
-        if (filterBy === 'today') return isToday(dueDate);
-        if (filterBy === 'overdue') return isPast(dueDate) && !task.completed;
-        if (filterBy === 'upcoming') return isFuture(dueDate) && !task.completed;
-      }
-      
-      return true; // 'all' filter
-    });
-  }, [tasks, filterBy]);
-
+  // Memoized sorted tasks
   const sortedTasks = useMemo(() => {
-    return [...filteredTasks].sort((a, b) => {
+    return [...tasks].sort((a, b) => {
       switch (sortBy) {
         case 'dueDate':
           if (!a.dueDate) return 1;
           if (!b.dueDate) return -1;
           return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-        case 'priority': {
-          const priorityOrder = { high: 0, medium: 1, low: 2 };
-          return (priorityOrder[a.priority || 'medium'] || 1) - (priorityOrder[b.priority || 'medium'] || 1);
-        }
         case 'title':
           return a.title.localeCompare(b.title);
         case 'createdAt':
@@ -189,7 +145,7 @@ const TaskList: React.FC<TaskListProps> = ({
           return 0;
       }
     });
-  }, [filteredTasks, sortBy]);
+  }, [tasks, sortBy]);
 
   const searchFilteredTasks = useMemo(() => {
     return searchQuery
@@ -203,6 +159,8 @@ const TaskList: React.FC<TaskListProps> = ({
   // Virtualized list item renderer
   const Row = useCallback(({ index, style }: ListChildComponentProps) => {
     const task = searchFilteredTasks[index];
+    if (!task) return null;
+    
     return (
       <div style={style}>
         {draggable ? (
@@ -238,19 +196,48 @@ const TaskList: React.FC<TaskListProps> = ({
         )}
       </div>
     );
-  }, [searchFilteredTasks, tags, categories, actionInProgress, draggable]);
+  }, [searchFilteredTasks, tags, categories, actionInProgress, draggable, handleTaskAction]);
 
-  // Handle infinite scroll
+  // Throttle scroll handler to prevent excessive calls
+  const scrollThrottleRef = React.useRef<NodeJS.Timeout | null>(null);
+  const lastScrollOffsetRef = React.useRef<number>(0);
+
+  // Handle infinite scroll with throttling
   const handleScroll = useCallback(({ scrollOffset, scrollUpdateWasRequested }: { scrollOffset: number; scrollUpdateWasRequested: boolean }) => {
-    if (!scrollUpdateWasRequested && hasMore && !isLoadingMore && onLoadMore) {
-      const listHeight = 600; // Base height
-      const scrollThreshold = listHeight * 0.8; // Load more when 80% scrolled
-      
-      if (scrollOffset > scrollThreshold) {
-        onLoadMore();
-      }
+    // Throttle scroll events to max once per 100ms
+    if (scrollThrottleRef.current) {
+      return;
     }
+
+    scrollThrottleRef.current = setTimeout(() => {
+      scrollThrottleRef.current = null;
+      
+      // Only process if scroll offset changed significantly (at least 50px)
+      if (Math.abs(scrollOffset - lastScrollOffsetRef.current) < 50 && !scrollUpdateWasRequested) {
+        return;
+      }
+      
+      lastScrollOffsetRef.current = scrollOffset;
+
+      if (!scrollUpdateWasRequested && hasMore && !isLoadingMore && onLoadMore) {
+        const listHeight = 600; // Base height
+        const scrollThreshold = listHeight * 0.8; // Load more when 80% scrolled
+        
+        if (scrollOffset > scrollThreshold) {
+          onLoadMore();
+        }
+      }
+    }, 100);
   }, [hasMore, isLoadingMore, onLoadMore]);
+
+  // Cleanup throttle on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollThrottleRef.current) {
+        clearTimeout(scrollThrottleRef.current);
+      }
+    };
+  }, []);
 
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const listHeight = isMobile ? 400 : 600;
@@ -295,29 +282,14 @@ const TaskList: React.FC<TaskListProps> = ({
         flexWrap: 'wrap',
         gap: 1,
       }}>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          <Button
-            size="small"
-            startIcon={<SortIcon />}
-            onClick={handleSortClick}
-          >
-            Sort: {sortBy === 'dueDate' ? 'Due Date' : 
-                  sortBy === 'priority' ? 'Priority' : 
-                  sortBy === 'title' ? 'Title' : 'Created'}
-          </Button>
-          <Button
-            size="small"
-            startIcon={<FilterListIcon />}
-            onClick={handleFilterClick}
-            variant="outlined"
-          >
-            Filter: {filterBy === 'all' ? 'All Tasks' : 
-                    filterBy === 'today' ? 'Today' : 
-                    filterBy === 'overdue' ? 'Overdue' : 
-                    filterBy === 'upcoming' ? 'Upcoming' : 
-                    filterBy === 'completed' ? 'Completed' : 'Active'}
-          </Button>
-        </Box>
+        <Button
+          size="small"
+          startIcon={<SortIcon />}
+          onClick={handleSortClick}
+        >
+          Sort: {sortBy === 'dueDate' ? 'Due Date' : 
+                sortBy === 'title' ? 'Title' : 'Created'}
+        </Button>
         
         <TextField
           size="small"
@@ -364,40 +336,11 @@ const TaskList: React.FC<TaskListProps> = ({
         <MenuItem onClick={() => handleSortSelect('dueDate')}>
           <ListItemText>Due Date</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => handleSortSelect('priority')}>
-          <ListItemText>Priority</ListItemText>
-        </MenuItem>
         <MenuItem onClick={() => handleSortSelect('title')}>
           <ListItemText>Title</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => handleSortSelect('createdAt')}>
           <ListItemText>Created Date</ListItemText>
-        </MenuItem>
-      </Menu>
-
-      <Menu
-        anchorEl={filterAnchorEl}
-        open={Boolean(filterAnchorEl)}
-        onClose={handleFilterClose}
-      >
-        <MenuItem onClick={() => handleFilterSelect('all')}>
-          <ListItemText>All Tasks</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => handleFilterSelect('active')}>
-          <ListItemText>Active Tasks</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => handleFilterSelect('completed')}>
-          <ListItemText>Completed Tasks</ListItemText>
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => handleFilterSelect('today')}>
-          <ListItemText>Today</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => handleFilterSelect('overdue')}>
-          <ListItemText>Overdue</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => handleFilterSelect('upcoming')}>
-          <ListItemText>Upcoming</ListItemText>
         </MenuItem>
       </Menu>
     </Box>

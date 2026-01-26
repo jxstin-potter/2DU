@@ -20,11 +20,9 @@ export interface Task {
   dueDate?: Date | null;
   tags?: string[];
   order?: number;
-  priority?: 'low' | 'medium' | 'high';
   notes?: string;
   categoryId?: string;
   category?: string;
-  projectId?: string;
   status?: 'todo' | 'in_progress' | 'review' | 'done';
   subtasks?: Subtask[];
   comments?: Comment[];
@@ -70,7 +68,6 @@ export interface FullTask extends Task {
 export interface TimeEntry {
   id: string;
   taskId: string;
-  projectId: string;
   userId: string;
   startTime: Date;
   endTime?: Date;
@@ -81,20 +78,8 @@ export interface TimeEntry {
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
-export type TaskPriority = 'low' | 'medium' | 'high';
-
-export interface TaskFilters {
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  categoryId?: string;
-  projectId?: string;
-  assignedTo?: string;
-  dueDate?: Date;
-  tags?: string[];
-  search?: string;
-}
 
 export interface TaskSortOptions {
   field: keyof Task;
   direction: 'asc' | 'desc';
-} 
+}
