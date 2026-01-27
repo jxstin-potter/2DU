@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialTask) {
@@ -50,6 +51,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
       resetForm();
     }
   }, [initialTask, open]);
+
+  // Auto-focus the title input when modal opens (backup mechanism)
+  useEffect(() => {
+    if (open && titleInputRef.current) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          titleInputRef.current?.focus();
+        }, 0);
+      });
+    }
+  }, [open]);
 
   const resetForm = () => {
     setTitle('');
@@ -119,21 +132,49 @@ const TaskModal: React.FC<TaskModalProps> = ({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           m: 0,
+          backgroundColor: '#2d2d2d',
+          color: '#ffffff',
+          boxShadow: '0 20px 60px -12px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.4)',
+          borderRadius: '12px',
+        }
+      }}
+      TransitionProps={{
+        onEntered: () => {
+          titleInputRef.current?.focus();
         }
       }}
       disableEscapeKeyDown={isSubmitting}
     >
-      <DialogContent sx={{ p: 2, height: '100%', '&.MuiDialogContent-root': { paddingTop: 2 } }}>
+      <DialogContent sx={{ 
+        p: 2, 
+        height: '100%', 
+        backgroundColor: '#2d2d2d',
+        '&.MuiDialogContent-root': { 
+          paddingTop: 2,
+        } 
+      }}>
         <form onSubmit={handleSubmit} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <Stack spacing={1.5} sx={{ flexGrow: 1 }}>
             {errors.submit && (
-              <Alert severity="error" sx={{ py: 0.5 }}>
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  py: 0.5,
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  color: '#ffffff',
+                  '& .MuiAlert-icon': {
+                    color: '#ef4444',
+                  },
+                }}
+              >
                 {errors.submit}
               </Alert>
             )}
             
             <Box sx={{ display: 'flex', gap: 1.5 }}>
               <TextField
+                inputRef={titleInputRef}
+                autoFocus
                 label="Task name"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -142,7 +183,33 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 size="small"
                 required
                 disabled={isSubmitting}
-                sx={{ flex: 1 }}
+                sx={{ 
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    '& fieldset': {
+                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: 'rgba(255, 255, 255, 0.3)',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#3b82f6',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: 'rgba(255, 255, 255, 0.7)',
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': {
+                    color: '#3b82f6',
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#ffffff',
+                  },
+                  '& .MuiFormHelperText-root': {
+                    color: 'rgba(255, 255, 255, 0.6)',
+                  },
+                }}
               />
 
               <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -153,7 +220,30 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   slotProps={{
                     textField: {
                       size: 'small',
-                      sx: { width: '140px' },
+                      sx: { 
+                        width: '140px',
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          '& fieldset': {
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#3b82f6',
+                          },
+                        },
+                        '& .MuiInputLabel-root': {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: '#3b82f6',
+                        },
+                        '& .MuiInputBase-input': {
+                          color: '#ffffff',
+                        },
+                      },
                     },
                   }}
                   disabled={isSubmitting}
@@ -161,12 +251,46 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </LocalizationProvider>
 
               <FormControl size="small" sx={{ width: '120px' }}>
-                <InputLabel>Priority</InputLabel>
+                <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Priority</InputLabel>
                 <Select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high' | '')}
                   label="Priority"
                   disabled={isSubmitting}
+                  sx={{
+                    color: '#ffffff',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.3)',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#3b82f6',
+                    },
+                    '& .MuiSvgIcon-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: '#2d2d2d',
+                        '& .MuiMenuItem-root': {
+                          color: '#ffffff',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            '&:hover': {
+                              backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                            },
+                          },
+                        },
+                      },
+                    },
+                  }}
                 >
                   <MenuItem value="">None</MenuItem>
                   <MenuItem value="low">Low</MenuItem>
@@ -185,6 +309,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
               size="small"
               fullWidth
               disabled={isSubmitting}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3b82f6',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#3b82f6',
+                },
+                '& .MuiInputBase-input': {
+                  color: '#ffffff',
+                },
+              }}
             />
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 'auto' }}>
@@ -192,6 +339,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 onClick={handleClose} 
                 disabled={isSubmitting}
                 size="small"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
               >
                 Cancel
               </Button>
@@ -201,6 +354,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 color="primary"
                 disabled={isSubmitting || loading}
                 size="small"
+                sx={{
+                  backgroundColor: '#3b82f6',
+                  color: '#ffffff',
+                  '&:hover': {
+                    backgroundColor: '#2563eb',
+                  },
+                  '&:disabled': {
+                    backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                  },
+                }}
               >
                 {isSubmitting ? (
                   <CircularProgress size={20} color="inherit" />
