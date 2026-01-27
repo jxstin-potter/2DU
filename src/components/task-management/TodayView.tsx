@@ -222,7 +222,7 @@ const TodayView: React.FC<TodayViewProps> = ({
               justifyContent: 'center' 
             }}>
               <Button
-                startIcon={<AddIcon />}
+                startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
                 onClick={openModal}
                 sx={{
                   textTransform: 'none',
@@ -248,7 +248,7 @@ const TodayView: React.FC<TodayViewProps> = ({
               No tasks for today
             </Typography>
             <Button
-              startIcon={<AddIcon />}
+              startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
               onClick={openModal}
               sx={{
                 textTransform: 'none',
