@@ -117,51 +117,69 @@ const TaskItem: React.FC<TaskItemProps> = ({
           </Typography>
         }
         secondary={
-          <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-            {task.dueDate && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CalendarIcon fontSize="small" sx={{ fontSize: '0.875rem' }} />
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: isOverdue ? 'error.main' : 'text.secondary',
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  {formattedDate}
-                </Typography>
-              </Box>
+          <Box>
+            {task.description && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.875rem',
+                  mb: task.dueDate || category || (taskTags.length > 0) ? 0.5 : 0,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {task.description}
+              </Typography>
             )}
-            {category && (
-              <Tooltip title="Category">
-                <Chip
-                  size="small"
-                  icon={<LabelIcon fontSize="small" />}
-                  label={category.name}
-                  sx={{
-                    bgcolor: 'background.default',
-                    '& .MuiChip-label': {
-                      px: 1,
-                    },
-                  }}
-                />
-              </Tooltip>
-            )}
-            {taskTags.map((tag) => (
-              <Tooltip key={tag.id} title={tag.name}>
-                <Chip
-                  size="small"
-                  label={tag.name}
-                  sx={{
-                    bgcolor: tag.color || 'background.default',
-                    color: 'white',
-                    '& .MuiChip-label': {
-                      px: 1,
-                    },
-                  }}
-                />
-              </Tooltip>
-            ))}
+            <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+              {task.dueDate && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <CalendarIcon fontSize="small" sx={{ fontSize: '0.875rem' }} />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: isOverdue ? 'error.main' : 'text.secondary',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    {formattedDate}
+                  </Typography>
+                </Box>
+              )}
+              {category && (
+                <Tooltip title="Category">
+                  <Chip
+                    size="small"
+                    icon={<LabelIcon fontSize="small" />}
+                    label={category.name}
+                    sx={{
+                      bgcolor: 'background.default',
+                      '& .MuiChip-label': {
+                        px: 1,
+                      },
+                    }}
+                  />
+                </Tooltip>
+              )}
+              {taskTags.map((tag) => (
+                <Tooltip key={tag.id} title={tag.name}>
+                  <Chip
+                    size="small"
+                    label={tag.name}
+                    sx={{
+                      bgcolor: tag.color || 'background.default',
+                      color: 'white',
+                      '& .MuiChip-label': {
+                        px: 1,
+                      },
+                    }}
+                  />
+                </Tooltip>
+              ))}
+            </Box>
           </Box>
         }
       />

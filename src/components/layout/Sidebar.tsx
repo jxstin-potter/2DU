@@ -33,8 +33,8 @@ import { useI18n } from '../../contexts/I18nContext';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 import { useSearchModal } from '../../contexts/SearchModalContext';
 import { User } from '../../types';
-import SidebarToggleIcon from '../common/SidebarToggleIcon';
-import ThinArrowDownIcon from '../common/ThinArrowDownIcon';
+import SidebarToggleIcon from '../ui/SidebarToggleIcon';
+import ThinArrowDownIcon from '../ui/ThinArrowDownIcon';
 
 interface SidebarProps {
   isCollapsed: boolean;
