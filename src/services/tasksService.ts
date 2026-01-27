@@ -236,9 +236,9 @@ export const getFilteredTasks = async (
     
     // Add completion status filter
     if (filterParams.completionStatus === 'active') {
-      conditions.push(where('isCompleted', '==', false));
+      conditions.push(where('completed', '==', false));
     } else if (filterParams.completionStatus === 'completed') {
-      conditions.push(where('isCompleted', '==', true));
+      conditions.push(where('completed', '==', true));
     }
     
     // Determine sort direction
@@ -341,9 +341,9 @@ const buildTaskQuery = (
 
   // Add completion status filter
   if (filterParams.completionStatus === 'active') {
-    conditions.push(where('isCompleted', '==', false));
+    conditions.push(where('completed', '==', false));
   } else if (filterParams.completionStatus === 'completed') {
-    conditions.push(where('isCompleted', '==', true));
+    conditions.push(where('completed', '==', true));
   }
 
   // Add date-based filters
@@ -362,6 +362,9 @@ const buildTaskQuery = (
   const sortDirection = filterParams.sortOrder === 'asc' ? 'asc' : 'desc';
   if (filterParams.sortBy === 'dueDate') {
     conditions.push(orderBy('dueDate', sortDirection));
+  } else if (filterParams.completionStatus === 'completed') {
+    // For completed tasks, sort by updatedAt (completion time) to avoid index requirement
+    conditions.push(orderBy('updatedAt', sortDirection));
   } else {
     conditions.push(orderBy('createdAt', sortDirection));
   }
@@ -443,6 +446,12 @@ export const subscribeToTasks = (
             error: error instanceof Error ? error.message : 'Unknown error' 
           });
         }
+        // Call callback with empty result so loading state gets updated
+        callback({
+          tasks: [],
+          lastVisible: null,
+          hasMore: false
+        });
       }
     );
 
@@ -463,6 +472,12 @@ export const subscribeToTasks = (
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
+    // Call callback with empty result so loading state gets updated
+    callback({
+      tasks: [],
+      lastVisible: null,
+      hasMore: false
+    });
     return () => {};
   }
 };
@@ -637,12 +652,16 @@ export const updateTask = async (
     // Clean up the data before update
     const cleanedData: Partial<TaskDocument> = {};
     
-    if (taskData.text !== undefined) {
-      cleanedData.text = taskData.text.trim();
+    if (taskData.title !== undefined) {
+      cleanedData.title = taskData.title.trim();
     }
     
-    if (taskData.isCompleted !== undefined) {
-      cleanedData.isCompleted = taskData.isCompleted;
+    if (taskData.description !== undefined) {
+      cleanedData.description = taskData.description?.trim() || undefined;
+    }
+    
+    if (taskData.completed !== undefined) {
+      cleanedData.completed = taskData.completed;
     }
     
     if (taskData.notes !== undefined) {
@@ -652,6 +671,25 @@ export const updateTask = async (
     if (taskData.dueDate !== undefined) {
       cleanedData.dueDate = taskData.dueDate;
     }
+    
+    if (taskData.priority !== undefined) {
+      cleanedData.priority = taskData.priority;
+    }
+    
+    if (taskData.status !== undefined) {
+      cleanedData.status = taskData.status;
+    }
+    
+    if (taskData.categoryId !== undefined) {
+      cleanedData.categoryId = taskData.categoryId;
+    }
+    
+    if (taskData.tags !== undefined) {
+      cleanedData.tags = taskData.tags;
+    }
+    
+    // Always update updatedAt timestamp
+    cleanedData.updatedAt = serverTimestamp();
     
     await updateDoc(taskRef, cleanedData);
   } catch (error) {

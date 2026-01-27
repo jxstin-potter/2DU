@@ -22,6 +22,7 @@ import { useTheme } from './contexts/ThemeContext';
 const Login = lazy(() => import('./pages/Login'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Today = lazy(() => import('./pages/Today'));
+const Completed = lazy(() => import('./pages/Completed'));
 
 // Main app content
 const AppContent: React.FC = () => {
@@ -44,6 +45,7 @@ const AppContent: React.FC = () => {
             <Routes>
               <Route path="/" element={<Navigate to="/today" replace />} />
               <Route path="/today" element={<Today />} />
+              <Route path="/completed" element={<Completed />} />
               <Route path="/login" element={<Login />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>

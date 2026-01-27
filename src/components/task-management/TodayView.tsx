@@ -49,7 +49,9 @@ const TodayView: React.FC<TodayViewProps> = ({
     let count = 0;
 
     tasks.forEach(task => {
-      if (task.completed) return;
+      if (task.completed) {
+        return;
+      }
       
       if (task.dueDate) {
         const taskDate = startOfDay(new Date(task.dueDate));
@@ -61,6 +63,10 @@ const TodayView: React.FC<TodayViewProps> = ({
           today.push(task);
           count++;
         }
+      } else {
+        // Tasks without a due date should appear in the "today" section
+        today.push(task);
+        count++;
       }
     });
 
@@ -70,12 +76,9 @@ const TodayView: React.FC<TodayViewProps> = ({
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
 
-    // Sort today tasks by dueDate or creation date
+    // Sort today tasks by creation date (newest first) so newly added tasks appear at the top
     today.sort((a, b) => {
-      if (a.dueDate && b.dueDate) {
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      }
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
     return { overdueTasks: overdue, todayTasks: today, taskCount: count };
