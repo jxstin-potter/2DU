@@ -15,6 +15,7 @@ import {
   Avatar,
   Divider,
   Button,
+  alpha,
 } from '@mui/material';
 import {
   Inbox as InboxIcon,
@@ -119,6 +120,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const renderMenuItem = useCallback((item: { text: string; icon: React.ReactNode; path: string }, isCollapsed: boolean) => {
     const isActive = location.pathname === item.path;
+    const offWhiteColor = theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.common.white, 0.1)
+      : alpha(theme.palette.common.white, 0.7);
     return (
       <ListItem
         button
@@ -131,10 +135,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           py: 0.5,
           borderRadius: 1,
           mb: 0.25,
-          backgroundColor: isActive ? 'primary.main' : 'transparent',
-          color: isActive ? 'primary.contrastText' : 'text.primary',
+          backgroundColor: isActive ? offWhiteColor : 'transparent',
+          color: 'text.primary',
           '&:hover': {
-            backgroundColor: isActive ? 'primary.dark' : 'action.hover',
+            backgroundColor: isActive ? offWhiteColor : 'action.hover',
           },
           '& .MuiListItemIcon-root': {
             color: isActive ? '#5c4e00' : 'text.secondary',
@@ -183,7 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </ListItem>
     );
-  }, [location.pathname, navigate, isCollapsed]);
+  }, [location.pathname, navigate, isCollapsed, theme.palette.mode]);
 
   const drawerWidth = isCollapsed ? 64 : 240;
   

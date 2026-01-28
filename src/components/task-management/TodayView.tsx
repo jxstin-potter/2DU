@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -17,6 +17,7 @@ import {
 import { format, isBefore, isToday, startOfDay } from 'date-fns';
 import { Task, Tag, Category } from '../../types';
 import TaskItem from './TaskItem';
+import InlineTaskEditor from './InlineTaskEditor';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 
 interface TodayViewProps {
@@ -27,21 +28,48 @@ interface TodayViewProps {
     update: (taskId: string, updates: Partial<Task>) => Promise<void>;
     edit: (task: Task) => void;
   };
+  onCreateTask?: (taskData: Partial<Task>) => Promise<void>;
   tags: Tag[];
   categories: Category[];
+  defaultCategoryId?: string;
 }
 
 const TodayView: React.FC<TodayViewProps> = ({
   tasks,
   onTaskAction,
+  onCreateTask,
   tags,
   categories,
+  defaultCategoryId,
 }) => {
   const theme = useTheme();
-  const { openModal } = useTaskModal();
+  const { isOpen: isTaskModalOpen, openModal, closeModal: closeTaskModal } = useTaskModal();
   const [overdueExpanded, setOverdueExpanded] = useState(true);
+  const [showInlineEditor, setShowInlineEditor] = useState(false);
 
-  const today = startOfDay(new Date());
+  // Show inline editor when modal is opened (only for creating new tasks)
+  useEffect(() => {
+    if (isTaskModalOpen && onCreateTask) {
+      setShowInlineEditor(true);
+    } else {
+      setShowInlineEditor(false);
+    }
+  }, [isTaskModalOpen, onCreateTask]);
+
+  const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
+    if (onCreateTask) {
+      await onCreateTask(taskData);
+      setShowInlineEditor(false);
+      closeTaskModal();
+    }
+  }, [onCreateTask, closeTaskModal]);
+
+  const handleCancelEditor = useCallback(() => {
+    setShowInlineEditor(false);
+    closeTaskModal();
+  }, [closeTaskModal]);
+
+  const todayDate = startOfDay(new Date());
 
   const { overdueTasks, todayTasks, taskCount } = useMemo(() => {
     const overdue: Task[] = [];
@@ -56,7 +84,7 @@ const TodayView: React.FC<TodayViewProps> = ({
       if (task.dueDate) {
         const taskDate = startOfDay(new Date(task.dueDate));
         
-        if (isBefore(taskDate, today)) {
+        if (isBefore(taskDate, todayDate)) {
           overdue.push(task);
           count++;
         } else if (isToday(taskDate)) {
@@ -82,7 +110,7 @@ const TodayView: React.FC<TodayViewProps> = ({
     });
 
     return { overdueTasks: overdue, todayTasks: today, taskCount: count };
-  }, [tasks, today]);
+  }, [tasks, todayDate]);
 
   const formattedDate = format(new Date(), "MMM d 'Today' - EEEE");
 
@@ -181,6 +209,7 @@ const TodayView: React.FC<TodayViewProps> = ({
                   onToggleComplete={onTaskAction.toggle}
                   onDelete={onTaskAction.delete}
                   onEdit={onTaskAction.edit}
+                  onUpdate={onTaskAction.update}
                   tags={tags}
                   categories={categories}
                 />
@@ -203,6 +232,18 @@ const TodayView: React.FC<TodayViewProps> = ({
           {formattedDate}
         </Typography>
 
+        {/* Inline task editor */}
+        {showInlineEditor && onCreateTask && (
+          <Box sx={{ mb: theme.spacing(2) }}>
+            <InlineTaskEditor
+              onSubmit={handleCreateTask}
+              onCancel={handleCancelEditor}
+              categories={categories}
+              defaultCategoryId={defaultCategoryId}
+            />
+          </Box>
+        )}
+
         {todayTasks.length > 0 ? (
           <>
             {todayTasks.map((task) => (
@@ -212,26 +253,29 @@ const TodayView: React.FC<TodayViewProps> = ({
                 onToggleComplete={onTaskAction.toggle}
                 onDelete={onTaskAction.delete}
                 onEdit={onTaskAction.edit}
+                onUpdate={onTaskAction.update}
                 tags={tags}
                 categories={categories}
               />
             ))}
-            <Box sx={{ 
-              mt: theme.spacing(3), 
-              display: 'flex', 
-              justifyContent: 'center' 
-            }}>
-              <Button
-                startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
-                onClick={openModal}
-                sx={{
-                  textTransform: 'none',
-                  color: 'text.secondary',
-                }}
-              >
-                Add task
-              </Button>
-            </Box>
+            {!showInlineEditor && (
+              <Box sx={{ 
+                mt: theme.spacing(3), 
+                display: 'flex', 
+                justifyContent: 'center' 
+              }}>
+                <Button
+                  startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
+                  onClick={openModal}
+                  sx={{
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                  }}
+                >
+                  Add task
+                </Button>
+              </Box>
+            )}
           </>
         ) : (
           <Box sx={{ 
@@ -240,23 +284,27 @@ const TodayView: React.FC<TodayViewProps> = ({
             alignItems: 'flex-start',
             gap: theme.spacing(1.5),
           }}>
-            <Typography 
-              variant="body2" 
-              color="text.secondary"
-              sx={{ fontSize: theme.typography.body2.fontSize }}
-            >
-              No tasks for today
-            </Typography>
-            <Button
-              startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
-              onClick={openModal}
-              sx={{
-                textTransform: 'none',
-                color: 'text.secondary',
-              }}
-            >
-              Add task
-            </Button>
+            {!showInlineEditor && (
+              <>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary"
+                  sx={{ fontSize: theme.typography.body2.fontSize }}
+                >
+                  No tasks for today
+                </Typography>
+                <Button
+                  startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
+                  onClick={openModal}
+                  sx={{
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                  }}
+                >
+                  Add task
+                </Button>
+              </>
+            )}
           </Box>
         )}
       </Box>

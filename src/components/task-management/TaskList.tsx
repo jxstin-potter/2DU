@@ -18,6 +18,8 @@ import { Droppable, Draggable, DragDropContext, DropResult } from 'react-beautif
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import { Task, Tag, Category } from '../../types';
 import TaskItem from './TaskItem';
+import InlineTaskEditor from './InlineTaskEditor';
+import { useTaskModal } from '../../contexts/TaskModalContext';
 
 type SortOption = 'dueDate' | 'title' | 'createdAt';
 
@@ -32,12 +34,14 @@ interface TaskListProps {
     edit: (task: Task) => Promise<void>;
     share?: (task: Task) => Promise<void>;
   };
+  onCreateTask?: (taskData: Partial<Task>) => Promise<void>;
   draggable?: boolean;
   tags: Tag[];
   categories: Category[];
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
+  defaultCategoryId?: string;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
@@ -45,17 +49,43 @@ const TaskList: React.FC<TaskListProps> = ({
   loading = false,
   error = null,
   onTaskAction,
+  onCreateTask,
   draggable = false,
   tags,
   categories,
   onLoadMore,
   hasMore = false,
   isLoadingMore = false,
+  defaultCategoryId,
 }) => {
   const theme = useTheme();
+  const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [sortBy, setSortBy] = useState<SortOption>('dueDate');
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [showInlineEditor, setShowInlineEditor] = useState(false);
+
+  // Show inline editor when modal is opened (only for creating new tasks)
+  useEffect(() => {
+    if (isTaskModalOpen && onCreateTask) {
+      setShowInlineEditor(true);
+    } else {
+      setShowInlineEditor(false);
+    }
+  }, [isTaskModalOpen, onCreateTask]);
+
+  const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
+    if (onCreateTask) {
+      await onCreateTask(taskData);
+      setShowInlineEditor(false);
+      closeTaskModal();
+    }
+  }, [onCreateTask, closeTaskModal]);
+
+  const handleCancelEditor = useCallback(() => {
+    setShowInlineEditor(false);
+    closeTaskModal();
+  }, [closeTaskModal]);
 
   const handleTaskAction = useCallback(async (action: keyof TaskListProps['onTaskAction'], ...args: any[]) => {
     if (actionInProgress) return;
@@ -143,6 +173,7 @@ const TaskList: React.FC<TaskListProps> = ({
                   onToggleComplete={() => handleTaskAction('toggle', task.id)}
                   onDelete={() => handleTaskAction('delete', task.id)}
                   onEdit={() => handleTaskAction('edit', task)}
+                  onUpdate={onTaskAction.update}
                   tags={tags}
                   categories={categories}
                   isActionInProgress={actionInProgress !== null}
@@ -156,6 +187,7 @@ const TaskList: React.FC<TaskListProps> = ({
             onToggleComplete={() => handleTaskAction('toggle', task.id)}
             onDelete={() => handleTaskAction('delete', task.id)}
             onEdit={() => handleTaskAction('edit', task)}
+            onUpdate={onTaskAction.update}
             tags={tags}
             categories={categories}
             isActionInProgress={actionInProgress !== null}
@@ -258,6 +290,18 @@ const TaskList: React.FC<TaskListProps> = ({
                 sortBy === 'title' ? 'Title' : 'Created'}
         </Button>
       </Box>
+
+      {/* Inline task editor */}
+      {showInlineEditor && onCreateTask && (
+        <Box sx={{ mb: 2 }}>
+          <InlineTaskEditor
+            onSubmit={handleCreateTask}
+            onCancel={handleCancelEditor}
+            categories={categories}
+            defaultCategoryId={defaultCategoryId}
+          />
+        </Box>
+      )}
 
       {draggable ? (
         <DragDropContext onDragEnd={handleDragEnd}>
