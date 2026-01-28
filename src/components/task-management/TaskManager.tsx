@@ -421,27 +421,26 @@ const TaskManager: React.FC = () => {
                 setSelectedTask(task);
               },
             }}
+            onCreateTask={handleCreateTask}
             tags={tags}
             categories={categories}
           />
         </DragDropContext>
 
+      {/* Only show TaskModal for editing existing tasks */}
       <TaskModal
-        open={isTaskModalOpen}
+        open={isTaskModalOpen && !!selectedTask}
         onClose={() => {
           closeTaskModal();
           setSelectedTask(null);
         }}
-        onSubmit={selectedTask ? 
-          async (taskData) => {
-            if (selectedTask.id) {
-              await handleTaskUpdate(selectedTask.id, taskData);
-              closeTaskModal();
-              setSelectedTask(null);
-            }
-          } : 
-          handleCreateTask
-        }
+        onSubmit={async (taskData) => {
+          if (selectedTask?.id) {
+            await handleTaskUpdate(selectedTask.id, taskData);
+            closeTaskModal();
+            setSelectedTask(null);
+          }
+        }}
         initialTask={selectedTask}
         loading={loading}
       />

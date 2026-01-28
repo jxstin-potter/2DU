@@ -12,11 +12,15 @@ import {
   Stack,
   Alert,
   CircularProgress,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Task } from '../../types';
+import { parseTimeFromText } from '../../utils/taskHelpers';
+import HighlightedTimeInput from '../ui/HighlightedTimeInput';
 
 interface TaskModalProps {
   open: boolean;
@@ -33,21 +37,47 @@ const TaskModal: React.FC<TaskModalProps> = ({
   initialTask,
   loading = false,
 }) => {
+  const theme = useTheme();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
+  const [timeMatchInfo, setTimeMatchInfo] = useState<{ start: number; end: number; text: string } | null>(null);
+  const titleInputRef = useRef<HTMLDivElement>(null);
+  
+  // Track title changes for debugging
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:48',message:'Title state changed',data:{title,titleLength:title.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+  }, [title]);
+  
+  // Track dueDate changes for debugging
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:54',message:'DueDate state changed',data:{dueDate:dueDate?.toISOString(),hasDueDate:!!dueDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+  }, [dueDate]);
 
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:62',message:'useEffect initialTask/open triggered',data:{hasInitialTask:!!initialTask,open,initialTaskId:initialTask?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
+    // #endregion
+    
     if (initialTask) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:66',message:'Setting form from initialTask',data:{title:initialTask.title},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
       setTitle(initialTask.title);
       setDescription(initialTask.description || '');
       setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
       setPriority(initialTask.priority || '');
     } else {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:69',message:'Calling resetForm - this will clear title',data:{currentTitle:title},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
       resetForm();
     }
   }, [initialTask, open]);
@@ -65,6 +95,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
   }, [open]);
 
   const resetForm = () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:85',message:'resetForm called',data:{currentTitle:title},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
+    // #endregion
     setTitle('');
     setDescription('');
     setDueDate(null);
@@ -84,12 +117,38 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || isSubmitting) return;
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:118',message:'handleSubmit called',data:{title,titleLength:title.length,titleTrimmed:title.trim(),hasDueDate:!!dueDate,priority,isSubmitting},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
+    // #endregion
+    
+    // Ensure we have the latest title from contentEditable
+    const currentTitle = titleInputRef.current?.textContent || title;
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:123',message:'Reading title from contentEditable',data:{currentTitle,currentTitleLength:currentTitle.length,stateTitle:title,stateTitleLength:title.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
+    // #endregion
+    
+    // Update title state if it differs from contentEditable
+    if (currentTitle !== title) {
+      setTitle(currentTitle);
+    }
+    
+    // Wait a tick for state to update, then validate
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    if (!validateForm() || isSubmitting) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:132',message:'Form validation failed or submitting',data:{title,titleTrimmed:title.trim(),isSubmitting},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
+      return;
+    }
 
     try {
       setIsSubmitting(true);
+      const finalTitle = titleInputRef.current?.textContent || title;
       const taskData: Partial<Task> = {
-        title,
+        title: finalTitle.trim(),
         description: description || undefined,
         dueDate: dueDate || undefined,
         priority: priority ? (priority as 'low' | 'medium' | 'high') : undefined,
@@ -98,10 +157,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
         updatedAt: new Date(),
       };
 
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:147',message:'Submitting task data',data:{taskData:JSON.stringify(taskData)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
+
       await onSubmit(taskData);
       resetForm();
       onClose();
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:153',message:'Submit error',data:{error:error instanceof Error ? error.message : String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
       setErrors({
         submit: 'Failed to save task. Please try again.'
       });
@@ -132,9 +198,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           m: 0,
-          backgroundColor: '#2d2d2d',
-          color: '#ffffff',
-          boxShadow: '0 20px 60px -12px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.4)',
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 20px 60px -12px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.4)'
+            : '0 20px 60px -12px rgba(0, 0, 0, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.1)',
           borderRadius: '12px',
         }
       }}
@@ -148,7 +216,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
       <DialogContent sx={{ 
         p: 2, 
         height: '100%', 
-        backgroundColor: '#2d2d2d',
+        backgroundColor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
         '&.MuiDialogContent-root': { 
           paddingTop: 2,
         } 
@@ -160,56 +229,44 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 severity="error" 
                 sx={{ 
                   py: 0.5,
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                  color: '#ffffff',
+                  backgroundColor: alpha(theme.palette.error.main, 0.15),
+                  color: theme.palette.text.primary,
                   '& .MuiAlert-icon': {
-                    color: '#ef4444',
+                    color: theme.palette.error.main,
                   },
                 }}
               >
                 {errors.submit}
               </Alert>
             )}
-            
             <Box sx={{ display: 'flex', gap: 1.5 }}>
-              <TextField
+              <HighlightedTimeInput
                 inputRef={titleInputRef}
                 autoFocus
                 label="Task name"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(inputValue) => {
+                  // #region agent log
+                  fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:214',message:'onChange handler called',data:{inputValue,inputLength:inputValue.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
+                  // #endregion
+                  setTitle(inputValue);
+                }}
+                onTimeParsed={(time, matchInfo) => {
+                  // #region agent log
+                  fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:220',message:'Time parsed callback',data:{hasTime:!!time,timeISO:time?.toISOString(),matchInfo},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+                  // #endregion
+                  setTimeMatchInfo(matchInfo);
+                  if (time) {
+                    setDueDate(time);
+                  } else {
+                    setDueDate(null);
+                  }
+                }}
                 error={!!errors.title}
                 helperText={errors.title}
-                size="small"
                 required
                 disabled={isSubmitting}
-                sx={{ 
-                  flex: 1,
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.3)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#3b82f6',
-                    },
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: 'rgba(255, 255, 255, 0.7)',
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#3b82f6',
-                  },
-                  '& .MuiInputBase-input': {
-                    color: '#ffffff',
-                  },
-                  '& .MuiFormHelperText-root': {
-                    color: 'rgba(255, 255, 255, 0.6)',
-                  },
-                }}
+                sx={{ flex: 1 }}
               />
 
               <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -223,25 +280,31 @@ const TaskModal: React.FC<TaskModalProps> = ({
                       sx: { 
                         width: '140px',
                         '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? alpha(theme.palette.common.white, 0.05)
+                            : alpha(theme.palette.common.black, 0.02),
                           '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderColor: theme.palette.mode === 'dark'
+                              ? alpha(theme.palette.common.white, 0.2)
+                              : alpha(theme.palette.common.black, 0.2),
                           },
                           '&:hover fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                            borderColor: theme.palette.mode === 'dark'
+                              ? alpha(theme.palette.common.white, 0.3)
+                              : alpha(theme.palette.common.black, 0.3),
                           },
                           '&.Mui-focused fieldset': {
-                            borderColor: '#3b82f6',
+                            borderColor: theme.palette.primary.main,
                           },
                         },
                         '& .MuiInputLabel-root': {
-                          color: 'rgba(255, 255, 255, 0.7)',
+                          color: theme.palette.text.secondary,
                         },
                         '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#3b82f6',
+                          color: theme.palette.primary.main,
                         },
                         '& .MuiInputBase-input': {
-                          color: '#ffffff',
+                          color: theme.palette.text.primary,
                         },
                       },
                     },
@@ -251,40 +314,44 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </LocalizationProvider>
 
               <FormControl size="small" sx={{ width: '120px' }}>
-                <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Priority</InputLabel>
+                <InputLabel sx={{ color: theme.palette.text.secondary }}>Priority</InputLabel>
                 <Select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high' | '')}
                   label="Priority"
                   disabled={isSubmitting}
                   sx={{
-                    color: '#ffffff',
+                    color: theme.palette.text.primary,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                      borderColor: theme.palette.mode === 'dark'
+                        ? alpha(theme.palette.common.white, 0.2)
+                        : alpha(theme.palette.common.black, 0.2),
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(255, 255, 255, 0.3)',
+                      borderColor: theme.palette.mode === 'dark'
+                        ? alpha(theme.palette.common.white, 0.3)
+                        : alpha(theme.palette.common.black, 0.3),
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#3b82f6',
+                      borderColor: theme.palette.primary.main,
                     },
                     '& .MuiSvgIcon-root': {
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      color: theme.palette.text.secondary,
                     },
                   }}
                   MenuProps={{
                     PaperProps: {
                       sx: {
-                        backgroundColor: '#2d2d2d',
+                        backgroundColor: theme.palette.background.paper,
                         '& .MuiMenuItem-root': {
-                          color: '#ffffff',
+                          color: theme.palette.text.primary,
                           '&:hover': {
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            backgroundColor: theme.palette.action.hover,
                           },
                           '&.Mui-selected': {
-                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            backgroundColor: alpha(theme.palette.primary.main, 0.2),
                             '&:hover': {
-                              backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                              backgroundColor: alpha(theme.palette.primary.main, 0.3),
                             },
                           },
                         },
@@ -311,25 +378,31 @@ const TaskModal: React.FC<TaskModalProps> = ({
               disabled={isSubmitting}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? alpha(theme.palette.common.white, 0.05)
+                    : alpha(theme.palette.common.black, 0.02),
                   '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    borderColor: theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.common.white, 0.2)
+                      : alpha(theme.palette.common.black, 0.2),
                   },
                   '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    borderColor: theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.common.white, 0.3)
+                      : alpha(theme.palette.common.black, 0.3),
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#3b82f6',
+                    borderColor: theme.palette.primary.main,
                   },
                 },
                 '& .MuiInputLabel-root': {
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: theme.palette.text.secondary,
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
-                  color: '#3b82f6',
+                  color: theme.palette.primary.main,
                 },
                 '& .MuiInputBase-input': {
-                  color: '#ffffff',
+                  color: theme.palette.text.primary,
                 },
               }}
             />
@@ -340,9 +413,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 disabled={isSubmitting}
                 size="small"
                 sx={{
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: theme.palette.text.secondary,
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: theme.palette.action.hover,
                   },
                 }}
               >
@@ -355,14 +428,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 disabled={isSubmitting || loading}
                 size="small"
                 sx={{
-                  backgroundColor: '#3b82f6',
-                  color: '#ffffff',
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
                   '&:hover': {
-                    backgroundColor: '#2563eb',
+                    backgroundColor: theme.palette.primary.dark,
                   },
                   '&:disabled': {
-                    backgroundColor: 'rgba(59, 130, 246, 0.3)',
-                    color: 'rgba(255, 255, 255, 0.5)',
+                    backgroundColor: alpha(theme.palette.primary.main, 0.3),
+                    color: alpha(theme.palette.primary.contrastText, 0.5),
                   },
                 }}
               >
