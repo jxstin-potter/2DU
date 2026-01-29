@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,45 @@ import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 
+/** Resize image to fit within maxSize and return as JPEG data URL (no Firebase Storage). */
+function resizeImageToDataUrl(file: File, maxSize: number, quality: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      let dw = w;
+      let dh = h;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) {
+          dw = maxSize;
+          dh = (h * maxSize) / w;
+        } else {
+          dh = maxSize;
+          dw = (w * maxSize) / h;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(dw);
+      canvas.height = Math.round(dh);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas not supported'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image'));
+    };
+    img.src = url;
+  });
+}
+
 interface SettingsModalProps {
   open: boolean;
   onClose: () => void;
@@ -39,10 +78,13 @@ type SettingsTab = 'account' | 'general';
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const { mode, toggleColorMode } = useCustomTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [name, setName] = useState(user?.name || '');
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setName(user?.name || '');
@@ -57,15 +99,46 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   };
 
   const handleSaveName = () => {
-    // TODO: Implement name update to Firestore
+    const trimmed = name.trim();
+    if (trimmed && trimmed !== user?.name) {
+      updateUserProfile({ name: trimmed });
+    }
   };
 
   const handleChangePhoto = () => {
-    // TODO: Implement photo change
+    setPhotoError(null);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.id) return;
+    const MAX_INPUT_SIZE = 4 * 1024 * 1024; // 4MB
+    if (file.size > MAX_INPUT_SIZE) {
+      setPhotoError('Photo must be 4MB or smaller.');
+      event.target.value = '';
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please select an image file.');
+      event.target.value = '';
+      return;
+    }
+    setPhotoLoading(true);
+    setPhotoError(null);
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 256, 0.75);
+      await updateUserProfile({ profilePicture: dataUrl });
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to process photo.');
+    } finally {
+      setPhotoLoading(false);
+      event.target.value = '';
+    }
   };
 
   const handleRemovePhoto = () => {
-    // TODO: Implement photo removal
+    updateUserProfile({ profilePicture: '' });
   };
 
   const handleChangeEmail = () => {
@@ -239,12 +312,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
 
                 {/* Photo Section */}
                 <Box sx={{ mb: 4 }}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                    aria-hidden="true"
+                  />
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                     Photo
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                     <Avatar
-                      src={user?.profilePicture}
+                      src={user?.profilePicture || undefined}
                       alt={user?.name || 'User'}
                       sx={{
                         width: 64,
@@ -260,6 +341,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                         variant="outlined"
                         size="small"
                         onClick={handleChangePhoto}
+                        disabled={photoLoading}
                         sx={{
                           textTransform: 'none',
                           borderColor: theme.palette.divider,
@@ -270,7 +352,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                           },
                         }}
                       >
-                        Change photo
+                        {photoLoading ? 'Uploading…' : 'Change photo'}
                       </Button>
                       <Button
                         variant="outlined"
@@ -293,6 +375,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                   <Typography variant="caption" color="text.secondary">
                     Pick a photo up to 4MB.
                   </Typography>
+                  {photoError && (
+                    <Typography variant="caption" color="error" display="block" sx={{ mt: 0.5 }}>
+                      {photoError}
+                    </Typography>
+                  )}
                   <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
                     Your avatar photo will be public.
                   </Typography>

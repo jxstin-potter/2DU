@@ -271,28 +271,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </Typography>
               <ThinArrowDownIcon sx={{ fontSize: '1rem', ml: 0.01 }} />
             </Button>
-          ) : (
-            <IconButton
-              onClick={handleProfileMenuOpen}
-              sx={{
-                color: theme.palette.text.primary,
-                p: 0.5,
-              }}
-            >
-              <Avatar
-                src={profilePicture}
-                alt={displayName}
-                sx={{
-                  width: 28,
-                  height: 28,
-                  fontSize: '0.75rem',
-                  bgcolor: theme.palette.primary.main,
-                }}
-              >
-                {displayName.charAt(0).toUpperCase()}
-              </Avatar>
-            </IconButton>
-          )}
+          ) : null}
           <IconButton 
             onClick={onToggleCollapse}
             aria-label={isCollapsed ? 'Open sidebar' : 'Close sidebar'}
