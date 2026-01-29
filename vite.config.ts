@@ -11,6 +11,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    // Prefer TypeScript source over compiled .js so edits to .tsx/.ts are used
+    extensions: ['.tsx', '.ts', '.jsx', '.js', '.mts', '.mjs', '.json'],
   },
   optimizeDeps: {
     include: [

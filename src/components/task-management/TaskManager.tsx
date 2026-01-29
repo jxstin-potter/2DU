@@ -10,11 +10,9 @@ import {
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTaskModal } from '../../contexts/TaskModalContext';
-import { useSearchModal } from '../../contexts/SearchModalContext';
 import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../../services/tasksService';
 import { taskDocumentToTask, taskToTaskDocument } from '../../utils/taskHelpers';
 import TaskModal from '../modals/TaskModal';
-import SearchModal, { SearchCriteria } from '../modals/SearchModal';
 import { Task, Category, Tag, Comment } from '../../types';
 import AddIcon from '@mui/icons-material/Add';
 import TaskList from './TaskList';
@@ -23,7 +21,6 @@ import { DEFAULT_TAGS } from '../../constants/defaultTags';
 const TaskManager: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { isOpen: isTaskModalOpen, openModal: openTaskModal, closeModal: closeTaskModal } = useTaskModal();
-  const { isOpen: isSearchModalOpen, closeModal: closeSearchModal } = useSearchModal();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
@@ -31,7 +28,7 @@ const TaskManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchCriteria, setSearchCriteria] = useState<SearchCriteria | null>(null);
+  const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
 
   // Subscribe to tasks using real-time listener (simplified approach)
   useEffect(() => {
@@ -198,54 +195,10 @@ const TaskManager: React.FC = () => {
     }
   };
 
-  const handleSearch = (criteria: SearchCriteria) => {
-    setSearchCriteria(criteria);
-  };
-
   const filteredTasks = useMemo(() => {
-    let filtered = tasks;
-
-    // Apply category filter
-    if (selectedCategory) {
-      filtered = filtered.filter(task => task.categoryId === selectedCategory);
-    }
-
-    // Apply search criteria
-    if (searchCriteria) {
-      filtered = filtered.filter(task => {
-        // Title filter (case-insensitive partial match)
-        if (searchCriteria.title && searchCriteria.title.trim()) {
-          const titleMatch = task.title.toLowerCase().includes(searchCriteria.title.toLowerCase());
-          if (!titleMatch) return false;
-        }
-
-        // Description filter (case-insensitive pa9rtial match)
-        if (searchCriteria.description && searchCriteria.description.trim()) {
-          const descMatch = task.description?.toLowerCase().includes(searchCriteria.description.toLowerCase());
-          if (!descMatch) return false;
-        }
-
-        // Due date filter (exact date match)
-        if (searchCriteria.dueDate) {
-          const taskDate = task.dueDate ? new Date(task.dueDate) : null;
-          if (!taskDate) return false;
-          const searchDate = new Date(searchCriteria.dueDate);
-          const taskDateStr = taskDate.toDateString();
-          const searchDateStr = searchDate.toDateString();
-          if (taskDateStr !== searchDateStr) return false;
-        }
-
-        // Priority filter (exact match)
-        if (searchCriteria.priority) {
-          if (task.priority !== searchCriteria.priority) return false;
-        }
-
-        return true;
-      });
-    }
-
-    return filtered;
-  }, [tasks, selectedCategory, searchCriteria]);
+    if (!selectedCategory) return tasks;
+    return tasks.filter((task) => task.categoryId === selectedCategory);
+  }, [tasks, selectedCategory]);
 
   const handleAddComment = async (taskId: string, comment: string) => {
     if (!user?.id) {
@@ -377,7 +330,9 @@ const TaskManager: React.FC = () => {
       });
       
       // Use simplified service function
-      await createTaskFromData(user.id, taskDoc);
+      const newTaskId = await createTaskFromData(user.id, taskDoc);
+      setJustAddedTaskId(newTaskId);
+      setTimeout(() => setJustAddedTaskId(null), 600);
       
       // Tasks will automatically update via the real-time subscription
       // Close the modal after successful creation
@@ -411,6 +366,7 @@ const TaskManager: React.FC = () => {
             tasks={filteredTasks}
             loading={loading}
             error={error}
+            justAddedTaskId={justAddedTaskId}
             onTaskAction={{
               toggle: handleTaskToggle,
               delete: handleTaskDelete,
@@ -446,12 +402,6 @@ const TaskManager: React.FC = () => {
         }
         initialTask={selectedTask}
         loading={loading}
-      />
-
-      <SearchModal
-        open={isSearchModalOpen}
-        onClose={closeSearchModal}
-        onSearch={handleSearch}
       />
     </Container>
   );

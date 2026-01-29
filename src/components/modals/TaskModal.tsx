@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -79,6 +79,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:69',message:'Calling resetForm - this will clear title',data:{currentTitle:title},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
       // #endregion
       resetForm();
+      setDueDate(new Date());
     }
   }, [initialTask, open]);
 
@@ -93,6 +94,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
       });
     }
   }, [open]);
+
+  // Warn on reload/close when modal is open and form has unsaved changes
+  const isDirty = useMemo(() => {
+    if (!open) return false;
+    if (initialTask) {
+      const descMatch = (initialTask.description || '') === description;
+      const dateMatch = (initialTask.dueDate == null && dueDate == null) ||
+        (initialTask.dueDate != null && dueDate != null && new Date(initialTask.dueDate).getTime() === dueDate.getTime());
+      return title !== initialTask.title || !descMatch || !dateMatch || (initialTask.priority || '') !== priority;
+    }
+    return title.trim() !== '' || description.trim() !== '' || priority !== '';
+  }, [open, initialTask, title, description, dueDate, priority]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   const resetForm = () => {
     // #region agent log

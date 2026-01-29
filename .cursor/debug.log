@@ -1,0 +1,238 @@
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769718964558,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769718964559,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769718964559,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769718964559,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769718964559,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769718964560,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769718964559,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769718964560,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769718964560,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769718964560,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769718985137,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769718985137,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769718985138,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769718985138,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769718985138,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769718985138,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769718985138,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769718985138,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769718985138,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769718985139,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719026837,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719026837,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719026838,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719026838,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719026838,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719026838,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719026838,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719026837,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719026837,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719026837,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719032908,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719032909,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719032910,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719032910,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719032910,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719032910,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719032910,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719032909,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719032909,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719032909,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719044920,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719044921,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719044921,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719044921,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719044922,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719044922,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719044922,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719044921,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719044921,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719044921,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719053268,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719053269,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719053269,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719053269,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":true},"timestamp":1769719053269,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719053269,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719053270,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":true},"timestamp":1769719053269,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719053269,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719053268,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"HighlightedTimeInput.tsx:54","message":"useEffect triggered","data":{"value":"","valueLength":0,"hasInputRef":true,"isUpdating":false},"timestamp":1769719053329,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:60","message":"parseAndNotify called","data":{"value":""},"timestamp":1769719053329,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:84","message":"updateContent called","data":{"value":""},"timestamp":1769719053330,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:54","message":"useEffect triggered","data":{"value":"","valueLength":0,"hasInputRef":true,"isUpdating":false},"timestamp":1769719053332,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:84","message":"updateContent called","data":{"value":""},"timestamp":1769719053333,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:60","message":"parseAndNotify called","data":{"value":""},"timestamp":1769719053332,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:54","message":"useEffect triggered","data":{"value":"","valueLength":0,"hasInputRef":true,"isUpdating":false},"timestamp":1769719053366,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:60","message":"parseAndNotify called","data":{"value":""},"timestamp":1769719053366,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:84","message":"updateContent called","data":{"value":""},"timestamp":1769719053366,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:54","message":"useEffect triggered","data":{"value":"","valueLength":0,"hasInputRef":true,"isUpdating":false},"timestamp":1769719053409,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:60","message":"parseAndNotify called","data":{"value":""},"timestamp":1769719053409,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:84","message":"updateContent called","data":{"value":""},"timestamp":1769719053409,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053411,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053411,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053411,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:65","message":"parseTime result","data":{"hasTime":false},"timestamp":1769719053411,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:220","message":"Time parsed callback","data":{"hasTime":false,"matchInfo":null},"timestamp":1769719053412,"sessionId":"debug-session","runId":"run2","hypothesisId":"B"}
+{"location":"HighlightedTimeInput.tsx:71","message":"onTimeParsed called","data":{"hasTime":false,"hasMatchInfo":false},"timestamp":1769719053412,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053412,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053412,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053412,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:92","message":"Skipping DOM update - content matches","data":{"currentText":"","value":"","hasMatchInfo":false},"timestamp":1769719053412,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053413,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053413,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053413,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:65","message":"parseTime result","data":{"hasTime":false},"timestamp":1769719053413,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:220","message":"Time parsed callback","data":{"hasTime":false,"matchInfo":null},"timestamp":1769719053413,"sessionId":"debug-session","runId":"run2","hypothesisId":"B"}
+{"location":"HighlightedTimeInput.tsx:71","message":"onTimeParsed called","data":{"hasTime":false,"hasMatchInfo":false},"timestamp":1769719053413,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053413,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053414,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053414,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:92","message":"Skipping DOM update - content matches","data":{"currentText":"","value":"","hasMatchInfo":false},"timestamp":1769719053414,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053417,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053417,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053417,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:65","message":"parseTime result","data":{"hasTime":false},"timestamp":1769719053417,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:220","message":"Time parsed callback","data":{"hasTime":false,"matchInfo":null},"timestamp":1769719053417,"sessionId":"debug-session","runId":"run2","hypothesisId":"B"}
+{"location":"HighlightedTimeInput.tsx:71","message":"onTimeParsed called","data":{"hasTime":false,"hasMatchInfo":false},"timestamp":1769719053418,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053418,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053418,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053418,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:92","message":"Skipping DOM update - content matches","data":{"currentText":"","value":"","hasMatchInfo":false},"timestamp":1769719053418,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053420,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053421,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053421,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:65","message":"parseTime result","data":{"hasTime":false},"timestamp":1769719053421,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:220","message":"Time parsed callback","data":{"hasTime":false,"matchInfo":null},"timestamp":1769719053421,"sessionId":"debug-session","runId":"run2","hypothesisId":"B"}
+{"location":"HighlightedTimeInput.tsx:71","message":"onTimeParsed called","data":{"hasTime":false,"hasMatchInfo":false},"timestamp":1769719053421,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719053421,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719053422,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719053422,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:92","message":"Skipping DOM update - content matches","data":{"currentText":"","value":"","hasMatchInfo":false},"timestamp":1769719053422,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719054338,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"HighlightedTimeInput.tsx:54","message":"useEffect triggered","data":{"value":"","valueLength":0,"hasInputRef":true,"isUpdating":false},"timestamp":1769719054386,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:84","message":"updateContent called","data":{"value":""},"timestamp":1769719054386,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:60","message":"parseAndNotify called","data":{"value":""},"timestamp":1769719054386,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719054386,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719054386,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719054387,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"HighlightedTimeInput.tsx:54","message":"useEffect triggered","data":{"value":"","valueLength":0,"hasInputRef":true,"isUpdating":false},"timestamp":1769719054399,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:60","message":"parseAndNotify called","data":{"value":""},"timestamp":1769719054399,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"HighlightedTimeInput.tsx:84","message":"updateContent called","data":{"value":""},"timestamp":1769719054399,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719054403,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719054403,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719054403,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:65","message":"parseTime result","data":{"hasTime":false},"timestamp":1769719054403,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:220","message":"Time parsed callback","data":{"hasTime":false,"matchInfo":null},"timestamp":1769719054403,"sessionId":"debug-session","runId":"run2","hypothesisId":"B"}
+{"location":"HighlightedTimeInput.tsx:71","message":"onTimeParsed called","data":{"hasTime":false,"hasMatchInfo":false},"timestamp":1769719054403,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719054404,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719054404,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719054404,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:92","message":"Skipping DOM update - content matches","data":{"currentText":"","value":"","hasMatchInfo":false},"timestamp":1769719054404,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719054404,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719054404,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719054404,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:65","message":"parseTime result","data":{"hasTime":false},"timestamp":1769719054405,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:220","message":"Time parsed callback","data":{"hasTime":false,"matchInfo":null},"timestamp":1769719054405,"sessionId":"debug-session","runId":"run2","hypothesisId":"B"}
+{"location":"HighlightedTimeInput.tsx:71","message":"onTimeParsed called","data":{"hasTime":false,"hasMatchInfo":false},"timestamp":1769719054405,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"taskHelpers.ts:65","message":"parseTimeFromText called","data":{"text":"","textLength":0},"timestamp":1769719054405,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:77","message":"Regex match result","data":{"matched":false},"timestamp":1769719054405,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"taskHelpers.ts:80","message":"No match found - returning null","data":{"text":""},"timestamp":1769719054405,"sessionId":"debug-session","runId":"run2","hypothesisId":"A"}
+{"location":"HighlightedTimeInput.tsx:92","message":"Skipping DOM update - content matches","data":{"currentText":"","value":"","hasMatchInfo":false},"timestamp":1769719054405,"sessionId":"debug-session","runId":"run2","hypothesisId":"H1"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719236235,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719236235,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719236236,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719236236,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719236237,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719236236,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719236237,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719236238,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719236238,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719236238,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:40:36.238Z","hasDueDate":true},"timestamp":1769719236320,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719238495,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719238496,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719238496,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719238496,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719238496,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719238497,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719238497,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719238495,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719238495,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719238495,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:40:38.497Z","hasDueDate":true},"timestamp":1769719238524,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719238734,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719238735,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719238735,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719238734,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719238735,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719238735,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719238736,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719238736,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719238736,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719238736,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:40:38.736Z","hasDueDate":true},"timestamp":1769719238773,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719239820,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719239820,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719239820,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719239820,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719239820,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719239821,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719239821,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719239821,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719239821,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719239821,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:40:39.822Z","hasDueDate":true},"timestamp":1769719239861,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719249207,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719249207,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719249208,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719249208,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719249208,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719249208,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719249208,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719249208,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719249208,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719249209,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:40:49.209Z","hasDueDate":true},"timestamp":1769719249231,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":true,"open":false,"initialTaskId":"pRbMqj5SKzN7cJKDk1zN"},"timestamp":1769719258394,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:66","message":"Setting form from initialTask","data":{"title":"circle task completion button instead of square"},"timestamp":1769719258394,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"circle task completion button instead of square","titleLength":47},"timestamp":1769719258396,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719258396,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719286910,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719286910,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719286910,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719286910,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719286910,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719286911,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719286911,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719286911,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719286911,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719286911,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:41:26.912Z","hasDueDate":true},"timestamp":1769719286931,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719574796,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719574797,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719574797,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719574797,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719574798,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719574798,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719574797,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719574798,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719574797,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719574797,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:46:14.798Z","hasDueDate":true},"timestamp":1769719574818,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719654994,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719654994,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719654994,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719654995,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"","titleLength":0},"timestamp":1769719654995,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719654995,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719654995,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":false,"open":false},"timestamp":1769719654995,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:69","message":"Calling resetForm - this will clear title","data":{"currentTitle":""},"timestamp":1769719654995,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:85","message":"resetForm called","data":{"currentTitle":""},"timestamp":1769719654995,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"dueDate":"2026-01-29T20:47:34.996Z","hasDueDate":true},"timestamp":1769719655013,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:62","message":"useEffect initialTask/open triggered","data":{"hasInitialTask":true,"open":false,"initialTaskId":"pRbMqj5SKzN7cJKDk1zN"},"timestamp":1769719766264,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:66","message":"Setting form from initialTask","data":{"title":"circle task completion button instead of square"},"timestamp":1769719766264,"sessionId":"debug-session","runId":"run2","hypothesisId":"G"}
+{"location":"TaskModal.tsx:48","message":"Title state changed","data":{"title":"circle task completion button instead of square","titleLength":47},"timestamp":1769719766267,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}
+{"location":"TaskModal.tsx:54","message":"DueDate state changed","data":{"hasDueDate":false},"timestamp":1769719766267,"sessionId":"debug-session","runId":"run2","hypothesisId":"F"}

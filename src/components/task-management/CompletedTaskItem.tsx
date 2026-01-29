@@ -99,8 +99,8 @@ const CompletedTaskItem: React.FC<CompletedTaskItemProps> = ({ task }) => {
           {/* Empty Checkbox with Red Outline */}
           <Box
             sx={{
-              width: 20,
-              height: 20,
+              width: 16,
+              height: 16,
               borderRadius: '50%',
               border: '2px solid',
               borderColor: 'error.main',

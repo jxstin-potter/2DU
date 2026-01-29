@@ -14,6 +14,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { format, isBefore, isToday, startOfDay } from 'date-fns';
 import { Task, Tag, Category } from '../../types';
 import TaskItem from './TaskItem';
@@ -22,6 +23,7 @@ import { useTaskModal } from '../../contexts/TaskModalContext';
 
 interface TodayViewProps {
   tasks: Task[];
+  justAddedTaskId?: string | null;
   onTaskAction: {
     toggle: (taskId: string) => Promise<void>;
     delete: (taskId: string) => Promise<void>;
@@ -36,6 +38,7 @@ interface TodayViewProps {
 
 const TodayView: React.FC<TodayViewProps> = ({
   tasks,
+  justAddedTaskId = null,
   onTaskAction,
   onCreateTask,
   tags,
@@ -195,18 +198,33 @@ const TodayView: React.FC<TodayViewProps> = ({
 
           <Collapse in={overdueExpanded}>
             <Box>
-              {overdueTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggleComplete={onTaskAction.toggle}
-                  onDelete={onTaskAction.delete}
-                  onEdit={onTaskAction.edit}
-                  onUpdate={onTaskAction.update}
-                  tags={tags}
-                  categories={categories}
-                />
-              ))}
+              {overdueTasks.map((task) => {
+                const isJustAdded = task.id === justAddedTaskId;
+                const item = (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onToggleComplete={onTaskAction.toggle}
+                    onDelete={onTaskAction.delete}
+                    onEdit={onTaskAction.edit}
+                    onUpdate={onTaskAction.update}
+                    tags={tags}
+                    categories={categories}
+                  />
+                );
+                return isJustAdded ? (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                  >
+                    {item}
+                  </motion.div>
+                ) : (
+                  item
+                );
+              })}
             </Box>
           </Collapse>
         </Box>
@@ -239,18 +257,33 @@ const TodayView: React.FC<TodayViewProps> = ({
 
         {todayTasks.length > 0 ? (
           <>
-            {todayTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onToggleComplete={onTaskAction.toggle}
-                onDelete={onTaskAction.delete}
-                onEdit={onTaskAction.edit}
-                onUpdate={onTaskAction.update}
-                tags={tags}
-                categories={categories}
-              />
-            ))}
+            {todayTasks.map((task) => {
+              const isJustAdded = task.id === justAddedTaskId;
+              const item = (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggleComplete={onTaskAction.toggle}
+                  onDelete={onTaskAction.delete}
+                  onEdit={onTaskAction.edit}
+                  onUpdate={onTaskAction.update}
+                  tags={tags}
+                  categories={categories}
+                />
+              );
+              return isJustAdded ? (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                >
+                  {item}
+                </motion.div>
+              ) : (
+                item
+              );
+            })}
             {!showInlineEditor && (
               <Box sx={{ 
                 mt: theme.spacing(3), 
@@ -263,6 +296,12 @@ const TodayView: React.FC<TodayViewProps> = ({
                   sx={{
                     textTransform: 'none',
                     color: 'text.secondary',
+                    transition: 'transform 0.2s ease, color 0.2s ease, background-color 0.2s ease',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                      color: 'text.primary',
+                      backgroundColor: 'action.hover',
+                    },
                   }}
                 >
                   Add task
@@ -292,6 +331,12 @@ const TodayView: React.FC<TodayViewProps> = ({
                   sx={{
                     textTransform: 'none',
                     color: 'text.secondary',
+                    transition: 'transform 0.2s ease, color 0.2s ease, background-color 0.2s ease',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                      color: 'text.primary',
+                      backgroundColor: 'action.hover',
+                    },
                   }}
                 >
                   Add task

@@ -4,7 +4,6 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
-  Checkbox,
   Typography,
   Box,
   Chip,
@@ -16,6 +15,8 @@ import {
   Delete as DeleteIcon,
   Label as LabelIcon,
   CalendarToday as CalendarIcon,
+  RadioButtonUnchecked as RadioButtonUncheckedIcon,
+  CheckCircleOutline as CheckCircleOutlineIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
@@ -159,15 +160,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
   return (
     <ListItem
       sx={{
-        mb: 1,
-        bgcolor: 'background.paper',
-        borderRadius: 1,
-        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-        transition: 'all 0.2s ease',
-        '&:hover': {
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          bgcolor: 'action.hover',
-        },
+        mb: 2,
+        bgcolor: 'transparent',
+        transition: 'opacity 0.2s ease',
         '& .MuiListItemSecondaryAction-root': {
           opacity: 0,
           transition: 'opacity 0.2s ease',
@@ -177,23 +172,56 @@ const TaskItem: React.FC<TaskItemProps> = ({
         },
       }}
     >
-      <Checkbox
+      <IconButton
         edge="start"
-        checked={task.completed}
-        onChange={handleToggleComplete}
+        onClick={handleToggleComplete}
         disabled={isActionInProgress}
+        size="small"
         sx={{
-          color: task.completed ? 'success.main' : 'action.active',
-          '&.Mui-checked': {
-            color: 'success.main',
-          },
+          p: 0.25,
+          mr: 0.5,
+          backgroundColor: 'transparent',
+          '&:hover': { backgroundColor: 'transparent' },
+          '&:hover .check-hover': { opacity: 1 },
         }}
-      />
+        aria-label={task.completed ? 'Mark incomplete' : 'Mark complete'}
+      >
+        {task.completed ? (
+          <CheckCircleOutlineIcon sx={{ fontSize: 17, color: 'success.main' }} />
+        ) : (
+          <Box
+            component="span"
+            sx={{
+              position: 'relative',
+              display: 'inline-flex',
+              width: 17,
+              height: 17,
+            }}
+          >
+            <RadioButtonUncheckedIcon sx={{ fontSize: 17, color: 'action.active' }} />
+            <CheckCircleOutlineIcon
+              className="check-hover"
+              sx={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                fontSize: 16,
+                color: 'white',
+                opacity: 0,
+                transition: 'opacity 0.15s ease',
+                pointerEvents: 'none',
+                backgroundColor: 'transparent',
+              }}
+            />
+          </Box>
+        )}
+      </IconButton>
       <ListItemText
         primary={
           <Typography
             variant="body1"
             sx={{
+              fontSize: '0.875rem',
               textDecoration: task.completed ? 'line-through' : 'none',
               color: task.completed ? 'text.secondary' : 'text.primary',
             }}
@@ -208,7 +236,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 variant="body2"
                 sx={{
                   color: 'text.secondary',
-                  fontSize: '0.875rem',
+                  fontSize: '0.8125rem',
                   mb: task.dueDate || category || (taskTags.length > 0) ? 0.5 : 0,
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
@@ -238,44 +266,15 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     transition: 'background-color 0.2s ease',
                   }}
                 >
-                  <CalendarIcon fontSize="small" sx={{ fontSize: '0.875rem' }} />
+                  <CalendarIcon fontSize="small" sx={{ fontSize: '0.8125rem' }} />
                   <Typography
                     variant="body2"
                     sx={{
                       color: isOverdue ? 'error.main' : 'text.secondary',
-                      fontSize: '0.875rem',
+                      fontSize: '0.8125rem',
                     }}
                   >
                     {formattedDate}
-                  </Typography>
-                </Box>
-              )}
-              {!task.dueDate && onUpdate && (
-                <Box 
-                  onClick={handleDateClick}
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 0.5,
-                    cursor: 'pointer',
-                    borderRadius: 1,
-                    px: 0.5,
-                    py: 0.25,
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                    },
-                    transition: 'background-color 0.2s ease',
-                  }}
-                >
-                  <CalendarIcon fontSize="small" sx={{ fontSize: '0.875rem', color: 'text.secondary' }} />
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: 'text.secondary',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    Add due date
                   </Typography>
                 </Box>
               )}
@@ -314,21 +313,33 @@ const TaskItem: React.FC<TaskItemProps> = ({
         }
       />
       <ListItemSecondaryAction>
-        <IconButton
-          edge="end"
-          onClick={handleEdit}
-          disabled={isActionInProgress}
-          sx={{ mr: 1 }}
-        >
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton
-          edge="end"
-          onClick={handleDelete}
-          disabled={isActionInProgress}
-        >
-          <DeleteIcon fontSize="small" />
-        </IconButton>
+        <Tooltip title="Edit">
+          <span>
+            <IconButton
+              edge="end"
+              onClick={handleEdit}
+              disabled={isActionInProgress}
+              sx={{ mr: 0.5 }}
+              size="small"
+              aria-label="Edit task"
+            >
+              <EditIcon sx={{ fontSize: '1rem' }} />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="Delete">
+          <span>
+            <IconButton
+              edge="end"
+              onClick={handleDelete}
+              disabled={isActionInProgress}
+              size="small"
+              aria-label="Delete task"
+            >
+              <DeleteIcon sx={{ fontSize: '1rem' }} />
+            </IconButton>
+          </span>
+        </Tooltip>
       </ListItemSecondaryAction>
       
       {onUpdate && (
