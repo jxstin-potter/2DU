@@ -141,24 +141,6 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
     setShowQuickActions(text.length > 0 || title.length > 0);
   }, [title]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>, field: 'title' | 'description') => {
-      if (field === 'title' && e.key === 'Enter' && !e.shiftKey) {
-        // Move to description field
-        e.preventDefault();
-        descriptionRef.current?.focus();
-      } else if (field === 'description' && e.key === 'Enter' && !e.shiftKey) {
-        // Submit the form
-        e.preventDefault();
-        handleSubmit();
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        onCancel();
-      }
-    },
-    [title, description, dueDate, priority]
-  );
-
   const handleSubmit = useCallback(async () => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle || isSubmitting) return;
@@ -200,6 +182,20 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
       setIsSubmitting(false);
     }
   }, [title, description, dueDate, priority, selectedCategoryId, onSubmit, initialTask, isSubmitting, defaultCategoryId]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>, field: 'title' | 'description') => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        // Submit the form from either field
+        e.preventDefault();
+        handleSubmit();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    },
+    [handleSubmit, onCancel]
+  );
 
   const handleSetToday = () => {
     if (dueDate && isToday(dueDate)) {

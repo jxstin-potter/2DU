@@ -65,14 +65,12 @@ const TaskList: React.FC<TaskListProps> = ({
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
 
-  // Show inline editor when modal is opened (only for creating new tasks)
+  // Don't auto-show inline editor - it should only be triggered explicitly
+  // The inline editor is for quick adding within the list, not for sidebar "Add task"
+  // Keep this disabled for now - inline editor can be added via a separate trigger if needed
   useEffect(() => {
-    if (isTaskModalOpen && onCreateTask) {
-      setShowInlineEditor(true);
-    } else {
-      setShowInlineEditor(false);
-    }
-  }, [isTaskModalOpen, onCreateTask]);
+    setShowInlineEditor(false);
+  }, []);
 
   const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
     if (onCreateTask) {

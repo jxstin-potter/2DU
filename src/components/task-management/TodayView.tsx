@@ -47,14 +47,7 @@ const TodayView: React.FC<TodayViewProps> = ({
   const [overdueExpanded, setOverdueExpanded] = useState(true);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
 
-  // Show inline editor when modal is opened (only for creating new tasks)
-  useEffect(() => {
-    if (isTaskModalOpen && onCreateTask) {
-      setShowInlineEditor(true);
-    } else {
-      setShowInlineEditor(false);
-    }
-  }, [isTaskModalOpen, onCreateTask]);
+  // Inline editor is controlled by showInlineEditor state, triggered by "Add task" buttons
 
   const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
     if (onCreateTask) {
@@ -266,7 +259,7 @@ const TodayView: React.FC<TodayViewProps> = ({
               }}>
                 <Button
                   startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
-                  onClick={openModal}
+                  onClick={() => setShowInlineEditor(true)}
                   sx={{
                     textTransform: 'none',
                     color: 'text.secondary',
@@ -295,7 +288,7 @@ const TodayView: React.FC<TodayViewProps> = ({
                 </Typography>
                 <Button
                   startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
-                  onClick={openModal}
+                  onClick={() => setShowInlineEditor(true)}
                   sx={{
                     textTransform: 'none',
                     color: 'text.secondary',
