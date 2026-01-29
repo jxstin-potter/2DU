@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   Box, 
   AppBar, 
@@ -11,9 +11,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useSearchModal } from '../../contexts/SearchModalContext';
 import KeyboardShortcutsHelp from '../modals/KeyboardShortcutsHelp';
 import SettingsModal from '../modals/SettingsModal';
+import SearchModal from '../modals/SearchModal';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -28,6 +30,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isOpen: isSearchModalOpen, openModal: openSearchModal, closeModal: closeSearchModal, recordRecentView } = useSearchModal();
+
+  useEffect(() => {
+    recordRecentView(location.pathname);
+  }, [location.pathname, recordRecentView]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        openSearchModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openSearchModal]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -112,6 +131,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <SettingsModal
         open={isSettingsModalOpen}
         onClose={handleCloseSettings}
+      />
+      <SearchModal
+        open={isSearchModalOpen}
+        onClose={closeSearchModal}
       />
       <Box
         component="main"

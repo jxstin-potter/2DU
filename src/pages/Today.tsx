@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Box, useTheme } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToTasks } from '../services/tasksService';
@@ -6,9 +6,7 @@ import { taskDocumentToTask } from '../utils/taskHelpers';
 import { Task, Category, Tag } from '../types';
 import TodayView from '../components/task-management/TodayView';
 import TaskModal from '../components/modals/TaskModal';
-import SearchModal, { SearchCriteria } from '../components/modals/SearchModal';
 import { useTaskModal } from '../contexts/TaskModalContext';
-import { useSearchModal } from '../contexts/SearchModalContext';
 import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
 import { taskToTaskDocument } from '../utils/taskHelpers';
 import { DEFAULT_TAGS } from '../constants/defaultTags';
@@ -17,14 +15,13 @@ const Today: React.FC = () => {
   const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
   const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
-  const { isOpen: isSearchModalOpen, closeModal: closeSearchModal } = useSearchModal();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [searchCriteria, setSearchCriteria] = useState<SearchCriteria | null>(null);
+  const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
 
   // Subscribe to tasks
   useEffect(() => {
@@ -165,7 +162,9 @@ const Today: React.FC = () => {
         order: tasks.length,
       });
       
-      await createTaskFromData(user.id, taskDoc);
+      const newTaskId = await createTaskFromData(user.id, taskDoc);
+      setJustAddedTaskId(newTaskId);
+      setTimeout(() => setJustAddedTaskId(null), 600);
       
       setSelectedTask(null);
       closeTaskModal();
@@ -176,46 +175,6 @@ const Today: React.FC = () => {
       throw error;
     }
   };
-
-  const handleSearch = (criteria: SearchCriteria) => {
-    setSearchCriteria(criteria);
-  };
-
-  const filteredTasks = useMemo(() => {
-    let filtered = tasks;
-
-    // Apply search criteria
-    if (searchCriteria) {
-      filtered = filtered.filter(task => {
-        if (searchCriteria.title && searchCriteria.title.trim()) {
-          const titleMatch = task.title.toLowerCase().includes(searchCriteria.title.toLowerCase());
-          if (!titleMatch) return false;
-        }
-
-        if (searchCriteria.description && searchCriteria.description.trim()) {
-          const descMatch = task.description?.toLowerCase().includes(searchCriteria.description.toLowerCase());
-          if (!descMatch) return false;
-        }
-
-        if (searchCriteria.dueDate) {
-          const taskDate = task.dueDate ? new Date(task.dueDate) : null;
-          if (!taskDate) return false;
-          const searchDate = new Date(searchCriteria.dueDate);
-          const taskDateStr = taskDate.toDateString();
-          const searchDateStr = searchDate.toDateString();
-          if (taskDateStr !== searchDateStr) return false;
-        }
-
-        if (searchCriteria.priority) {
-          if (task.priority !== searchCriteria.priority) return false;
-        }
-
-        return true;
-      });
-    }
-
-    return filtered;
-  }, [tasks, searchCriteria]);
 
   if (loading) {
     return (
@@ -248,7 +207,8 @@ const Today: React.FC = () => {
           maxWidth: theme.breakpoints.values.sm,
         }}>
           <TodayView
-            tasks={filteredTasks}
+            tasks={tasks}
+            justAddedTaskId={justAddedTaskId}
             onTaskAction={{
               toggle: handleTaskToggle,
               delete: handleTaskDelete,
@@ -282,12 +242,6 @@ const Today: React.FC = () => {
           }
           initialTask={selectedTask}
           loading={loading}
-        />
-
-        <SearchModal
-          open={isSearchModalOpen}
-          onClose={closeSearchModal}
-          onSearch={handleSearch}
         />
       </Container>
     </Box>

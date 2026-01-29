@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -20,6 +20,7 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { Task, Category } from '../../types';
 import { format, isToday, startOfDay } from 'date-fns';
 
@@ -70,6 +71,8 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
         descriptionRef.current.textContent = initialTask.description || '';
       }
     } else {
+      setDueDate(startOfDay(new Date()));
+      setShowQuickActions(true);
       if (titleRef.current) {
         titleRef.current.textContent = '';
       }
@@ -129,6 +132,31 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
     parseTime();
   }, [title, dueDate, initialTask]);
 
+  // Warn on reload/close when form has unsaved changes
+  const isDirty = useMemo(() => {
+    if (initialTask) {
+      const descMatch = (initialTask.description || '') === description;
+      const dateMatch = (initialTask.dueDate == null && dueDate == null) ||
+        (initialTask.dueDate != null && dueDate != null && new Date(initialTask.dueDate).getTime() === dueDate.getTime());
+      return title !== initialTask.title || !descMatch || !dateMatch ||
+        (initialTask.priority || '') !== priority ||
+        (initialTask.categoryId || defaultCategoryId) !== selectedCategoryId;
+    }
+    return title.trim() !== '' || description.trim() !== '' || priority !== '' ||
+      selectedCategoryId !== defaultCategoryId;
+  }, [initialTask, title, description, dueDate, priority, selectedCategoryId, defaultCategoryId]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   const handleTitleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
     const text = e.currentTarget.textContent || '';
     setTitle(text);
@@ -162,7 +190,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
       // Reset form
       setTitle('');
       setDescription('');
-      setDueDate(null);
+      setDueDate(null); 
       setPriority('');
       setSelectedCategoryId(defaultCategoryId);
       setShowQuickActions(false);
@@ -238,35 +266,42 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
 
   return (
     <Box
-      ref={containerRef}
-      component="form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleSubmit();
-      }}
-      sx={{
-        mb: 2,
-        bgcolor: theme.palette.mode === 'dark' 
-          ? alpha(theme.palette.background.paper, 0.95)
-          : theme.palette.background.paper,
-        borderRadius: '8px',
-        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-        boxShadow: theme.palette.mode === 'dark'
-          ? '0 2px 8px rgba(0,0,0,0.3)'
-          : '0 2px 8px rgba(0,0,0,0.08)',
-        transition: 'all 0.2s ease',
-        overflow: 'hidden',
-        '&:focus-within': {
-          borderColor: theme.palette.primary.main,
-          boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.15)}, 0 4px 12px rgba(0,0,0,0.1)`,
-        },
-      }}
+      component={motion.div}
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      sx={{ mb: 2 }}
     >
+      <Box
+        ref={containerRef}
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        sx={{
+          display: 'block',
+          bgcolor: theme.palette.mode === 'dark' 
+            ? alpha(theme.palette.background.paper, 0.95)
+            : theme.palette.background.paper,
+          borderRadius: '8px',
+          border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 2px 8px rgba(0,0,0,0.3)'
+            : '0 2px 8px rgba(0,0,0,0.08)',
+          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+          overflow: 'hidden',
+          '&:focus-within': {
+            borderColor: theme.palette.primary.main,
+            boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.15)}, 0 4px 12px rgba(0,0,0,0.1)`,
+          },
+        }}
+      >
       {/* Checkbox placeholder */}
       <Box sx={{ display: 'flex', alignItems: 'flex-start', p: 1.5, gap: 1.5 }}>
         <Box sx={{ 
-          width: 24, 
-          height: 24, 
+          width: 20, 
+          height: 20, 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
@@ -274,8 +309,8 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
         }}>
           <Box
             sx={{
-              width: 18,
-              height: 18,
+              width: 16,
+              height: 16,
               border: `2px solid ${alpha(theme.palette.text.secondary, 0.4)}`,
               borderRadius: '50%',
               transition: 'all 0.2s ease',
@@ -598,6 +633,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
           <ListItemText>Add comment</ListItemText>
         </MenuItem>
       </Menu>
+      </Box>
     </Box>
   );
 };

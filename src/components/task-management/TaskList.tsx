@@ -16,6 +16,7 @@ import {
 } from '@mui/icons-material';
 import { Droppable, Draggable, DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
+import { motion } from 'framer-motion';
 import { Task, Tag, Category } from '../../types';
 import TaskItem from './TaskItem';
 import InlineTaskEditor from './InlineTaskEditor';
@@ -42,6 +43,7 @@ interface TaskListProps {
   hasMore?: boolean;
   isLoadingMore?: boolean;
   defaultCategoryId?: string;
+  justAddedTaskId?: string | null;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
@@ -57,6 +59,7 @@ const TaskList: React.FC<TaskListProps> = ({
   hasMore = false,
   isLoadingMore = false,
   defaultCategoryId,
+  justAddedTaskId = null,
 }) => {
   const theme = useTheme();
   const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
@@ -155,45 +158,56 @@ const TaskList: React.FC<TaskListProps> = ({
   const Row = useCallback(({ index, style }: ListChildComponentProps) => {
     const task = sortedTasks[index];
     if (!task) return null;
-    
+    const isJustAdded = task.id === justAddedTaskId;
+    const content = draggable ? (
+      <Draggable draggableId={task.id} index={index}>
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+          >
+            <TaskItem
+              task={task}
+              onToggleComplete={() => handleTaskAction('toggle', task.id)}
+              onDelete={() => handleTaskAction('delete', task.id)}
+              onEdit={() => handleTaskAction('edit', task)}
+              onUpdate={onTaskAction.update}
+              tags={tags}
+              categories={categories}
+              isActionInProgress={actionInProgress !== null}
+            />
+          </div>
+        )}
+      </Draggable>
+    ) : (
+      <TaskItem
+        task={task}
+        onToggleComplete={() => handleTaskAction('toggle', task.id)}
+        onDelete={() => handleTaskAction('delete', task.id)}
+        onEdit={() => handleTaskAction('edit', task)}
+        onUpdate={onTaskAction.update}
+        tags={tags}
+        categories={categories}
+        isActionInProgress={actionInProgress !== null}
+      />
+    );
     return (
       <div style={style}>
-        {draggable ? (
-          <Draggable draggableId={task.id} index={index}>
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.draggableProps}
-                {...provided.dragHandleProps}
-              >
-                <TaskItem
-                  task={task}
-                  onToggleComplete={() => handleTaskAction('toggle', task.id)}
-                  onDelete={() => handleTaskAction('delete', task.id)}
-                  onEdit={() => handleTaskAction('edit', task)}
-                  onUpdate={onTaskAction.update}
-                  tags={tags}
-                  categories={categories}
-                  isActionInProgress={actionInProgress !== null}
-                />
-              </div>
-            )}
-          </Draggable>
+        {isJustAdded ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            {content}
+          </motion.div>
         ) : (
-          <TaskItem
-            task={task}
-            onToggleComplete={() => handleTaskAction('toggle', task.id)}
-            onDelete={() => handleTaskAction('delete', task.id)}
-            onEdit={() => handleTaskAction('edit', task)}
-            onUpdate={onTaskAction.update}
-            tags={tags}
-            categories={categories}
-            isActionInProgress={actionInProgress !== null}
-          />
+          content
         )}
       </div>
     );
-  }, [sortedTasks, tags, categories, actionInProgress, draggable, handleTaskAction]);
+  }, [sortedTasks, tags, categories, actionInProgress, draggable, handleTaskAction, justAddedTaskId]);
 
   // Throttle scroll handler to prevent excessive calls
   const scrollThrottleRef = React.useRef<NodeJS.Timeout | null>(null);
