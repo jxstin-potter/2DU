@@ -263,20 +263,23 @@ const Today: React.FC = () => {
           />
         </Box>
 
-        {/* Only show TaskModal for editing existing tasks */}
+        {/* Show TaskModal for both creating and editing tasks */}
         <TaskModal
-          open={isTaskModalOpen && !!selectedTask}
+          open={isTaskModalOpen}
           onClose={() => {
             closeTaskModal();
             setSelectedTask(null);
           }}
-          onSubmit={async (taskData) => {
-            if (selectedTask?.id) {
-              await handleTaskUpdate(selectedTask.id, taskData);
-              closeTaskModal();
-              setSelectedTask(null);
-            }
-          }}
+          onSubmit={selectedTask ? 
+            async (taskData) => {
+              if (selectedTask.id) {
+                await handleTaskUpdate(selectedTask.id, taskData);
+                closeTaskModal();
+                setSelectedTask(null);
+              }
+            } : 
+            handleCreateTask
+          }
           initialTask={selectedTask}
           loading={loading}
         />
