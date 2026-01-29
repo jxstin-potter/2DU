@@ -7,6 +7,7 @@ import {
   Link,
   Button,
   useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   ChevronRight as ChevronRightIcon,
@@ -15,7 +16,7 @@ import {
   Add as AddIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { format, isBefore, isToday, startOfDay } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 import { Task, Tag, Category } from '../../types';
 import TaskItem from './TaskItem';
 import InlineTaskEditor from './InlineTaskEditor';
@@ -46,9 +47,38 @@ const TodayView: React.FC<TodayViewProps> = ({
   defaultCategoryId,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const appBarOffset = isMobile ? 56 : 64;
   const { isOpen: isTaskModalOpen, openModal, closeModal: closeTaskModal } = useTaskModal();
   const [overdueExpanded, setOverdueExpanded] = useState(true);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
+  const [todayDate, setTodayDate] = useState(() => startOfDay(new Date()));
+
+  // Refresh "today" at midnight and when tab becomes visible (e.g. user returns next day)
+  useEffect(() => {
+    const scheduleNextMidnight = () => {
+      const now = new Date();
+      const nextMidnight = new Date(now);
+      nextMidnight.setHours(24, 0, 0, 0);
+      const delay = nextMidnight.getTime() - now.getTime();
+      return window.setTimeout(() => {
+        setTodayDate(startOfDay(new Date()));
+        timeoutRef.current = scheduleNextMidnight();
+      }, delay);
+    };
+    const timeoutRef = { current: scheduleNextMidnight() };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const now = startOfDay(new Date());
+        setTodayDate(prev => (prev.getTime() === now.getTime() ? prev : now));
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      clearTimeout(timeoutRef.current);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Inline editor is controlled by showInlineEditor state, triggered by "Add task" buttons
 
@@ -65,83 +95,138 @@ const TodayView: React.FC<TodayViewProps> = ({
     closeTaskModal();
   }, [closeTaskModal]);
 
-  const todayDate = startOfDay(new Date());
-
-  const { overdueTasks, todayTasks, taskCount } = useMemo(() => {
+  const { overdueTasks, todayTasks, taskCount, allDayTasksForSummary } = useMemo(() => {
     const overdue: Task[] = [];
     const today: Task[] = [];
-    let count = 0;
+    let incompleteCount = 0;
 
     tasks.forEach(task => {
-      if (task.completed) {
-        return;
-      }
-      
       if (task.dueDate) {
         const taskDate = startOfDay(new Date(task.dueDate));
-        
+
         if (isBefore(taskDate, todayDate)) {
           overdue.push(task);
-          count++;
-        } else if (isToday(taskDate)) {
+          if (!task.completed) incompleteCount++;
+        } else if (taskDate.getTime() === todayDate.getTime()) {
           today.push(task);
-          count++;
+          if (!task.completed) incompleteCount++;
         }
       } else {
-        // Tasks without a due date should appear in the "today" section
         today.push(task);
-        count++;
+        if (!task.completed) incompleteCount++;
       }
     });
 
-    // Sort overdue by dueDate (oldest first)
+    // Sort overdue: incomplete first, then by dueDate (oldest first)
     overdue.sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
       if (!a.dueDate || !b.dueDate) return 0;
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
 
-    // Sort today tasks by creation date (newest first) so newly added tasks appear at the top
+    // Sort today: incomplete first (newest first), then completed (newest first)
     today.sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    return { overdueTasks: overdue, todayTasks: today, taskCount: count };
+    const allDayTasksForSummary = [...overdue, ...today];
+
+    return {
+      overdueTasks: overdue,
+      todayTasks: today,
+      taskCount: incompleteCount,
+      allDayTasksForSummary,
+    };
   }, [tasks, todayDate]);
 
-  const formattedDate = format(new Date(), "MMM d 'Today' - EEEE");
+  const formattedDate = format(todayDate, "MMM d 'Today' - EEEE");
 
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Today Title */}
-      <Typography 
-        variant="h6" 
-        component="div" 
-        sx={{ 
-          fontWeight: theme.typography.fontWeightBold,
-          mb: theme.spacing(2),
-          fontSize: theme.typography.h6.fontSize,
+      {/* Sticky header: Today title + task count (concise summary added in step 3) */}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: appBarOffset,
+          zIndex: 10,
+          backgroundColor: 'background.default',
+          borderBottom: 1,
+          borderColor: 'divider',
+          pb: 2,
+          mb: 4,
         }}
       >
-        Today
-      </Typography>
-
-      {/* Task Count Display */}
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: theme.spacing(1), 
-        mb: theme.spacing(3) 
-      }}>
-        <CheckCircleIcon sx={{ 
-          fontSize: theme.typography.body2.fontSize, 
-          color: 'text.secondary' 
-        }} />
-        <Typography 
-          variant="body2" 
-          color="text.secondary"
-          sx={{ fontSize: theme.typography.body2.fontSize }}
+        <Typography
+          component="h1"
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            mb: 0.5,
+            fontSize: '1.5rem',
+            lineHeight: 1.3,
+          }}
         >
-          {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
+          Today
+        </Typography>
+
+        {/* Task Count Display */}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          mb: allDayTasksForSummary.length > 0 ? 2 : 1.5,
+        }}>
+          <CheckCircleIcon sx={{
+            fontSize: '0.75rem',
+            color: 'text.secondary',
+          }} />
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: '0.75rem' }}
+          >
+            {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
+          </Typography>
+        </Box>
+
+        {/* Concise summary: ✓ N tasks ✓ t1 ✓ t2 … N+ more */}
+        {allDayTasksForSummary.length > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 0.5,
+              fontSize: '0.8125rem',
+              color: 'text.secondary',
+              maxHeight: 48,
+              overflow: 'hidden',
+            }}
+          >
+            <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mr: 0.5 }}>
+              ✓ {allDayTasksForSummary.length} {allDayTasksForSummary.length === 1 ? 'task' : 'tasks'}
+            </Typography>
+            {allDayTasksForSummary.slice(0, 7).map((task) => (
+              <React.Fragment key={task.id}>
+                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mx: 0.25 }}> · </Typography>
+                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', textDecoration: task.completed ? 'line-through' : 'none' }}>
+                  ✓ {task.title}
+                </Typography>
+              </React.Fragment>
+            ))}
+            {allDayTasksForSummary.length > 7 && (
+              <>
+                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mx: 0.25 }}> · </Typography>
+                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+                  ✓ {allDayTasksForSummary.length - 7}+ more
+                </Typography>
+              </>
+            )}
+          </Box>
+        )}
+        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.disabled', fontSize: '0.75rem' }}>
+          Tasks refresh at 12:00 AM
         </Typography>
       </Box>
 

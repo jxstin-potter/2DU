@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Box, useTheme } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Container, Box, useTheme, Snackbar, Button, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToTasks } from '../services/tasksService';
 import { taskDocumentToTask } from '../utils/taskHelpers';
@@ -22,6 +23,8 @@ const Today: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
+  const [completedSnackbarOpen, setCompletedSnackbarOpen] = useState(false);
+  const [completedTaskIdForUndo, setCompletedTaskIdForUndo] = useState<string | null>(null);
 
   // Subscribe to tasks
   useEffect(() => {
@@ -112,10 +115,28 @@ const Today: React.FC = () => {
       taskDoc.updatedAt = Timestamp.now();
       
       await updateTask(taskId, taskDoc, user.id);
+      if (completed) {
+        setCompletedTaskIdForUndo(taskId);
+        setCompletedSnackbarOpen(true);
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to toggle task status');
     }
   };
+
+  const handleUndoComplete = useCallback(() => {
+    if (completedTaskIdForUndo) {
+      handleTaskToggle(completedTaskIdForUndo);
+      setCompletedSnackbarOpen(false);
+      setCompletedTaskIdForUndo(null);
+    }
+  }, [completedTaskIdForUndo]);
+
+  const handleCloseCompletedSnackbar = useCallback((_event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setCompletedSnackbarOpen(false);
+    setCompletedTaskIdForUndo(null);
+  }, []);
 
   const handleTaskDelete = async (taskId: string) => {
     if (!user?.id) {
@@ -189,17 +210,22 @@ const Today: React.FC = () => {
   return (
     <Box sx={{ 
       display: 'flex', 
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'flex-start',
       width: '100%',
+      pl: 0,
+      ml: -1,
+      mt: -0.5,
     }}>
       <Container 
-        maxWidth="md" 
+        maxWidth="md"
+        disableGutters
         sx={{ 
           width: '100%',
+          maxWidth: '100%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
+          alignItems: 'flex-start',
         }}
       >
         <Box sx={{ 
@@ -242,6 +268,25 @@ const Today: React.FC = () => {
           }
           initialTask={selectedTask}
           loading={loading}
+        />
+
+        <Snackbar
+          open={completedSnackbarOpen}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          autoHideDuration={15000}
+          onClose={handleCloseCompletedSnackbar}
+          message="1 task completed"
+          action={
+            <>
+              <Button color="inherit" size="small" onClick={handleUndoComplete}>
+                Undo
+              </Button>
+              <IconButton size="small" aria-label="Close" color="inherit" onClick={() => handleCloseCompletedSnackbar()}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </>
+          }
+          sx={{ left: 16, bottom: 16 }}
         />
       </Container>
     </Box>

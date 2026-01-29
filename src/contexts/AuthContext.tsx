@@ -10,6 +10,9 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, enablePersistence } from '../firebase';
 import { User } from '../types';
 
+// Updates that can be applied to the user profile in Firestore
+export type UserProfileUpdate = Partial<Pick<User, 'name' | 'profilePicture'>>;
+
 // Define the shape of our auth context
 interface AuthContextType {
   user: User | null;
@@ -17,6 +20,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserProfile: (updates: UserProfileUpdate) => Promise<void>;
 }
 
 // Create the context with a default value
@@ -26,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   signup: async () => {},
   logout: async () => {},
+  updateUserProfile: async () => {},
 });
 
 // Custom hook to use the auth context
@@ -197,13 +202,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const updateUserProfile = useCallback(async (updates: UserProfileUpdate) => {
+    if (!firebaseUser?.uid) return;
+    const userRef = doc(db, 'users', firebaseUser.uid);
+    await setDoc(userRef, updates, { merge: true });
+    const updated = await fetchUserData(firebaseUser);
+    setUser(updated);
+  }, [firebaseUser]);
+
   const contextValue = useMemo(() => ({
     user,
     loading: isLoading,
     login,
     signup,
     logout,
-  }), [user, isLoading, login, signup, logout]);
+    updateUserProfile,
+  }), [user, isLoading, login, signup, logout, updateUserProfile]);
 
   if (!isAuthReady) {
     return <div>Initializing authentication...</div>;

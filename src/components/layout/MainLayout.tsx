@@ -160,12 +160,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Toolbar>
         </AppBar>
 
-        <Box sx={{ 
+        <Box sx={{
           mt: { xs: 7, sm: 8 },
-          py: 3,
-          px: { xs: 2, sm: 3 },
+          pt: 0,
+          pb: 3,
+          pl: 0,
+          pr: { xs: 2, sm: 3 },
           display: 'flex',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'flex-start',
           width: '100%',
           minHeight: 'calc(100vh - 64px)',
