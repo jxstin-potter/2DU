@@ -408,22 +408,47 @@ const TodayView: React.FC<TodayViewProps> = ({
                 />
               </Box>
             ) : (
-              <Box sx={{ 
-                mt: theme.spacing(2), 
-                display: 'flex', 
-                justifyContent: 'center' 
-              }}>
+              <Box sx={{ mt: theme.spacing(0.5), width: '100%' }}>
                 <Button
-                  startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
+                  fullWidth
+                  disableRipple
+                  startIcon={
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        backgroundColor: 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'text.secondary',
+                        transition: 'background-color 0.2s ease, color 0.2s ease',
+                      }}
+                    >
+                      <AddIcon sx={{ fontSize: '1rem', color: 'inherit' }} />
+                    </Box>
+                  }
                   onClick={() => setShowInlineEditor(true)}
                   sx={{
+                    justifyContent: 'flex-start',
                     textTransform: 'none',
+                    minHeight: 36,
+                    py: 0,
+                    px: 2,
                     color: 'text.secondary',
-                    transition: 'transform 0.2s ease, color 0.2s ease, background-color 0.2s ease',
+                    borderRadius: 1,
+                    transition: 'color 0.2s ease, background-color 0.2s ease',
+                    '& .MuiButton-startIcon > *': {
+                      transition: 'background-color 0.2s ease, color 0.2s ease',
+                    },
                     '&:hover': {
-                      transform: 'scale(1.02)',
-                      color: 'text.primary',
-                      backgroundColor: 'action.hover',
+                      color: '#5c4e00',
+                      backgroundColor: 'transparent',
+                    },
+                    '&:hover .MuiButton-startIcon > *': {
+                      backgroundColor: '#5c4e00',
+                      color: 'common.white',
                     },
                   }}
                 >
@@ -514,26 +539,57 @@ const TodayView: React.FC<TodayViewProps> = ({
                 <Typography 
                   variant="body2" 
                   color="text.secondary"
-                  sx={{ fontSize: theme.typography.body2.fontSize }}
+                  sx={{ fontSize: theme.typography.body2.fontSize, mb: 1 }}
                 >
                   No tasks for today
                 </Typography>
-                <Button
-                  startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
-                  onClick={() => setShowInlineEditor(true)}
-                  sx={{
-                    textTransform: 'none',
-                    color: 'text.secondary',
-                    transition: 'transform 0.2s ease, color 0.2s ease, background-color 0.2s ease',
-                    '&:hover': {
-                      transform: 'scale(1.02)',
-                      color: 'text.primary',
-                      backgroundColor: 'action.hover',
-                    },
-                  }}
-                >
-                  Add task
-                </Button>
+                <Box sx={{ width: '100%' }}>
+                  <Button
+                    fullWidth
+                    disableRipple
+                    startIcon={
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          backgroundColor: 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'text.secondary',
+                          transition: 'background-color 0.2s ease, color 0.2s ease',
+                        }}
+                      >
+                        <AddIcon sx={{ fontSize: '1rem', color: 'inherit' }} />
+                      </Box>
+                    }
+                    onClick={() => setShowInlineEditor(true)}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      minHeight: 36,
+                      py: 0,
+                      px: 2,
+                      color: 'text.secondary',
+                      borderRadius: 1,
+                      transition: 'color 0.2s ease, background-color 0.2s ease',
+                      '& .MuiButton-startIcon > *': {
+                        transition: 'background-color 0.2s ease, color 0.2s ease',
+                      },
+                      '&:hover': {
+                        color: '#5c4e00',
+                        backgroundColor: 'transparent',
+                      },
+                      '&:hover .MuiButton-startIcon > *': {
+                        backgroundColor: '#5c4e00',
+                        color: 'common.white',
+                      },
+                    }}
+                  >
+                    Add task
+                  </Button>
+                </Box>
               </>
             )}
           </Box>
