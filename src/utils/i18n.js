@@ -78,6 +78,7 @@ var translations = {
         'sidebar.helpResources': 'Help & resources',
         'sidebar.keyboardShortcuts': 'Keyboard shortcuts',
         'sidebar.logout': 'Log out',
+        'sidebar.openProfileMenu': 'Open profile menu',
         // Shortcuts
         'shortcuts.title': 'Keyboard Shortcuts',
         // Authentication

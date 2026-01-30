@@ -4,7 +4,6 @@ import {
   Typography,
   Collapse,
   IconButton,
-  Link,
   Button,
   useTheme,
   useMediaQuery,
@@ -51,6 +50,8 @@ const TodayView: React.FC<TodayViewProps> = ({
   const appBarOffset = isMobile ? 56 : 64;
   const { isOpen: isTaskModalOpen, openModal, closeModal: closeTaskModal } = useTaskModal();
   const [overdueExpanded, setOverdueExpanded] = useState(true);
+  const [completedTodayExpanded, setCompletedTodayExpanded] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(true);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
   const [todayDate, setTodayDate] = useState(() => startOfDay(new Date()));
 
@@ -95,7 +96,7 @@ const TodayView: React.FC<TodayViewProps> = ({
     closeTaskModal();
   }, [closeTaskModal]);
 
-  const { overdueTasks, todayTasks, taskCount, allDayTasksForSummary } = useMemo(() => {
+  const { overdueTasks, todayTasks, todayIncomplete, todayCompleted, taskCount, allDayTasksForSummary } = useMemo(() => {
     const overdue: Task[] = [];
     const today: Task[] = [];
     let incompleteCount = 0;
@@ -117,9 +118,9 @@ const TodayView: React.FC<TodayViewProps> = ({
       }
     });
 
-    // Sort overdue: incomplete first, then by dueDate (oldest first)
-    overdue.sort((a, b) => {
-      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    // Overdue section: only show incomplete tasks (completed = done, not overdue)
+    const overdueIncomplete = overdue.filter(t => !t.completed);
+    overdueIncomplete.sort((a, b) => {
       if (!a.dueDate || !b.dueDate) return 0;
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
@@ -130,17 +131,38 @@ const TodayView: React.FC<TodayViewProps> = ({
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+    const todayIncomplete = today.filter(t => !t.completed);
+    // Only count tasks completed *today* (by updatedAt) so the count resets each day
+    const todayCompleted = today.filter(
+      (t) =>
+        t.completed &&
+        startOfDay(new Date(t.updatedAt)).getTime() === todayDate.getTime()
+    );
     const allDayTasksForSummary = [...overdue, ...today];
 
     return {
-      overdueTasks: overdue,
+      overdueTasks: overdueIncomplete,
       todayTasks: today,
+      todayIncomplete,
+      todayCompleted,
       taskCount: incompleteCount,
       allDayTasksForSummary,
     };
   }, [tasks, todayDate]);
 
   const formattedDate = format(todayDate, "MMM d 'Today' - EEEE");
+
+  const priorityColors: Record<string, string> = {
+    low: '#4caf50',
+    medium: '#ff9800',
+    high: '#f44336',
+  };
+  const getTaskSummaryColor = (task: Task): string => {
+    const cat = categories.find(c => c.id === task.categoryId);
+    if (cat?.color) return cat.color;
+    if (task.priority && priorityColors[task.priority]) return priorityColors[task.priority];
+    return theme.palette.divider;
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -170,12 +192,12 @@ const TodayView: React.FC<TodayViewProps> = ({
           Today
         </Typography>
 
-        {/* Task Count Display */}
+        {/* Task count + discreet collapser for concise summary */}
         <Box sx={{
           display: 'flex',
           alignItems: 'center',
           gap: 0.5,
-          mb: allDayTasksForSummary.length > 0 ? 2 : 1.5,
+          mb: allDayTasksForSummary.length > 0 ? 1 : 1.5,
         }}>
           <CheckCircleIcon sx={{
             fontSize: '0.75rem',
@@ -188,46 +210,81 @@ const TodayView: React.FC<TodayViewProps> = ({
           >
             {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
           </Typography>
+          {allDayTasksForSummary.length > 0 && (
+            <IconButton
+              size="small"
+              onClick={() => setSummaryExpanded((e) => !e)}
+              aria-label={summaryExpanded ? 'Hide task list' : 'Show task list'}
+              sx={{
+                p: 0.25,
+                minWidth: 0,
+                color: 'text.disabled',
+                '&:hover': { color: 'text.secondary', backgroundColor: 'transparent' },
+              }}
+            >
+              {summaryExpanded ? (
+                <ExpandMoreIcon sx={{ fontSize: '1rem' }} />
+              ) : (
+                <ChevronRightIcon sx={{ fontSize: '1rem' }} />
+              )}
+            </IconButton>
+          )}
         </Box>
 
-        {/* Concise summary: ✓ N tasks ✓ t1 ✓ t2 … N+ more */}
+        {/* Concise summary: ✓ N tasks ✓ t1 ✓ t2 … N+ more (collapsible) */}
         {allDayTasksForSummary.length > 0 && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              gap: 0.5,
-              fontSize: '0.8125rem',
-              color: 'text.secondary',
-              maxHeight: 48,
-              overflow: 'hidden',
-            }}
-          >
-            <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mr: 0.5 }}>
-              ✓ {allDayTasksForSummary.length} {allDayTasksForSummary.length === 1 ? 'task' : 'tasks'}
-            </Typography>
-            {allDayTasksForSummary.slice(0, 7).map((task) => (
-              <React.Fragment key={task.id}>
-                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mx: 0.25 }}> · </Typography>
-                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', textDecoration: task.completed ? 'line-through' : 'none' }}>
-                  ✓ {task.title}
-                </Typography>
-              </React.Fragment>
-            ))}
-            {allDayTasksForSummary.length > 7 && (
-              <>
-                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mx: 0.25 }}> · </Typography>
+          <Collapse in={summaryExpanded}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 0.5,
+                fontSize: '0.8125rem',
+                color: 'text.secondary',
+                maxHeight: 48,
+                overflow: 'hidden',
+                mb: 1,
+              }}
+            >
+              <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mr: 0.5 }}>
+                ✓ {allDayTasksForSummary.length} {allDayTasksForSummary.length === 1 ? 'task' : 'tasks'}
+              </Typography>
+              {allDayTasksForSummary.slice(0, 7).map((task) => (
+                <Box
+                  key={task.id}
+                  component="span"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    mr: 1.25,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 3,
+                      height: 10,
+                      borderRadius: 0.5,
+                      flexShrink: 0,
+                      backgroundColor: getTaskSummaryColor(task),
+                    }}
+                  />
+                  <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', textDecoration: task.completed ? 'line-through' : 'none' }}>
+                    ✓ {task.title}
+                  </Typography>
+                </Box>
+              ))}
+              {allDayTasksForSummary.length > 7 && (
                 <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
                   ✓ {allDayTasksForSummary.length - 7}+ more
                 </Typography>
-              </>
-            )}
-          </Box>
+              )}
+            </Box>
+          </Collapse>
         )}
-        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.disabled', fontSize: '0.75rem' }}>
-          Tasks refresh at 12:00 AM
-        </Typography>
       </Box>
 
       {/* Overdue Section */}
@@ -237,48 +294,29 @@ const TodayView: React.FC<TodayViewProps> = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
               mb: theme.spacing(1),
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: theme.spacing(1) }}>
-              <IconButton
-                size="small"
-                onClick={() => setOverdueExpanded(!overdueExpanded)}
-                sx={{ p: theme.spacing(0.5) }}
-              >
-                {overdueExpanded ? (
-                  <ExpandMoreIcon fontSize="small" />
-                ) : (
-                  <ChevronRightIcon fontSize="small" />
-                )}
-              </IconButton>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: theme.typography.fontWeightBold, 
-                  fontSize: theme.typography.body1.fontSize 
-                }}
-              >
-                Overdue
-              </Typography>
-            </Box>
-            <Link
-              component="button"
-              variant="body2"
-              onClick={() => {
-                // TODO: Implement reschedule functionality
-              }}
-              sx={{
-                color: 'warning.main',
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
+            <IconButton
+              size="small"
+              onClick={() => setOverdueExpanded(!overdueExpanded)}
+              sx={{ p: theme.spacing(0.5) }}
+            >
+              {overdueExpanded ? (
+                <ExpandMoreIcon fontSize="small" />
+              ) : (
+                <ChevronRightIcon fontSize="small" />
+              )}
+            </IconButton>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: theme.typography.fontWeightBold, 
+                fontSize: theme.typography.body1.fontSize 
               }}
             >
-              Reschedule
-            </Link>
+              Overdue
+            </Typography>
           </Box>
 
           <Collapse in={overdueExpanded}>
@@ -342,7 +380,7 @@ const TodayView: React.FC<TodayViewProps> = ({
 
         {todayTasks.length > 0 ? (
           <>
-            {todayTasks.map((task) => {
+            {todayIncomplete.map((task) => {
               const isJustAdded = task.id === justAddedTaskId;
               const item = (
                 <TaskItem
@@ -369,6 +407,69 @@ const TodayView: React.FC<TodayViewProps> = ({
                 item
               );
             })}
+            {todayCompleted.length > 0 && (
+              <Box sx={{ mt: theme.spacing(2), mb: theme.spacing(1) }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    mb: theme.spacing(1),
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => setCompletedTodayExpanded(!completedTodayExpanded)}
+                    sx={{ p: theme.spacing(0.5) }}
+                  >
+                    {completedTodayExpanded ? (
+                      <ExpandMoreIcon fontSize="small" />
+                    ) : (
+                      <ChevronRightIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: theme.typography.fontWeightBold,
+                      fontSize: theme.typography.body1.fontSize,
+                    }}
+                  >
+                    Completed ({todayCompleted.length})
+                  </Typography>
+                </Box>
+                <Collapse in={completedTodayExpanded}>
+                  <Box>
+                    {todayCompleted.map((task) => {
+                      const isJustAdded = task.id === justAddedTaskId;
+                      const item = (
+                        <TaskItem
+                          key={task.id}
+                          task={task}
+                          onToggleComplete={onTaskAction.toggle}
+                          onDelete={onTaskAction.delete}
+                          onEdit={onTaskAction.edit}
+                          onUpdate={onTaskAction.update}
+                          tags={tags}
+                          categories={categories}
+                        />
+                      );
+                      return isJustAdded ? (
+                        <motion.div
+                          key={task.id}
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                        >
+                          {item}
+                        </motion.div>
+                      ) : (
+                        item
+                      );
+                    })}
+                  </Box>
+                </Collapse>
+              </Box>
+            )}
             {!showInlineEditor && (
               <Box sx={{ 
                 mt: theme.spacing(3), 
