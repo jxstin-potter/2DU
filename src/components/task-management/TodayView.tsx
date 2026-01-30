@@ -96,7 +96,7 @@ const TodayView: React.FC<TodayViewProps> = ({
     closeTaskModal();
   }, [closeTaskModal]);
 
-  const { overdueTasks, todayTasks, todayIncomplete, todayCompleted, taskCount, allDayTasksForSummary } = useMemo(() => {
+  const { overdueTasks, todayTasks, todayIncomplete, todayCompleted, taskCount, tasksForSummary } = useMemo(() => {
     const overdue: Task[] = [];
     const today: Task[] = [];
     let incompleteCount = 0;
@@ -138,7 +138,12 @@ const TodayView: React.FC<TodayViewProps> = ({
         t.completed &&
         startOfDay(new Date(t.updatedAt)).getTime() === todayDate.getTime()
     );
-    const allDayTasksForSummary = [...overdue, ...today];
+    // Overview: incomplete tasks always; completed only if completed today (resets daily)
+    const tasksForSummary = [
+      ...overdueIncomplete,
+      ...todayIncomplete,
+      ...todayCompleted,
+    ];
 
     return {
       overdueTasks: overdueIncomplete,
@@ -146,7 +151,7 @@ const TodayView: React.FC<TodayViewProps> = ({
       todayIncomplete,
       todayCompleted,
       taskCount: incompleteCount,
-      allDayTasksForSummary,
+      tasksForSummary,
     };
   }, [tasks, todayDate]);
 
@@ -161,7 +166,7 @@ const TodayView: React.FC<TodayViewProps> = ({
     const cat = categories.find(c => c.id === task.categoryId);
     if (cat?.color) return cat.color;
     if (task.priority && priorityColors[task.priority]) return priorityColors[task.priority];
-    return theme.palette.divider;
+    return theme.palette.error.main;
   };
 
   return (
@@ -197,7 +202,7 @@ const TodayView: React.FC<TodayViewProps> = ({
           display: 'flex',
           alignItems: 'center',
           gap: 0.5,
-          mb: allDayTasksForSummary.length > 0 ? 1 : 1.5,
+          mb: tasksForSummary.length > 0 ? 1 : 1.5,
         }}>
           <CheckCircleIcon sx={{
             fontSize: '0.75rem',
@@ -210,7 +215,7 @@ const TodayView: React.FC<TodayViewProps> = ({
           >
             {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
           </Typography>
-          {allDayTasksForSummary.length > 0 && (
+          {tasksForSummary.length > 0 && (
             <IconButton
               size="small"
               onClick={() => setSummaryExpanded((e) => !e)}
@@ -231,8 +236,8 @@ const TodayView: React.FC<TodayViewProps> = ({
           )}
         </Box>
 
-        {/* Concise summary: ✓ N tasks ✓ t1 ✓ t2 … N+ more (collapsible) */}
-        {allDayTasksForSummary.length > 0 && (
+        {/* Concise summary: task titles with checkmark only when completed (collapsible) */}
+        {tasksForSummary.length > 0 && (
           <Collapse in={summaryExpanded}>
             <Box
               sx={{
@@ -247,10 +252,7 @@ const TodayView: React.FC<TodayViewProps> = ({
                 mb: 1,
               }}
             >
-              <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', mr: 0.5 }}>
-                ✓ {allDayTasksForSummary.length} {allDayTasksForSummary.length === 1 ? 'task' : 'tasks'}
-              </Typography>
-              {allDayTasksForSummary.slice(0, 7).map((task) => (
+              {tasksForSummary.slice(0, 7).map((task) => (
                 <Box
                   key={task.id}
                   component="span"
@@ -273,13 +275,13 @@ const TodayView: React.FC<TodayViewProps> = ({
                     }}
                   />
                   <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary', textDecoration: task.completed ? 'line-through' : 'none' }}>
-                    ✓ {task.title}
+                    {task.completed ? '✓ ' : ''}{task.title}
                   </Typography>
                 </Box>
               ))}
-              {allDayTasksForSummary.length > 7 && (
+              {tasksForSummary.length > 7 && (
                 <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-                  ✓ {allDayTasksForSummary.length - 7}+ more
+                  {tasksForSummary.length - 7}+ more
                 </Typography>
               )}
             </Box>
@@ -366,18 +368,6 @@ const TodayView: React.FC<TodayViewProps> = ({
           {formattedDate}
         </Typography>
 
-        {/* Inline task editor */}
-        {showInlineEditor && onCreateTask && (
-          <Box sx={{ mb: theme.spacing(2) }}>
-            <InlineTaskEditor
-              onSubmit={handleCreateTask}
-              onCancel={handleCancelEditor}
-              categories={categories}
-              defaultCategoryId={defaultCategoryId}
-            />
-          </Box>
-        )}
-
         {todayTasks.length > 0 ? (
           <>
             {todayIncomplete.map((task) => {
@@ -407,6 +397,40 @@ const TodayView: React.FC<TodayViewProps> = ({
                 item
               );
             })}
+            {/* Inline editor / Add task directly under last task (top-to-bottom) */}
+            {showInlineEditor && onCreateTask ? (
+              <Box sx={{ mt: theme.spacing(2), mb: theme.spacing(1) }}>
+                <InlineTaskEditor
+                  onSubmit={handleCreateTask}
+                  onCancel={handleCancelEditor}
+                  categories={categories}
+                  defaultCategoryId={defaultCategoryId}
+                />
+              </Box>
+            ) : (
+              <Box sx={{ 
+                mt: theme.spacing(2), 
+                display: 'flex', 
+                justifyContent: 'center' 
+              }}>
+                <Button
+                  startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
+                  onClick={() => setShowInlineEditor(true)}
+                  sx={{
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                    transition: 'transform 0.2s ease, color 0.2s ease, background-color 0.2s ease',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                      color: 'text.primary',
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                >
+                  Add task
+                </Button>
+              </Box>
+            )}
             {todayCompleted.length > 0 && (
               <Box sx={{ mt: theme.spacing(2), mb: theme.spacing(1) }}>
                 <Box
@@ -470,30 +494,6 @@ const TodayView: React.FC<TodayViewProps> = ({
                 </Collapse>
               </Box>
             )}
-            {!showInlineEditor && (
-              <Box sx={{ 
-                mt: theme.spacing(3), 
-                display: 'flex', 
-                justifyContent: 'center' 
-              }}>
-                <Button
-                  startIcon={<AddIcon sx={{ color: '#a7020290' }} />}
-                  onClick={() => setShowInlineEditor(true)}
-                  sx={{
-                    textTransform: 'none',
-                    color: 'text.secondary',
-                    transition: 'transform 0.2s ease, color 0.2s ease, background-color 0.2s ease',
-                    '&:hover': {
-                      transform: 'scale(1.02)',
-                      color: 'text.primary',
-                      backgroundColor: 'action.hover',
-                    },
-                  }}
-                >
-                  Add task
-                </Button>
-              </Box>
-            )}
           </>
         ) : (
           <Box sx={{ 
@@ -502,7 +502,14 @@ const TodayView: React.FC<TodayViewProps> = ({
             alignItems: 'flex-start',
             gap: theme.spacing(1.5),
           }}>
-            {!showInlineEditor && (
+            {showInlineEditor && onCreateTask ? (
+              <InlineTaskEditor
+                onSubmit={handleCreateTask}
+                onCancel={handleCancelEditor}
+                categories={categories}
+                defaultCategoryId={defaultCategoryId}
+              />
+            ) : (
               <>
                 <Typography 
                   variant="body2" 

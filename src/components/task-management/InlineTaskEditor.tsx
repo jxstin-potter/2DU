@@ -281,20 +281,11 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
         }}
         sx={{
           display: 'block',
-          bgcolor: theme.palette.mode === 'dark' 
-            ? alpha(theme.palette.background.paper, 0.95)
-            : theme.palette.background.paper,
-          borderRadius: '8px',
-          border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0 2px 8px rgba(0,0,0,0.3)'
-            : '0 2px 8px rgba(0,0,0,0.08)',
-          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+          bgcolor: 'transparent',
+          borderRadius: 0,
+          border: 'none',
+          boxShadow: 'none',
           overflow: 'hidden',
-          '&:focus-within': {
-            borderColor: theme.palette.primary.main,
-            boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.15)}, 0 4px 12px rgba(0,0,0,0.1)`,
-          },
         }}
       >
       {/* Checkbox placeholder */}
