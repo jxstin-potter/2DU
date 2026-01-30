@@ -227,21 +227,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           height: 40,
         }}> 
           {!isCollapsed ? (
-            <Button
-              onClick={handleProfileMenuOpen}
+            <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.75,
-                textTransform: 'none',
-                color: theme.palette.text.primary,
-                p: 0.5,
-                minWidth: 0,
                 flex: 1,
-                justifyContent: 'flex-start',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
+                minWidth: 0,
               }}
             >
               <Avatar
@@ -269,8 +261,22 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 {displayName}
               </Typography>
-              <ThinArrowDownIcon sx={{ fontSize: '1rem', ml: 0.01 }} />
-            </Button>
+              <IconButton
+                onClick={handleProfileMenuOpen}
+                aria-label={t('sidebar.openProfileMenu')}
+                size="small"
+                sx={{
+                  color: theme.palette.text.primary,
+                  p: 0.25,
+                  ml: -0.25,
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                <ThinArrowDownIcon sx={{ fontSize: '1rem' }} />
+              </IconButton>
+            </Box>
           ) : null}
           <IconButton 
             onClick={onToggleCollapse}
