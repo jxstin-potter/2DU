@@ -25,6 +25,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Task, Tag, Category } from '../../types';
 import { useTheme, alpha } from '@mui/material/styles';
 import { format, isBefore, startOfDay } from 'date-fns';
+import InlineTaskEditor from './InlineTaskEditor';
 
 interface TaskItemProps {
   task: Task;
@@ -51,6 +52,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null);
   const [tempDate, setTempDate] = useState<Date | null>(null);
   const [tempTime, setTempTime] = useState<Date | null>(null);
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
   const dateDisplayRef = useRef<HTMLDivElement>(null);
   const category = useMemo(() => {
     const categoryId = task.categoryId ?? task.category;
@@ -81,17 +83,30 @@ const TaskItem: React.FC<TaskItemProps> = ({
     return format(date, 'MMM d yyyy');
   }, [task.dueDate]);
 
-  const handleToggleComplete = useCallback(() => {
+  const handleToggleComplete = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
     onToggleComplete(task.id);
   }, [onToggleComplete, task.id]);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
     onDelete(task.id);
   }, [onDelete, task.id]);
 
-  const handleEdit = useCallback(() => {
+  const handleOpenDetails = useCallback(() => {
+    if (isInlineEditing) return;
     onEdit(task);
-  }, [onEdit, task]);
+  }, [onEdit, task, isInlineEditing]);
+
+  const handleInlineEdit = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    // Prefer inline editing when onUpdate exists; otherwise fall back to opening details
+    if (!onUpdate) {
+      handleOpenDetails();
+      return;
+    }
+    setIsInlineEditing(true);
+  }, [onUpdate, handleOpenDetails]);
 
   const handleDateClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
     if (!onUpdate) return;
@@ -160,10 +175,26 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
   return (
     <ListItem
+      onClick={handleOpenDetails}
+      onKeyDown={(e) => {
+        if (isInlineEditing) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleOpenDetails();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open task: ${task.title}`}
       sx={{
         mb: 2,
         bgcolor: 'transparent',
         transition: 'opacity 0.2s ease',
+        cursor: isInlineEditing ? 'default' : 'pointer',
+        borderRadius: 1,
+        '&:hover': {
+          backgroundColor: isInlineEditing ? 'transparent' : alpha(theme.palette.action.hover, 0.6),
+        },
         '& .MuiListItemSecondaryAction-root': {
           opacity: 0,
           transition: 'opacity 0.2s ease',
@@ -171,11 +202,15 @@ const TaskItem: React.FC<TaskItemProps> = ({
         '&:hover .MuiListItemSecondaryAction-root': {
           opacity: 1,
         },
+        '&:focus-visible': {
+          outline: `2px solid ${alpha(theme.palette.primary.main, 0.5)}`,
+          outlineOffset: 2,
+        },
       }}
     >
       <IconButton
         edge="start"
-        onClick={handleToggleComplete}
+        onClick={(e) => handleToggleComplete(e)}
         disabled={isActionInProgress}
         size="small"
         sx={{
@@ -217,108 +252,126 @@ const TaskItem: React.FC<TaskItemProps> = ({
           </Box>
         )}
       </IconButton>
-      <ListItemText
-        primary={
-          <Typography
-            variant="body1"
-            sx={{
-              fontSize: '0.875rem',
-              textDecoration: task.completed ? 'line-through' : 'none',
-              color: task.completed ? 'text.secondary' : 'text.primary',
+      {isInlineEditing && onUpdate ? (
+        <Box sx={{ flex: 1 }} onClick={(e) => e.stopPropagation()}>
+          <InlineTaskEditor
+            initialTask={task}
+            onSubmit={async (taskData) => {
+              await onUpdate(task.id, taskData);
+              setIsInlineEditing(false);
             }}
-          >
-            {task.title}
-          </Typography>
-        }
-        secondary={
-          <Box>
-            {task.description && (
-              <Typography
-                variant="body2"
-                sx={{
-                  color: 'text.secondary',
-                  fontSize: '0.8125rem',
-                  mb: task.dueDate || category || (taskTags.length > 0) ? 0.5 : 0,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                {task.description}
-              </Typography>
-            )}
-            <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-              {task.dueDate && (
-                <Box 
-                  ref={dateDisplayRef}
-                  onClick={handleDateClick}
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 0.5,
-                    cursor: onUpdate ? 'pointer' : 'default',
-                    borderRadius: 1,
-                    px: 0.5,
-                    py: 0.25,
-                    '&:hover': onUpdate ? {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                    } : {},
-                    transition: 'background-color 0.2s ease',
+            onCancel={() => setIsInlineEditing(false)}
+            categories={categories}
+            defaultCategoryId={task.categoryId}
+            autoFocus
+          />
+        </Box>
+      ) : (
+        <ListItemText
+          primary={
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: '0.875rem',
+                textDecoration: task.completed ? 'line-through' : 'none',
+                color: task.completed ? 'text.secondary' : 'text.primary',
+              }}
+            >
+              {task.title}
+            </Typography>
+          }
+          secondary={
+            <Box>
+              {task.description && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.8125rem',
+                    mb: task.dueDate || category || (taskTags.length > 0) ? 0.5 : 0,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
                   }}
                 >
-                  <CalendarIcon fontSize="small" sx={{ fontSize: '0.8125rem' }} />
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: isOverdue ? 'error.main' : 'text.secondary',
-                      fontSize: '0.8125rem',
+                  {task.description}
+                </Typography>
+              )}
+              <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                {task.dueDate && (
+                  <Box 
+                    ref={dateDisplayRef}
+                    onClick={handleDateClick}
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 0.5,
+                      cursor: onUpdate ? 'pointer' : 'default',
+                      borderRadius: 1,
+                      px: 0.5,
+                      py: 0.25,
+                      '&:hover': onUpdate ? {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      } : {},
+                      transition: 'background-color 0.2s ease',
                     }}
                   >
-                    {formattedDate}
-                  </Typography>
-                </Box>
-              )}
-              {category && (
-                <Tooltip title="Category">
-                  <Chip
-                    size="small"
-                    icon={<LabelIcon fontSize="small" />}
-                    label={category.name}
-                    sx={{
-                      bgcolor: 'background.default',
-                      '& .MuiChip-label': {
-                        px: 1,
-                      },
-                    }}
-                  />
-                </Tooltip>
-              )}
-              {taskTags.map((tag) => (
-                <Tooltip key={tag.id} title={tag.name}>
-                  <Chip
-                    size="small"
-                    label={tag.name}
-                    sx={{
-                      bgcolor: tag.color || 'background.default',
-                      color: 'white',
-                      '& .MuiChip-label': {
-                        px: 1,
-                      },
-                    }}
-                  />
-                </Tooltip>
-              ))}
+                    <CalendarIcon fontSize="small" sx={{ fontSize: '0.8125rem' }} />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: isOverdue ? 'error.main' : 'text.secondary',
+                        fontSize: '0.8125rem',
+                      }}
+                    >
+                      {formattedDate}
+                    </Typography>
+                  </Box>
+                )}
+                {category && (
+                  <Tooltip title="Category">
+                    <Chip
+                      size="small"
+                      icon={<LabelIcon fontSize="small" />}
+                      label={category.name}
+                      onClick={(e) => e.stopPropagation()}
+                      sx={{
+                        bgcolor: 'background.default',
+                        '& .MuiChip-label': {
+                          px: 1,
+                        },
+                      }}
+                    />
+                  </Tooltip>
+                )}
+                {taskTags.map((tag) => (
+                  <Tooltip key={tag.id} title={tag.name}>
+                    <Chip
+                      size="small"
+                      label={tag.name}
+                      onClick={(e) => e.stopPropagation()}
+                      sx={{
+                        bgcolor: tag.color || 'background.default',
+                        color: 'white',
+                        '& .MuiChip-label': {
+                          px: 1,
+                        },
+                      }}
+                    />
+                  </Tooltip>
+                ))}
+              </Box>
             </Box>
-          </Box>
-        }
-      />
+          }
+        />
+      )}
       <ListItemSecondaryAction>
         <Tooltip title="Edit">
           <span>
             <IconButton
               edge="end"
-              onClick={handleEdit}
+              onClick={(e) => handleInlineEdit(e)}
               disabled={isActionInProgress}
               sx={{ mr: 0.5 }}
               size="small"
@@ -332,7 +385,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           <span>
             <IconButton
               edge="end"
-              onClick={handleDelete}
+              onClick={(e) => handleDelete(e)}
               disabled={isActionInProgress}
               size="small"
               aria-label="Delete task"

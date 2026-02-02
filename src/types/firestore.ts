@@ -53,7 +53,7 @@ export interface TaskDocument {
 
 export interface TaskFilterParams {
   completionStatus?: 'all' | 'active' | 'completed';
-  sortBy?: 'creationDate' | 'dueDate';
+  sortBy?: 'creationDate' | 'dueDate' | 'manual';
   sortOrder?: 'asc' | 'desc';
   view?: 'today' | 'upcoming' | 'calendar' | 'completed';
   filterFutureDates?: boolean;

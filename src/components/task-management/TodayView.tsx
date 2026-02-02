@@ -5,6 +5,8 @@ import {
   Collapse,
   IconButton,
   Button,
+  ButtonBase,
+  Popover,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -54,6 +56,7 @@ const TodayView: React.FC<TodayViewProps> = ({
   const [summaryExpanded, setSummaryExpanded] = useState(true);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
   const [todayDate, setTodayDate] = useState(() => startOfDay(new Date()));
+  const [moreAnchorEl, setMoreAnchorEl] = useState<HTMLElement | null>(null);
 
   // Refresh "today" at midnight and when tab becomes visible (e.g. user returns next day)
   useEffect(() => {
@@ -168,6 +171,12 @@ const TodayView: React.FC<TodayViewProps> = ({
     return theme.palette.error.main;
   };
 
+  const SUMMARY_VISIBLE_LIMIT = 9;
+  const summaryVisibleTasks = tasksForSummary.slice(0, SUMMARY_VISIBLE_LIMIT);
+  const summaryOverflowCount = Math.max(0, tasksForSummary.length - SUMMARY_VISIBLE_LIMIT);
+  const isMoreOpen = Boolean(moreAnchorEl);
+  const morePopoverId = isMoreOpen ? 'today-summary-more-popover' : undefined;
+
   return (
     <Box sx={{ width: '100%' }}>
       {/* Sticky header: Today title + task count (concise summary added in step 3) */}
@@ -251,7 +260,7 @@ const TodayView: React.FC<TodayViewProps> = ({
                 mb: 1,
               }}
             >
-              {tasksForSummary.slice(0, 7).map((task) => (
+              {summaryVisibleTasks.map((task) => (
                 <Box
                   key={task.id}
                   component="span"
@@ -278,15 +287,88 @@ const TodayView: React.FC<TodayViewProps> = ({
                   </Typography>
                 </Box>
               ))}
-              {tasksForSummary.length > 7 && (
-                <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-                  {tasksForSummary.length - 7}+ more
-                </Typography>
+              {summaryOverflowCount > 0 && (
+                <ButtonBase
+                  onClick={(e) => setMoreAnchorEl(e.currentTarget)}
+                  aria-describedby={morePopoverId}
+                  sx={{
+                    borderRadius: 0.75,
+                    px: 0.75,
+                    py: 0.25,
+                    lineHeight: 1.2,
+                    color: 'text.disabled',
+                    '&:hover': { color: 'text.secondary', backgroundColor: 'action.hover' },
+                  }}
+                >
+                  <Typography component="span" variant="body2" sx={{ fontSize: '0.8125rem', color: 'inherit' }}>
+                    {summaryOverflowCount} more
+                  </Typography>
+                </ButtonBase>
               )}
             </Box>
           </Collapse>
         )}
       </Box>
+
+      <Popover
+        id={morePopoverId}
+        open={isMoreOpen}
+        anchorEl={moreAnchorEl}
+        onClose={() => setMoreAnchorEl(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        PaperProps={{
+          sx: {
+            mt: 0.5,
+            borderRadius: 2,
+            minWidth: 280,
+            maxWidth: 420,
+            boxShadow: theme.shadows[6],
+          },
+        }}
+      >
+        <Box sx={{ py: 0.5, maxHeight: 360, overflowY: 'auto' }}>
+          {tasksForSummary.map((task) => (
+            <ButtonBase
+              key={task.id}
+              onClick={() => {
+                setMoreAnchorEl(null);
+                onTaskAction.edit(task);
+              }}
+              sx={{
+                width: '100%',
+                textAlign: 'left',
+                px: 1.5,
+                py: 0.75,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                '&:hover': { backgroundColor: 'action.hover' },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 3,
+                  height: 14,
+                  borderRadius: 0.75,
+                  flexShrink: 0,
+                  backgroundColor: getTaskSummaryColor(task),
+                }}
+              />
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: '0.875rem',
+                  color: 'text.primary',
+                  textDecoration: task.completed ? 'line-through' : 'none',
+                }}
+              >
+                {task.completed ? '✓ ' : ''}{task.title}
+              </Typography>
+            </ButtonBase>
+          ))}
+        </Box>
+      </Popover>
 
       {/* Overdue Section */}
       {overdueTasks.length > 0 && (
