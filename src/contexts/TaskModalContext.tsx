@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 
 interface TaskModalContextType {
   isOpen: boolean;
@@ -19,8 +19,13 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
     setIsOpen(false);
   }, []);
 
+  const value = useMemo(
+    () => ({ isOpen, openModal, closeModal }),
+    [isOpen, openModal, closeModal]
+  );
+
   return (
-    <TaskModalContext.Provider value={{ isOpen, openModal, closeModal }}>
+    <TaskModalContext.Provider value={value}>
       {children}
     </TaskModalContext.Provider>
   );

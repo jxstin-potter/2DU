@@ -36,8 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useMemo, useCallback, useState, useRef } from 'react';
-import { ListItem, ListItemText, ListItemSecondaryAction, IconButton, Checkbox, Typography, Box, Chip, Tooltip, Popover, } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Label as LabelIcon, CalendarToday as CalendarIcon, } from '@mui/icons-material';
+import { ListItem, ListItemText, ListItemSecondaryAction, IconButton, Typography, Box, Chip, Tooltip, Popover, } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon, Label as LabelIcon, CalendarToday as CalendarIcon, RadioButtonUnchecked as RadioButtonUncheckedIcon, CheckCircleOutline as CheckCircleOutlineIcon, } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -159,15 +159,9 @@ var TaskItem = function (_a) {
         });
     }); }, [onUpdate, task.id]);
     return (_jsxs(ListItem, { sx: {
-            mb: 1,
-            bgcolor: 'background.paper',
-            borderRadius: 1,
-            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                bgcolor: 'action.hover',
-            },
+            mb: 2,
+            bgcolor: 'transparent',
+            transition: 'opacity 0.2s ease',
             '& .MuiListItemSecondaryAction-root': {
                 opacity: 0,
                 transition: 'opacity 0.2s ease',
@@ -175,17 +169,34 @@ var TaskItem = function (_a) {
             '&:hover .MuiListItemSecondaryAction-root': {
                 opacity: 1,
             },
-        }, children: [_jsx(Checkbox, { edge: "start", checked: task.completed, onChange: handleToggleComplete, disabled: isActionInProgress, sx: {
-                    color: task.completed ? 'success.main' : 'action.active',
-                    '&.Mui-checked': {
-                        color: 'success.main',
-                    },
-                } }), _jsx(ListItemText, { primary: _jsx(Typography, { variant: "body1", sx: {
+        }, children: [_jsx(IconButton, { edge: "start", onClick: handleToggleComplete, disabled: isActionInProgress, size: "small", sx: {
+                    p: 0.25,
+                    mr: 0.5,
+                    backgroundColor: 'transparent',
+                    '&:hover': { backgroundColor: 'transparent' },
+                    '&:hover .check-hover': { opacity: 1 },
+                }, "aria-label": task.completed ? 'Mark incomplete' : 'Mark complete', children: task.completed ? (_jsx(CheckCircleOutlineIcon, { sx: { fontSize: 17, color: 'success.main' } })) : (_jsxs(Box, { component: "span", sx: {
+                        position: 'relative',
+                        display: 'inline-flex',
+                        width: 17,
+                        height: 17,
+                    }, children: [_jsx(RadioButtonUncheckedIcon, { sx: { fontSize: 17, color: 'action.active' } }), _jsx(CheckCircleOutlineIcon, { className: "check-hover", sx: {
+                                position: 'absolute',
+                                left: 0,
+                                top: 0,
+                                fontSize: 16,
+                                color: 'white',
+                                opacity: 0,
+                                transition: 'opacity 0.15s ease',
+                                pointerEvents: 'none',
+                                backgroundColor: 'transparent',
+                            } })] })) }), _jsx(ListItemText, { primary: _jsx(Typography, { variant: "body1", sx: {
+                        fontSize: '0.875rem',
                         textDecoration: task.completed ? 'line-through' : 'none',
                         color: task.completed ? 'text.secondary' : 'text.primary',
                     }, children: task.title }), secondary: _jsxs(Box, { children: [task.description && (_jsx(Typography, { variant: "body2", sx: {
                                 color: 'text.secondary',
-                                fontSize: '0.875rem',
+                                fontSize: '0.8125rem',
                                 mb: task.dueDate || category || (taskTags.length > 0) ? 0.5 : 0,
                                 display: '-webkit-box',
                                 WebkitLineClamp: 2,
@@ -203,25 +214,10 @@ var TaskItem = function (_a) {
                                             backgroundColor: alpha(theme.palette.primary.main, 0.1),
                                         } : {},
                                         transition: 'background-color 0.2s ease',
-                                    }, children: [_jsx(CalendarIcon, { fontSize: "small", sx: { fontSize: '0.875rem' } }), _jsx(Typography, { variant: "body2", sx: {
+                                    }, children: [_jsx(CalendarIcon, { fontSize: "small", sx: { fontSize: '0.8125rem' } }), _jsx(Typography, { variant: "body2", sx: {
                                                 color: isOverdue ? 'error.main' : 'text.secondary',
-                                                fontSize: '0.875rem',
-                                            }, children: formattedDate })] })), !task.dueDate && onUpdate && (_jsxs(Box, { onClick: handleDateClick, sx: {
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 0.5,
-                                        cursor: 'pointer',
-                                        borderRadius: 1,
-                                        px: 0.5,
-                                        py: 0.25,
-                                        '&:hover': {
-                                            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                                        },
-                                        transition: 'background-color 0.2s ease',
-                                    }, children: [_jsx(CalendarIcon, { fontSize: "small", sx: { fontSize: '0.875rem', color: 'text.secondary' } }), _jsx(Typography, { variant: "body2", sx: {
-                                                color: 'text.secondary',
-                                                fontSize: '0.875rem',
-                                            }, children: "Add due date" })] })), category && (_jsx(Tooltip, { title: "Category", children: _jsx(Chip, { size: "small", icon: _jsx(LabelIcon, { fontSize: "small" }), label: category.name, sx: {
+                                                fontSize: '0.8125rem',
+                                            }, children: formattedDate })] })), category && (_jsx(Tooltip, { title: "Category", children: _jsx(Chip, { size: "small", icon: _jsx(LabelIcon, { fontSize: "small" }), label: category.name, sx: {
                                             bgcolor: 'background.default',
                                             '& .MuiChip-label': {
                                                 px: 1,
@@ -232,7 +228,7 @@ var TaskItem = function (_a) {
                                             '& .MuiChip-label': {
                                                 px: 1,
                                             },
-                                        } }) }, tag.id)); })] })] }) }), _jsxs(ListItemSecondaryAction, { children: [_jsx(IconButton, { edge: "end", onClick: handleEdit, disabled: isActionInProgress, sx: { mr: 1 }, children: _jsx(EditIcon, { fontSize: "small" }) }), _jsx(IconButton, { edge: "end", onClick: handleDelete, disabled: isActionInProgress, children: _jsx(DeleteIcon, { fontSize: "small" }) })] }), onUpdate && (_jsx(Popover, { open: Boolean(datePickerAnchor), anchorEl: datePickerAnchor, onClose: handleDatePickerClose, anchorOrigin: {
+                                        } }) }, tag.id)); })] })] }) }), _jsxs(ListItemSecondaryAction, { children: [_jsx(Tooltip, { title: "Edit", children: _jsx("span", { children: _jsx(IconButton, { edge: "end", onClick: handleEdit, disabled: isActionInProgress, sx: { mr: 0.5 }, size: "small", "aria-label": "Edit task", children: _jsx(EditIcon, { sx: { fontSize: '1rem' } }) }) }) }), _jsx(Tooltip, { title: "Delete", children: _jsx("span", { children: _jsx(IconButton, { edge: "end", onClick: handleDelete, disabled: isActionInProgress, size: "small", "aria-label": "Delete task", children: _jsx(DeleteIcon, { sx: { fontSize: '1rem' } }) }) }) })] }), onUpdate && (_jsx(Popover, { open: Boolean(datePickerAnchor), anchorEl: datePickerAnchor, onClose: handleDatePickerClose, anchorOrigin: {
                     vertical: 'bottom',
                     horizontal: 'left',
                 }, transformOrigin: {

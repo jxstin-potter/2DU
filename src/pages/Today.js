@@ -45,9 +45,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect } from 'react';
-import { Container, Box, useTheme } from '@mui/material';
+import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useEffect, useCallback } from 'react';
+import { Container, Box, useTheme, Snackbar, Button, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToTasks } from '../services/tasksService';
 import { taskDocumentToTask } from '../utils/taskHelpers';
@@ -67,6 +68,9 @@ var Today = function () {
     var _f = useState(true), loading = _f[0], setLoading = _f[1];
     var _g = useState(null), error = _g[0], setError = _g[1];
     var _h = useState(null), selectedTask = _h[0], setSelectedTask = _h[1];
+    var _j = useState(null), justAddedTaskId = _j[0], setJustAddedTaskId = _j[1];
+    var _k = useState(false), completedSnackbarOpen = _k[0], setCompletedSnackbarOpen = _k[1];
+    var _l = useState(null), completedTaskIdForUndo = _l[0], setCompletedTaskIdForUndo = _l[1];
     // Subscribe to tasks
     useEffect(function () {
         if (!(user === null || user === void 0 ? void 0 : user.id)) {
@@ -166,6 +170,10 @@ var Today = function () {
                     return [4 /*yield*/, updateTask(taskId, taskDoc, user.id)];
                 case 3:
                     _a.sent();
+                    if (completed) {
+                        setCompletedTaskIdForUndo(taskId);
+                        setCompletedSnackbarOpen(true);
+                    }
                     return [3 /*break*/, 5];
                 case 4:
                     error_2 = _a.sent();
@@ -175,6 +183,19 @@ var Today = function () {
             }
         });
     }); };
+    var handleUndoComplete = useCallback(function () {
+        if (completedTaskIdForUndo) {
+            handleTaskToggle(completedTaskIdForUndo);
+            setCompletedSnackbarOpen(false);
+            setCompletedTaskIdForUndo(null);
+        }
+    }, [completedTaskIdForUndo]);
+    var handleCloseCompletedSnackbar = useCallback(function (_event, reason) {
+        if (reason === 'clickaway')
+            return;
+        setCompletedSnackbarOpen(false);
+        setCompletedTaskIdForUndo(null);
+    }, []);
     var handleTaskDelete = function (taskId) { return __awaiter(void 0, void 0, void 0, function () {
         var error_3;
         return __generator(this, function (_a) {
@@ -229,7 +250,7 @@ var Today = function () {
         });
     }); };
     var handleCreateTask = function (taskData) { return __awaiter(void 0, void 0, void 0, function () {
-        var taskDoc, error_5, errorMessage;
+        var taskDoc, newTaskId, error_5, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -243,7 +264,9 @@ var Today = function () {
                     taskDoc = taskToTaskDocument(__assign(__assign({}, taskData), { userId: user.id, completed: false, order: tasks.length }));
                     return [4 /*yield*/, createTaskFromData(user.id, taskDoc)];
                 case 1:
-                    _a.sent();
+                    newTaskId = _a.sent();
+                    setJustAddedTaskId(newTaskId);
+                    setTimeout(function () { return setJustAddedTaskId(null); }, 600);
                     setSelectedTask(null);
                     closeTaskModal();
                     return [3 /*break*/, 3];
@@ -262,18 +285,22 @@ var Today = function () {
     }
     return (_jsx(Box, { sx: {
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             alignItems: 'flex-start',
             width: '100%',
-        }, children: _jsxs(Container, { maxWidth: "md", sx: {
+            pl: 0,
+            ml: -1,
+            mt: -0.5,
+        }, children: _jsxs(Container, { maxWidth: "md", disableGutters: true, sx: {
                 width: '100%',
+                maxWidth: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
+                alignItems: 'flex-start',
             }, children: [_jsx(Box, { sx: {
                         width: '100%',
                         maxWidth: theme.breakpoints.values.sm,
-                    }, children: _jsx(TodayView, { tasks: tasks, onTaskAction: {
+                    }, children: _jsx(TodayView, { tasks: tasks, justAddedTaskId: justAddedTaskId, onTaskAction: {
                             toggle: handleTaskToggle,
                             delete: handleTaskDelete,
                             update: handleTaskUpdate,
@@ -299,6 +326,6 @@ var Today = function () {
                                 }
                             });
                         }); } :
-                        handleCreateTask, initialTask: selectedTask, loading: loading })] }) }));
+                        handleCreateTask, initialTask: selectedTask, loading: loading }), _jsx(Snackbar, { open: completedSnackbarOpen, anchorOrigin: { vertical: 'bottom', horizontal: 'left' }, autoHideDuration: 15000, onClose: handleCloseCompletedSnackbar, message: "1 task completed", action: _jsxs(_Fragment, { children: [_jsx(Button, { color: "inherit", size: "small", onClick: handleUndoComplete, children: "Undo" }), _jsx(IconButton, { size: "small", "aria-label": "Close", color: "inherit", onClick: function () { return handleCloseCompletedSnackbar(); }, children: _jsx(CloseIcon, { fontSize: "small" }) })] }), sx: { left: 16, bottom: 16 } })] }) }));
 };
 export default Today;

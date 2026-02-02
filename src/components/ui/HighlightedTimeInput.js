@@ -77,27 +77,17 @@ var HighlightedTimeInput = function (_a) {
     }, []); // Only run on mount
     // Parse time and update content when value changes
     useEffect(function () {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:54', message: 'useEffect triggered', data: { value: value, valueLength: value.length, hasInputRef: !!inputRef.current, isUpdating: isUpdatingRef.current }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H1' }) }).catch(function () { });
-        // #endregion
         // Always parse time, even if we skip DOM updates
         var parseAndNotify = function () { return __awaiter(void 0, void 0, void 0, function () {
             var _a, time, parsedMatchInfo;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        // #region agent log
-                        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:60', message: 'parseAndNotify called', data: { value: value }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H1' }) }).catch(function () { });
                         return [4 /*yield*/, parseTime(value)];
                     case 1:
                         _a = _b.sent(), time = _a.time, parsedMatchInfo = _a.matchInfo;
-                        // #region agent log
-                        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:65', message: 'parseTime result', data: { hasTime: !!time, timeISO: time === null || time === void 0 ? void 0 : time.toISOString(), matchInfo: parsedMatchInfo }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H1' }) }).catch(function () { });
-                        // #endregion
                         setMatchInfo(parsedMatchInfo || null);
                         onTimeParsed === null || onTimeParsed === void 0 ? void 0 : onTimeParsed(time, parsedMatchInfo || null);
-                        // #region agent log
-                        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:71', message: 'onTimeParsed called', data: { hasTime: !!time, hasMatchInfo: !!parsedMatchInfo }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H1' }) }).catch(function () { });
                         return [2 /*return*/];
                 }
             });
@@ -105,9 +95,6 @@ var HighlightedTimeInput = function (_a) {
         parseAndNotify();
         // Update DOM only if needed and not currently updating
         if (!inputRef.current || isUpdatingRef.current) {
-            // #region agent log
-            fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:78', message: 'Skipping DOM update - no ref or updating', data: { hasInputRef: !!inputRef.current, isUpdating: isUpdatingRef.current }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H1' }) }).catch(function () { });
-            // #endregion
             return;
         }
         var updateContent = function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -116,8 +103,6 @@ var HighlightedTimeInput = function (_a) {
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
-                        // #region agent log
-                        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:84', message: 'updateContent called', data: { value: value }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H1' }) }).catch(function () { });
                         return [4 /*yield*/, parseTime(value)];
                     case 1:
                         parsedMatchInfo = (_d.sent()).matchInfo;
@@ -125,9 +110,6 @@ var HighlightedTimeInput = function (_a) {
                             return [2 /*return*/];
                         currentText = inputRef.current.textContent || '';
                         if (currentText === value && !parsedMatchInfo) {
-                            // #region agent log
-                            fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:92', message: 'Skipping DOM update - content matches', data: { currentText: currentText, value: value, hasMatchInfo: !!parsedMatchInfo }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H1' }) }).catch(function () { });
-                            // #endregion
                             return [2 /*return*/];
                         }
                         selection = window.getSelection();
@@ -197,19 +179,10 @@ var HighlightedTimeInput = function (_a) {
         updateContent();
     }, [value, parseTime, onTimeParsed, theme.palette.primary.main, inputRef]);
     var handleInput = useCallback(function (e) {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:100', message: 'handleInput called', data: { isUpdating: isUpdatingRef.current }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H2' }) }).catch(function () { });
-        // #endregion
         if (isUpdatingRef.current) {
-            // #region agent log
-            fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:104', message: 'handleInput skipped - updating', data: { isUpdating: isUpdatingRef.current }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H2' }) }).catch(function () { });
-            // #endregion
             return;
         }
         var text = e.currentTarget.textContent || '';
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'HighlightedTimeInput.tsx:109', message: 'handleInput calling onChange', data: { text: text, textLength: text.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H2' }) }).catch(function () { });
-        // #endregion
         onChange(text);
     }, [onChange]);
     var handleKeyDown = useCallback(function (e) {

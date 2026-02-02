@@ -73,6 +73,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setIsSettingsModalOpen(false);
   }, []);
 
+  const handleToggleCollapse = useCallback(() => {
+    setIsSidebarCollapsed((prev) => !prev);
+  }, []);
+
   const toggleDarkMode = useCustomTheme().toggleColorMode;
 
   // Memoize sidebar width to prevent recalculation on every render
@@ -115,7 +119,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar
         isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
+        onToggleCollapse={handleToggleCollapse}
         darkMode={mode === 'dark'}
         toggleDarkMode={toggleDarkMode}
         onLogout={handleLogout}
@@ -152,7 +156,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 color="inherit"
                 aria-label="menu"
                 sx={{ mr: 2 }}
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                onClick={handleToggleCollapse}
               >
                 <MenuIcon />
               </IconButton>

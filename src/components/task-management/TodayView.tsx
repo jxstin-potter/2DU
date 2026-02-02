@@ -125,10 +125,10 @@ const TodayView: React.FC<TodayViewProps> = ({
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
 
-    // Sort today: incomplete first (newest first), then completed (newest first)
+    // Sort today: incomplete first (oldest first), then completed (oldest first)
     today.sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
 
     const todayIncomplete = today.filter(t => !t.completed);
@@ -144,7 +144,6 @@ const TodayView: React.FC<TodayViewProps> = ({
       ...todayIncomplete,
       ...todayCompleted,
     ];
-
     return {
       overdueTasks: overdueIncomplete,
       todayTasks: today,

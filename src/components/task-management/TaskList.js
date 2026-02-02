@@ -58,19 +58,20 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Box, Typography, Button, Menu, MenuItem, ListItemText, CircularProgress, Alert, useTheme, useMediaQuery, } from '@mui/material';
 import { Sort as SortIcon, } from '@mui/icons-material';
-import { Droppable, Draggable, DragDropContext } from 'react-beautiful-dnd';
+import { Droppable, Draggable } from 'react-beautiful-dnd';
 import { FixedSizeList } from 'react-window';
+import { motion } from 'framer-motion';
 import TaskItem from './TaskItem';
 import InlineTaskEditor from './InlineTaskEditor';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 var TaskList = function (_a) {
-    var tasks = _a.tasks, _b = _a.loading, loading = _b === void 0 ? false : _b, _c = _a.error, error = _c === void 0 ? null : _c, onTaskAction = _a.onTaskAction, onCreateTask = _a.onCreateTask, _d = _a.draggable, draggable = _d === void 0 ? false : _d, tags = _a.tags, categories = _a.categories, onLoadMore = _a.onLoadMore, _e = _a.hasMore, hasMore = _e === void 0 ? false : _e, _f = _a.isLoadingMore, isLoadingMore = _f === void 0 ? false : _f, defaultCategoryId = _a.defaultCategoryId;
+    var tasks = _a.tasks, _b = _a.loading, loading = _b === void 0 ? false : _b, _c = _a.error, error = _c === void 0 ? null : _c, onTaskAction = _a.onTaskAction, onCreateTask = _a.onCreateTask, _d = _a.draggable, draggable = _d === void 0 ? false : _d, tags = _a.tags, categories = _a.categories, onLoadMore = _a.onLoadMore, _e = _a.hasMore, hasMore = _e === void 0 ? false : _e, _f = _a.isLoadingMore, isLoadingMore = _f === void 0 ? false : _f, defaultCategoryId = _a.defaultCategoryId, _g = _a.justAddedTaskId, justAddedTaskId = _g === void 0 ? null : _g, onReorder = _a.onReorder;
     var theme = useTheme();
-    var _g = useTaskModal(), isTaskModalOpen = _g.isOpen, closeTaskModal = _g.closeModal;
-    var _h = useState(null), sortAnchorEl = _h[0], setSortAnchorEl = _h[1];
-    var _j = useState('dueDate'), sortBy = _j[0], setSortBy = _j[1];
-    var _k = useState(null), actionInProgress = _k[0], setActionInProgress = _k[1];
-    var _l = useState(false), showInlineEditor = _l[0], setShowInlineEditor = _l[1];
+    var _h = useTaskModal(), isTaskModalOpen = _h.isOpen, closeTaskModal = _h.closeModal;
+    var _j = useState(null), sortAnchorEl = _j[0], setSortAnchorEl = _j[1];
+    var _k = useState('dueDate'), sortBy = _k[0], setSortBy = _k[1];
+    var _l = useState(null), actionInProgress = _l[0], setActionInProgress = _l[1];
+    var _m = useState(false), showInlineEditor = _m[0], setShowInlineEditor = _m[1];
     // Don't auto-show inline editor - it should only be triggered explicitly
     // The inline editor is for quick adding within the list, not for sidebar "Add task"
     // Keep this disabled for now - inline editor can be added via a separate trigger if needed
@@ -130,36 +131,6 @@ var TaskList = function (_a) {
             });
         });
     }, [actionInProgress, onTaskAction]);
-    var handleDragEnd = function (result) { return __awaiter(void 0, void 0, void 0, function () {
-        var source, destination, error_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!result.destination || actionInProgress)
-                        return [2 /*return*/];
-                    source = result.source, destination = result.destination;
-                    if (source.index === destination.index)
-                        return [2 /*return*/];
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, 4, 5]);
-                    setActionInProgress('update');
-                    return [4 /*yield*/, onTaskAction.update(tasks[source.index].id, {
-                            order: destination.index
-                        })];
-                case 2:
-                    _a.sent();
-                    return [3 /*break*/, 5];
-                case 3:
-                    error_2 = _a.sent();
-                    return [3 /*break*/, 5];
-                case 4:
-                    setActionInProgress(null);
-                    return [7 /*endfinally*/];
-                case 5: return [2 /*return*/];
-            }
-        });
-    }); };
     var handleSortClick = function (event) {
         setSortAnchorEl(event.currentTarget);
     };
@@ -170,8 +141,10 @@ var TaskList = function (_a) {
         setSortBy(option);
         handleSortClose();
     };
-    // Memoized sorted tasks
+    // When draggable, parent passes display list already sorted by order; use as-is. Otherwise sort by sortBy.
     var sortedTasks = useMemo(function () {
+        if (draggable)
+            return tasks;
         return __spreadArray([], tasks, true).sort(function (a, b) {
             switch (sortBy) {
                 case 'dueDate':
@@ -188,15 +161,17 @@ var TaskList = function (_a) {
                     return 0;
             }
         });
-    }, [tasks, sortBy]);
+    }, [tasks, sortBy, draggable]);
     // Virtualized list item renderer
     var Row = useCallback(function (_a) {
         var index = _a.index, style = _a.style;
         var task = sortedTasks[index];
         if (!task)
             return null;
-        return (_jsx("div", { style: style, children: draggable ? (_jsx(Draggable, { draggableId: task.id, index: index, children: function (provided) { return (_jsx("div", __assign({ ref: provided.innerRef }, provided.draggableProps, provided.dragHandleProps, { children: _jsx(TaskItem, { task: task, onToggleComplete: function () { return handleTaskAction('toggle', task.id); }, onDelete: function () { return handleTaskAction('delete', task.id); }, onEdit: function () { return handleTaskAction('edit', task); }, onUpdate: onTaskAction.update, tags: tags, categories: categories, isActionInProgress: actionInProgress !== null }) }))); } })) : (_jsx(TaskItem, { task: task, onToggleComplete: function () { return handleTaskAction('toggle', task.id); }, onDelete: function () { return handleTaskAction('delete', task.id); }, onEdit: function () { return handleTaskAction('edit', task); }, onUpdate: onTaskAction.update, tags: tags, categories: categories, isActionInProgress: actionInProgress !== null })) }));
-    }, [sortedTasks, tags, categories, actionInProgress, draggable, handleTaskAction]);
+        var isJustAdded = task.id === justAddedTaskId;
+        var content = draggable ? (_jsx(Draggable, { draggableId: task.id, index: index, children: function (provided) { return (_jsx("div", __assign({ ref: provided.innerRef }, provided.draggableProps, provided.dragHandleProps, { children: _jsx(TaskItem, { task: task, onToggleComplete: function () { return handleTaskAction('toggle', task.id); }, onDelete: function () { return handleTaskAction('delete', task.id); }, onEdit: function () { return handleTaskAction('edit', task); }, onUpdate: onTaskAction.update, tags: tags, categories: categories, isActionInProgress: actionInProgress !== null }) }))); } })) : (_jsx(TaskItem, { task: task, onToggleComplete: function () { return handleTaskAction('toggle', task.id); }, onDelete: function () { return handleTaskAction('delete', task.id); }, onEdit: function () { return handleTaskAction('edit', task); }, onUpdate: onTaskAction.update, tags: tags, categories: categories, isActionInProgress: actionInProgress !== null }));
+        return (_jsx("div", { style: style, children: isJustAdded ? (_jsx(motion.div, { initial: { opacity: 0, y: -8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.25, ease: 'easeOut' }, children: content })) : (content) }));
+    }, [sortedTasks, tags, categories, actionInProgress, draggable, handleTaskAction, justAddedTaskId]);
     // Throttle scroll handler to prevent excessive calls
     var scrollThrottleRef = React.useRef(null);
     var lastScrollOffsetRef = React.useRef(0);
@@ -248,6 +223,6 @@ var TaskList = function (_a) {
                     flexWrap: 'wrap',
                     gap: 1,
                 }, children: _jsxs(Button, { size: "small", startIcon: _jsx(SortIcon, {}), onClick: handleSortClick, children: ["Sort: ", sortBy === 'dueDate' ? 'Due Date' :
-                            sortBy === 'title' ? 'Title' : 'Created'] }) }), showInlineEditor && onCreateTask && (_jsx(Box, { sx: { mb: 2 }, children: _jsx(InlineTaskEditor, { onSubmit: handleCreateTask, onCancel: handleCancelEditor, categories: categories, defaultCategoryId: defaultCategoryId }) })), draggable ? (_jsx(DragDropContext, { onDragEnd: handleDragEnd, children: _jsx(Droppable, { droppableId: "task-list", mode: "virtual", children: function (provided) { return (_jsxs("div", __assign({ ref: provided.innerRef }, provided.droppableProps, { children: [listContent, provided.placeholder] }))); } }) })) : (listContent), isLoadingMore && (_jsx(Box, { sx: { display: 'flex', justifyContent: 'center', p: 2 }, children: _jsx(CircularProgress, { size: 24 }) })), _jsxs(Menu, { anchorEl: sortAnchorEl, open: Boolean(sortAnchorEl), onClose: handleSortClose, children: [_jsx(MenuItem, { onClick: function () { return handleSortSelect('dueDate'); }, children: _jsx(ListItemText, { children: "Due Date" }) }), _jsx(MenuItem, { onClick: function () { return handleSortSelect('title'); }, children: _jsx(ListItemText, { children: "Title" }) }), _jsx(MenuItem, { onClick: function () { return handleSortSelect('createdAt'); }, children: _jsx(ListItemText, { children: "Created Date" }) })] })] }));
+                            sortBy === 'title' ? 'Title' : 'Created'] }) }), showInlineEditor && onCreateTask && (_jsx(Box, { sx: { mb: 2 }, children: _jsx(InlineTaskEditor, { onSubmit: handleCreateTask, onCancel: handleCancelEditor, categories: categories, defaultCategoryId: defaultCategoryId }) })), draggable ? (_jsx(Droppable, { droppableId: "task-list", mode: "virtual", children: function (provided) { return (_jsxs("div", __assign({ ref: provided.innerRef }, provided.droppableProps, { children: [listContent, provided.placeholder] }))); } })) : (listContent), isLoadingMore && (_jsx(Box, { sx: { display: 'flex', justifyContent: 'center', p: 2 }, children: _jsx(CircularProgress, { size: 24 }) })), _jsxs(Menu, { anchorEl: sortAnchorEl, open: Boolean(sortAnchorEl), onClose: handleSortClose, children: [_jsx(MenuItem, { onClick: function () { return handleSortSelect('dueDate'); }, children: _jsx(ListItemText, { children: "Due Date" }) }), _jsx(MenuItem, { onClick: function () { return handleSortSelect('title'); }, children: _jsx(ListItemText, { children: "Title" }) }), _jsx(MenuItem, { onClick: function () { return handleSortSelect('createdAt'); }, children: _jsx(ListItemText, { children: "Created Date" }) })] })] }));
 };
 export default TaskList;

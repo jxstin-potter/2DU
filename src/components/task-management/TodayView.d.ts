@@ -2,6 +2,7 @@ import React from 'react';
 import { Task, Tag, Category } from '../../types';
 interface TodayViewProps {
     tasks: Task[];
+    justAddedTaskId?: string | null;
     onTaskAction: {
         toggle: (taskId: string) => Promise<void>;
         delete: (taskId: string) => Promise<void>;

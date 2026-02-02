@@ -19,6 +19,8 @@ interface TaskListProps {
     hasMore?: boolean;
     isLoadingMore?: boolean;
     defaultCategoryId?: string;
+    justAddedTaskId?: string | null;
+    onReorder?: (fromIndex: number, toIndex: number) => void | Promise<void>;
 }
 declare const TaskList: React.FC<TaskListProps>;
 export default TaskList;

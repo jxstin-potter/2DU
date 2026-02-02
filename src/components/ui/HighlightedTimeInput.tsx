@@ -51,45 +51,22 @@ const HighlightedTimeInput: React.FC<HighlightedTimeInputProps> = ({
 
   // Parse time and update content when value changes
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:54',message:'useEffect triggered',data:{value,valueLength:value.length,hasInputRef:!!inputRef.current,isUpdating:isUpdatingRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
-
     // Always parse time, even if we skip DOM updates
     const parseAndNotify = async () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:60',message:'parseAndNotify called',data:{value},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
-      
       const { time, matchInfo: parsedMatchInfo } = await parseTime(value);
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:65',message:'parseTime result',data:{hasTime:!!time,timeISO:time?.toISOString(),matchInfo:parsedMatchInfo},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
-      
+
       setMatchInfo(parsedMatchInfo || null);
       onTimeParsed?.(time, parsedMatchInfo || null);
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:71',message:'onTimeParsed called',data:{hasTime:!!time,hasMatchInfo:!!parsedMatchInfo},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
     };
     
     parseAndNotify();
 
     // Update DOM only if needed and not currently updating
     if (!inputRef.current || isUpdatingRef.current) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:78',message:'Skipping DOM update - no ref or updating',data:{hasInputRef:!!inputRef.current,isUpdating:isUpdatingRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
       return;
     }
 
     const updateContent = async () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:84',message:'updateContent called',data:{value},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
-      
       const { matchInfo: parsedMatchInfo } = await parseTime(value);
       
       if (!inputRef.current) return;
@@ -97,9 +74,6 @@ const HighlightedTimeInput: React.FC<HighlightedTimeInputProps> = ({
       // Skip DOM update if contentEditable already has the correct content and no match
       const currentText = inputRef.current.textContent || '';
       if (currentText === value && !parsedMatchInfo) {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:92',message:'Skipping DOM update - content matches',data:{currentText,value,hasMatchInfo:!!parsedMatchInfo},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
         return;
       }
       
@@ -178,22 +152,11 @@ const HighlightedTimeInput: React.FC<HighlightedTimeInputProps> = ({
   }, [value, parseTime, onTimeParsed, theme.palette.primary.main, inputRef]);
 
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:100',message:'handleInput called',data:{isUpdating:isUpdatingRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
-    
     if (isUpdatingRef.current) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:104',message:'handleInput skipped - updating',data:{isUpdating:isUpdatingRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
       return;
     }
     const text = e.currentTarget.textContent || '';
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'HighlightedTimeInput.tsx:109',message:'handleInput calling onChange',data:{text,textLength:text.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
-    
+
     onChange(text);
   }, [onChange]);
 

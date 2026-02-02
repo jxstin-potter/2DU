@@ -35,9 +35,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Box, Button, useTheme, alpha, IconButton, Chip, Menu, MenuItem, ListItemIcon, ListItemText, } from '@mui/material';
 import { Today as TodayIcon, Flag as FlagIcon, NotificationsNone as RemindersIcon, MoreVert as MoreVertIcon, Inbox as InboxIcon, KeyboardArrowDown as KeyboardArrowDownIcon, } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { isToday, startOfDay } from 'date-fns';
 var InlineTaskEditor = function (_a) {
     var onSubmit = _a.onSubmit, onCancel = _a.onCancel, initialTask = _a.initialTask, _b = _a.autoFocus, autoFocus = _b === void 0 ? true : _b, _c = _a.categories, categories = _c === void 0 ? [] : _c, defaultCategoryId = _a.defaultCategoryId;
@@ -71,6 +72,8 @@ var InlineTaskEditor = function (_a) {
             }
         }
         else {
+            setDueDate(startOfDay(new Date()));
+            setShowQuickActions(true);
             if (titleRef.current) {
                 titleRef.current.textContent = '';
             }
@@ -136,6 +139,29 @@ var InlineTaskEditor = function (_a) {
         }); };
         parseTime();
     }, [title, dueDate, initialTask]);
+    // Warn on reload/close when form has unsaved changes
+    var isDirty = useMemo(function () {
+        if (initialTask) {
+            var descMatch = (initialTask.description || '') === description;
+            var dateMatch = (initialTask.dueDate == null && dueDate == null) ||
+                (initialTask.dueDate != null && dueDate != null && new Date(initialTask.dueDate).getTime() === dueDate.getTime());
+            return title !== initialTask.title || !descMatch || !dateMatch ||
+                (initialTask.priority || '') !== priority ||
+                (initialTask.categoryId || defaultCategoryId) !== selectedCategoryId;
+        }
+        return title.trim() !== '' || description.trim() !== '' || priority !== '' ||
+            selectedCategoryId !== defaultCategoryId;
+    }, [initialTask, title, description, dueDate, priority, selectedCategoryId, defaultCategoryId]);
+    useEffect(function () {
+        var handleBeforeUnload = function (e) {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return function () { return window.removeEventListener('beforeunload', handleBeforeUnload); };
+    }, [isDirty]);
     var handleTitleInput = useCallback(function (e) {
         var text = e.currentTarget.textContent || '';
         setTitle(text);
@@ -246,208 +272,199 @@ var InlineTaskEditor = function (_a) {
     };
     var selectedCategory = categories.find(function (c) { return c.id === selectedCategoryId; });
     var isTodaySelected = dueDate && isToday(dueDate);
-    return (_jsxs(Box, { ref: containerRef, component: "form", onSubmit: function (e) {
-            e.preventDefault();
-            handleSubmit();
-        }, sx: {
-            mb: 2,
-            bgcolor: theme.palette.mode === 'dark'
-                ? alpha(theme.palette.background.paper, 0.95)
-                : theme.palette.background.paper,
-            borderRadius: '8px',
-            border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
-            boxShadow: theme.palette.mode === 'dark'
-                ? '0 2px 8px rgba(0,0,0,0.3)'
-                : '0 2px 8px rgba(0,0,0,0.08)',
-            transition: 'all 0.2s ease',
-            overflow: 'hidden',
-            '&:focus-within': {
-                borderColor: theme.palette.primary.main,
-                boxShadow: "0 0 0 2px ".concat(alpha(theme.palette.primary.main, 0.15), ", 0 4px 12px rgba(0,0,0,0.1)"),
-            },
-        }, children: [_jsxs(Box, { sx: { display: 'flex', alignItems: 'flex-start', p: 1.5, gap: 1.5 }, children: [_jsx(Box, { sx: {
-                            width: 24,
-                            height: 24,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mt: 0.5,
-                        }, children: _jsx(Box, { sx: {
-                                width: 18,
-                                height: 18,
-                                border: "2px solid ".concat(alpha(theme.palette.text.secondary, 0.4)),
-                                borderRadius: '50%',
-                                transition: 'all 0.2s ease',
-                            } }) }), _jsxs(Box, { sx: { flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }, children: [_jsx(Box, { ref: titleRef, contentEditable: true, suppressContentEditableWarning: true, onInput: handleTitleInput, onKeyDown: function (e) { return handleKeyDown(e, 'title'); }, "data-placeholder": "Task name", sx: {
-                                    minHeight: '28px',
-                                    maxHeight: '200px',
-                                    overflowY: 'auto',
-                                    outline: 'none',
-                                    fontSize: '0.9375rem',
-                                    lineHeight: 1.5,
-                                    fontWeight: 500,
-                                    color: theme.palette.text.primary,
-                                    wordBreak: 'break-word',
-                                    '&:empty:before': {
-                                        content: 'attr(data-placeholder)',
-                                        color: theme.palette.text.secondary,
-                                        opacity: 0.6,
-                                        fontWeight: 400,
-                                    },
-                                    '&:focus': {
+    return (_jsx(Box, { component: motion.div, initial: { opacity: 0, y: -6 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.2, ease: 'easeOut' }, sx: { mb: 2 }, children: _jsxs(Box, { ref: containerRef, component: "form", onSubmit: function (e) {
+                e.preventDefault();
+                handleSubmit();
+            }, sx: {
+                display: 'block',
+                bgcolor: 'transparent',
+                borderRadius: 0,
+                border: 'none',
+                boxShadow: 'none',
+                overflow: 'hidden',
+            }, children: [_jsxs(Box, { sx: { display: 'flex', alignItems: 'flex-start', p: 1.5, gap: 1.5 }, children: [_jsx(Box, { sx: {
+                                width: 20,
+                                height: 20,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mt: 0.5,
+                            }, children: _jsx(Box, { sx: {
+                                    width: 16,
+                                    height: 16,
+                                    border: "2px solid ".concat(alpha(theme.palette.text.secondary, 0.4)),
+                                    borderRadius: '50%',
+                                    transition: 'all 0.2s ease',
+                                } }) }), _jsxs(Box, { sx: { flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }, children: [_jsx(Box, { ref: titleRef, contentEditable: true, suppressContentEditableWarning: true, onInput: handleTitleInput, onKeyDown: function (e) { return handleKeyDown(e, 'title'); }, "data-placeholder": "Task name", sx: {
+                                        minHeight: '28px',
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
                                         outline: 'none',
-                                    },
-                                } }), _jsx(Box, { ref: descriptionRef, contentEditable: true, suppressContentEditableWarning: true, onInput: handleDescriptionInput, onKeyDown: function (e) { return handleKeyDown(e, 'description'); }, "data-placeholder": "Description", sx: {
-                                    minHeight: '24px',
-                                    maxHeight: '150px',
-                                    overflowY: 'auto',
-                                    outline: 'none',
-                                    fontSize: '0.875rem',
-                                    lineHeight: 1.5,
-                                    color: theme.palette.text.secondary,
-                                    wordBreak: 'break-word',
-                                    '&:empty:before': {
-                                        content: 'attr(data-placeholder)',
-                                        color: theme.palette.text.secondary,
-                                        opacity: 0.5,
-                                        fontStyle: 'italic',
-                                    },
-                                    '&:focus': {
-                                        outline: 'none',
+                                        fontSize: '0.9375rem',
+                                        lineHeight: 1.5,
+                                        fontWeight: 500,
                                         color: theme.palette.text.primary,
-                                    },
-                                } }), (showQuickActions || dueDate || priority) && (_jsxs(Box, { sx: {
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 0.75,
-                                    flexWrap: 'wrap',
-                                    mt: 0.5,
-                                }, children: [isTodaySelected ? (_jsx(Chip, { icon: _jsx(TodayIcon, { sx: { fontSize: '0.875rem !important', color: '#4caf50 !important' } }), label: "Today", size: "small", onDelete: handleRemoveDate, sx: {
-                                            height: '28px',
-                                            fontSize: '0.8125rem',
-                                            backgroundColor: '#4caf50',
-                                            color: 'white',
-                                            fontWeight: 500,
-                                            '& .MuiChip-icon': {
-                                                color: 'white !important',
-                                            },
-                                            '& .MuiChip-deleteIcon': {
-                                                fontSize: '1rem',
+                                        wordBreak: 'break-word',
+                                        '&:empty:before': {
+                                            content: 'attr(data-placeholder)',
+                                            color: theme.palette.text.secondary,
+                                            opacity: 0.6,
+                                            fontWeight: 400,
+                                        },
+                                        '&:focus': {
+                                            outline: 'none',
+                                        },
+                                    } }), _jsx(Box, { ref: descriptionRef, contentEditable: true, suppressContentEditableWarning: true, onInput: handleDescriptionInput, onKeyDown: function (e) { return handleKeyDown(e, 'description'); }, "data-placeholder": "Description", sx: {
+                                        minHeight: '24px',
+                                        maxHeight: '150px',
+                                        overflowY: 'auto',
+                                        outline: 'none',
+                                        fontSize: '0.875rem',
+                                        lineHeight: 1.5,
+                                        color: theme.palette.text.secondary,
+                                        wordBreak: 'break-word',
+                                        '&:empty:before': {
+                                            content: 'attr(data-placeholder)',
+                                            color: theme.palette.text.secondary,
+                                            opacity: 0.5,
+                                            fontStyle: 'italic',
+                                        },
+                                        '&:focus': {
+                                            outline: 'none',
+                                            color: theme.palette.text.primary,
+                                        },
+                                    } }), (showQuickActions || dueDate || priority) && (_jsxs(Box, { sx: {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 0.75,
+                                        flexWrap: 'wrap',
+                                        mt: 0.5,
+                                    }, children: [isTodaySelected ? (_jsx(Chip, { icon: _jsx(TodayIcon, { sx: { fontSize: '0.875rem !important', color: '#4caf50 !important' } }), label: "Today", size: "small", onDelete: handleRemoveDate, sx: {
+                                                height: '28px',
+                                                fontSize: '0.8125rem',
+                                                backgroundColor: '#4caf50',
                                                 color: 'white',
-                                                '&:hover': {
-                                                    color: 'rgba(255,255,255,0.8)',
+                                                fontWeight: 500,
+                                                '& .MuiChip-icon': {
+                                                    color: 'white !important',
                                                 },
-                                            },
-                                        } })) : (_jsx(Button, { size: "small", startIcon: _jsx(TodayIcon, { sx: { fontSize: '0.875rem' } }), onClick: handleSetToday, sx: {
-                                            textTransform: 'none',
-                                            fontSize: '0.8125rem',
-                                            color: theme.palette.text.secondary,
-                                            minWidth: 'auto',
-                                            px: 1.25,
-                                            py: 0.5,
-                                            height: '28px',
-                                            borderRadius: '6px',
-                                            border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
-                                            backgroundColor: 'transparent',
-                                            '&:hover': {
-                                                backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                                                borderColor: alpha(theme.palette.divider, 0.8),
-                                            },
-                                        }, children: "Today" })), _jsx(Button, { size: "small", startIcon: _jsx(FlagIcon, { sx: { fontSize: '0.875rem' } }), onClick: function () {
-                                            // Cycle through priorities or open menu
-                                            if (!priority) {
-                                                handleSetPriority('medium');
-                                            }
-                                            else if (priority === 'medium') {
-                                                handleSetPriority('high');
-                                            }
-                                            else if (priority === 'high') {
-                                                handleSetPriority('low');
-                                            }
-                                            else {
-                                                handleSetPriority('medium');
-                                            }
-                                        }, sx: {
-                                            textTransform: 'none',
-                                            fontSize: '0.8125rem',
-                                            color: priority ? priorityColors[priority] : theme.palette.text.secondary,
-                                            minWidth: 'auto',
-                                            px: 1.25,
-                                            py: 0.5,
-                                            height: '28px',
-                                            borderRadius: '6px',
-                                            border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
-                                            backgroundColor: 'transparent',
-                                            '& .MuiButton-startIcon': {
+                                                '& .MuiChip-deleteIcon': {
+                                                    fontSize: '1rem',
+                                                    color: 'white',
+                                                    '&:hover': {
+                                                        color: 'rgba(255,255,255,0.8)',
+                                                    },
+                                                },
+                                            } })) : (_jsx(Button, { size: "small", startIcon: _jsx(TodayIcon, { sx: { fontSize: '0.875rem' } }), onClick: handleSetToday, sx: {
+                                                textTransform: 'none',
+                                                fontSize: '0.8125rem',
+                                                color: theme.palette.text.secondary,
+                                                minWidth: 'auto',
+                                                px: 1.25,
+                                                py: 0.5,
+                                                height: '28px',
+                                                borderRadius: '6px',
+                                                border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
+                                                backgroundColor: 'transparent',
+                                                '&:hover': {
+                                                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                                                    borderColor: alpha(theme.palette.divider, 0.8),
+                                                },
+                                            }, children: "Today" })), _jsx(Button, { size: "small", startIcon: _jsx(FlagIcon, { sx: { fontSize: '0.875rem' } }), onClick: function () {
+                                                // Cycle through priorities or open menu
+                                                if (!priority) {
+                                                    handleSetPriority('medium');
+                                                }
+                                                else if (priority === 'medium') {
+                                                    handleSetPriority('high');
+                                                }
+                                                else if (priority === 'high') {
+                                                    handleSetPriority('low');
+                                                }
+                                                else {
+                                                    handleSetPriority('medium');
+                                                }
+                                            }, sx: {
+                                                textTransform: 'none',
+                                                fontSize: '0.8125rem',
                                                 color: priority ? priorityColors[priority] : theme.palette.text.secondary,
-                                            },
-                                            '&:hover': {
-                                                backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                                                borderColor: alpha(theme.palette.divider, 0.8),
-                                            },
-                                        }, children: "Priority" }), priority && (_jsx(Chip, { icon: _jsx(FlagIcon, { sx: { fontSize: '0.875rem !important', color: "".concat(priorityColors[priority], " !important") } }), label: priorityLabels[priority], size: "small", onDelete: handleRemovePriority, sx: {
-                                            height: '28px',
-                                            fontSize: '0.8125rem',
-                                            backgroundColor: alpha(priorityColors[priority], 0.15),
-                                            color: priorityColors[priority],
-                                            fontWeight: 500,
-                                            '& .MuiChip-deleteIcon': {
-                                                fontSize: '1rem',
+                                                minWidth: 'auto',
+                                                px: 1.25,
+                                                py: 0.5,
+                                                height: '28px',
+                                                borderRadius: '6px',
+                                                border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
+                                                backgroundColor: 'transparent',
+                                                '& .MuiButton-startIcon': {
+                                                    color: priority ? priorityColors[priority] : theme.palette.text.secondary,
+                                                },
+                                                '&:hover': {
+                                                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                                                    borderColor: alpha(theme.palette.divider, 0.8),
+                                                },
+                                            }, children: "Priority" }), priority && (_jsx(Chip, { icon: _jsx(FlagIcon, { sx: { fontSize: '0.875rem !important', color: "".concat(priorityColors[priority], " !important") } }), label: priorityLabels[priority], size: "small", onDelete: handleRemovePriority, sx: {
+                                                height: '28px',
+                                                fontSize: '0.8125rem',
+                                                backgroundColor: alpha(priorityColors[priority], 0.15),
                                                 color: priorityColors[priority],
-                                            },
-                                        } })), _jsx(Button, { size: "small", startIcon: _jsx(RemindersIcon, { sx: { fontSize: '0.875rem' } }), sx: {
-                                            textTransform: 'none',
-                                            fontSize: '0.8125rem',
-                                            color: theme.palette.text.secondary,
-                                            minWidth: 'auto',
-                                            px: 1.25,
-                                            py: 0.5,
-                                            height: '28px',
-                                            borderRadius: '6px',
-                                            border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
-                                            backgroundColor: 'transparent',
-                                            '&:hover': {
-                                                backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                                                borderColor: alpha(theme.palette.divider, 0.8),
-                                            },
-                                        }, children: "Reminders" }), _jsx(IconButton, { size: "small", onClick: function (e) { return setMoreMenuAnchor(e.currentTarget); }, sx: {
-                                            width: '28px',
-                                            height: '28px',
-                                            color: theme.palette.text.secondary,
-                                            border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
-                                            borderRadius: '6px',
-                                            '&:hover': {
-                                                backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                                            },
-                                        }, children: _jsx(MoreVertIcon, { sx: { fontSize: '1rem' } }) })] })), _jsxs(Box, { sx: {
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 0.75,
-                                    mt: 0.5,
-                                    cursor: 'pointer',
-                                    '&:hover': {
-                                        opacity: 0.8,
-                                    },
-                                }, onClick: function (e) { return setCategoryMenuAnchor(e.currentTarget); }, children: [_jsx(InboxIcon, { sx: { fontSize: '1rem', color: theme.palette.text.secondary } }), _jsx(Box, { component: "span", sx: {
-                                            fontSize: '0.8125rem',
-                                            color: theme.palette.text.secondary,
-                                            fontWeight: 500,
-                                        }, children: (selectedCategory === null || selectedCategory === void 0 ? void 0 : selectedCategory.name) || 'Inbox' }), _jsx(KeyboardArrowDownIcon, { sx: { fontSize: '1rem', color: theme.palette.text.secondary } })] })] })] }), _jsxs(Menu, { anchorEl: categoryMenuAnchor, open: Boolean(categoryMenuAnchor), onClose: function () { return setCategoryMenuAnchor(null); }, PaperProps: {
-                    sx: {
-                        minWidth: 200,
-                        mt: 1,
-                    },
-                }, children: [_jsxs(MenuItem, { onClick: function () {
-                            setSelectedCategoryId(undefined);
-                            setCategoryMenuAnchor(null);
-                        }, selected: !selectedCategoryId, children: [_jsx(ListItemIcon, { children: _jsx(InboxIcon, { fontSize: "small" }) }), _jsx(ListItemText, { children: "Inbox" })] }), categories.map(function (category) { return (_jsx(MenuItem, { onClick: function () {
-                            setSelectedCategoryId(category.id);
-                            setCategoryMenuAnchor(null);
-                        }, selected: selectedCategoryId === category.id, children: _jsx(ListItemText, { children: category.name }) }, category.id)); })] }), _jsxs(Menu, { anchorEl: moreMenuAnchor, open: Boolean(moreMenuAnchor), onClose: function () { return setMoreMenuAnchor(null); }, PaperProps: {
-                    sx: {
-                        minWidth: 180,
-                        mt: 1,
-                    },
-                }, children: [_jsx(MenuItem, { onClick: function () { return setMoreMenuAnchor(null); }, children: _jsx(ListItemText, { children: "Add subtask" }) }), _jsx(MenuItem, { onClick: function () { return setMoreMenuAnchor(null); }, children: _jsx(ListItemText, { children: "Add comment" }) })] })] }));
+                                                fontWeight: 500,
+                                                '& .MuiChip-deleteIcon': {
+                                                    fontSize: '1rem',
+                                                    color: priorityColors[priority],
+                                                },
+                                            } })), _jsx(Button, { size: "small", startIcon: _jsx(RemindersIcon, { sx: { fontSize: '0.875rem' } }), sx: {
+                                                textTransform: 'none',
+                                                fontSize: '0.8125rem',
+                                                color: theme.palette.text.secondary,
+                                                minWidth: 'auto',
+                                                px: 1.25,
+                                                py: 0.5,
+                                                height: '28px',
+                                                borderRadius: '6px',
+                                                border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
+                                                backgroundColor: 'transparent',
+                                                '&:hover': {
+                                                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                                                    borderColor: alpha(theme.palette.divider, 0.8),
+                                                },
+                                            }, children: "Reminders" }), _jsx(IconButton, { size: "small", onClick: function (e) { return setMoreMenuAnchor(e.currentTarget); }, sx: {
+                                                width: '28px',
+                                                height: '28px',
+                                                color: theme.palette.text.secondary,
+                                                border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
+                                                borderRadius: '6px',
+                                                '&:hover': {
+                                                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                                                },
+                                            }, children: _jsx(MoreVertIcon, { sx: { fontSize: '1rem' } }) })] })), _jsxs(Box, { sx: {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 0.75,
+                                        mt: 0.5,
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            opacity: 0.8,
+                                        },
+                                    }, onClick: function (e) { return setCategoryMenuAnchor(e.currentTarget); }, children: [_jsx(InboxIcon, { sx: { fontSize: '1rem', color: theme.palette.text.secondary } }), _jsx(Box, { component: "span", sx: {
+                                                fontSize: '0.8125rem',
+                                                color: theme.palette.text.secondary,
+                                                fontWeight: 500,
+                                            }, children: (selectedCategory === null || selectedCategory === void 0 ? void 0 : selectedCategory.name) || 'Inbox' }), _jsx(KeyboardArrowDownIcon, { sx: { fontSize: '1rem', color: theme.palette.text.secondary } })] })] })] }), _jsxs(Menu, { anchorEl: categoryMenuAnchor, open: Boolean(categoryMenuAnchor), onClose: function () { return setCategoryMenuAnchor(null); }, PaperProps: {
+                        sx: {
+                            minWidth: 200,
+                            mt: 1,
+                        },
+                    }, children: [_jsxs(MenuItem, { onClick: function () {
+                                setSelectedCategoryId(undefined);
+                                setCategoryMenuAnchor(null);
+                            }, selected: !selectedCategoryId, children: [_jsx(ListItemIcon, { children: _jsx(InboxIcon, { fontSize: "small" }) }), _jsx(ListItemText, { children: "Inbox" })] }), categories.map(function (category) { return (_jsx(MenuItem, { onClick: function () {
+                                setSelectedCategoryId(category.id);
+                                setCategoryMenuAnchor(null);
+                            }, selected: selectedCategoryId === category.id, children: _jsx(ListItemText, { children: category.name }) }, category.id)); })] }), _jsxs(Menu, { anchorEl: moreMenuAnchor, open: Boolean(moreMenuAnchor), onClose: function () { return setMoreMenuAnchor(null); }, PaperProps: {
+                        sx: {
+                            minWidth: 180,
+                            mt: 1,
+                        },
+                    }, children: [_jsx(MenuItem, { onClick: function () { return setMoreMenuAnchor(null); }, children: _jsx(ListItemText, { children: "Add subtask" }) }), _jsx(MenuItem, { onClick: function () { return setMoreMenuAnchor(null); }, children: _jsx(ListItemText, { children: "Add comment" }) })] })] }) }));
 };
 export default InlineTaskEditor;

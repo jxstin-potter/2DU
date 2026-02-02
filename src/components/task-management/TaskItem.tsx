@@ -53,8 +53,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const [tempTime, setTempTime] = useState<Date | null>(null);
   const dateDisplayRef = useRef<HTMLDivElement>(null);
   const category = useMemo(() => {
-    return task.category ? categories.find(c => c.id === task.category) : undefined;
-  }, [task.category, categories]);
+    const categoryId = task.categoryId ?? task.category;
+    return categoryId ? categories.find(c => c.id === categoryId) : undefined;
+  }, [task.categoryId, task.category, categories]);
 
   const taskTags = useMemo(() => {
     return task.tags?.map(tagId => tags.find(t => t.id === tagId)).filter(Boolean) as Tag[] || [];

@@ -63,6 +63,9 @@ var AuthContext = createContext({
     logout: function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
         return [2 /*return*/];
     }); }); },
+    updateUserProfile: function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/];
+    }); }); },
 });
 // Custom hook to use the auth context
 export var useAuth = function () { return useContext(AuthContext); };
@@ -289,13 +292,33 @@ export var AuthProvider = function (_a) {
             }
         });
     }); }, []);
+    var updateUserProfile = useCallback(function (updates) { return __awaiter(void 0, void 0, void 0, function () {
+        var userRef, updated;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!(firebaseUser === null || firebaseUser === void 0 ? void 0 : firebaseUser.uid))
+                        return [2 /*return*/];
+                    userRef = doc(db, 'users', firebaseUser.uid);
+                    return [4 /*yield*/, setDoc(userRef, updates, { merge: true })];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, fetchUserData(firebaseUser)];
+                case 2:
+                    updated = _a.sent();
+                    setUser(updated);
+                    return [2 /*return*/];
+            }
+        });
+    }); }, [firebaseUser]);
     var contextValue = useMemo(function () { return ({
         user: user,
         loading: isLoading,
         login: login,
         signup: signup,
         logout: logout,
-    }); }, [user, isLoading, login, signup, logout]);
+        updateUserProfile: updateUserProfile,
+    }); }, [user, isLoading, login, signup, logout, updateUserProfile]);
     if (!isAuthReady) {
         return _jsx("div", { children: "Initializing authentication..." });
     }

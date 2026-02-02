@@ -64,9 +64,6 @@ export var taskDocumentToTask = function (doc) {
  */
 export var parseTimeFromText = function (text) {
     var _a;
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:65', message: 'parseTimeFromText called', data: { text: text, textLength: text.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A' }) }).catch(function () { });
-    // #endregion
     // Regex pattern matches: "at 3pm", "3pm", "3 pm", "3:00pm", "3:00 pm", "at 3:30pm", "Trash 3pm", etc.
     // Pattern breakdown:
     // - (?:^|\s) - start of string or whitespace (captured for removal)
@@ -79,13 +76,7 @@ export var parseTimeFromText = function (text) {
     // Note: "at" is optional - just typing "3pm" or "Trash 3pm" works fine
     var timePattern = /(?:^|\s)(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/gi;
     var match = timePattern.exec(text);
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:77', message: 'Regex match result', data: { matched: !!match, matchIndex: match === null || match === void 0 ? void 0 : match.index, matchLength: (_a = match === null || match === void 0 ? void 0 : match[0]) === null || _a === void 0 ? void 0 : _a.length, matchFull: match === null || match === void 0 ? void 0 : match[0], matchGroups: match === null || match === void 0 ? void 0 : match.slice(1) }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A' }) }).catch(function () { });
-    // #endregion
     if (!match) {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:80', message: 'No match found - returning null', data: { text: text }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'A' }) }).catch(function () { });
-        // #endregion
         return { time: null, cleanedText: text };
     }
     // Store match info for highlighting
@@ -95,14 +86,8 @@ export var parseTimeFromText = function (text) {
     var hour = parseInt(match[1], 10);
     var minutes = match[2] ? parseInt(match[2], 10) : 0;
     var period = match[3].toLowerCase();
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:83', message: 'Parsed time components', data: { hour: hour, minutes: minutes, period: period }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'E' }) }).catch(function () { });
-    // #endregion
     // Validate hour and minutes
     if (hour < 1 || hour > 12 || minutes < 0 || minutes > 59) {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:88', message: 'Invalid hour/minutes - returning null', data: { hour: hour, minutes: minutes }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'E' }) }).catch(function () { });
-        // #endregion
         return { time: null, cleanedText: text };
     }
     // Convert to 24-hour format
@@ -113,25 +98,13 @@ export var parseTimeFromText = function (text) {
     else if (period === 'am' && hour === 12) {
         hour24 = 0;
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:95', message: '24-hour conversion', data: { hour24: hour24, period: period, hour: hour }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'E' }) }).catch(function () { });
-    // #endregion
     // Create date for today at the parsed time
     var today = new Date();
     var time = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour24, minutes, 0);
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:102', message: 'Date created', data: { timeISO: time.toISOString(), timeString: time.toString(), hour24: hour24, minutes: minutes }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'E' }) }).catch(function () { });
-    // #endregion
     // Keep the original text - don't remove the time expression
     // Like Todoist, we keep "3pm" visible in the input but parse and set the time
     // The time text stays in the title so users can see what they typed
     var cleanedText = text;
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:133', message: 'Time parsed - keeping original text', data: { cleanedText: text, originalText: text, matchStart: matchStart, matchEnd: matchEnd, matchText: matchText }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'C' }) }).catch(function () { });
-    // #endregion
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'taskHelpers.ts:143', message: 'Returning result', data: { hasTime: !!time, timeISO: time === null || time === void 0 ? void 0 : time.toISOString(), cleanedText: cleanedText, originalText: text, matchInfo: { start: matchStart, end: matchEnd, text: matchText } }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'ALL' }) }).catch(function () { });
-    // #endregion
     return {
         time: time,
         cleanedText: cleanedText,

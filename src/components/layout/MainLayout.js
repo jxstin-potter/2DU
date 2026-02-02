@@ -138,10 +138,12 @@ var MainLayout = function (_a) {
     }); }, [sidebarWidth, theme]);
     return (_jsxs(Box, { sx: { display: 'flex', minHeight: '100vh' }, children: [_jsx(Sidebar, { isCollapsed: isSidebarCollapsed, onToggleCollapse: function () { return setIsSidebarCollapsed(function (prev) { return !prev; }); }, darkMode: mode === 'dark', toggleDarkMode: toggleDarkMode, onLogout: handleLogout, user: user, userName: user === null || user === void 0 ? void 0 : user.name, onOpenShortcutsHelp: handleOpenShortcutsHelp, onOpenSettings: handleOpenSettings }), _jsx(KeyboardShortcutsHelp, { open: isShortcutsModalOpen, onClose: handleCloseShortcutsHelp }), _jsx(SettingsModal, { open: isSettingsModalOpen, onClose: handleCloseSettings }), _jsx(SearchModal, { open: isSearchModalOpen, onClose: closeSearchModal }), _jsxs(Box, { component: "main", sx: mainContentStyles, children: [_jsx(AppBar, { position: "fixed", elevation: 0, sx: appBarStyles, children: _jsx(Toolbar, { children: isMobile && (_jsx(IconButton, { edge: "start", color: "inherit", "aria-label": "menu", sx: { mr: 2 }, onClick: function () { return setIsSidebarCollapsed(!isSidebarCollapsed); }, children: _jsx(MenuIcon, {}) })) }) }), _jsx(Box, { sx: {
                             mt: { xs: 7, sm: 8 },
-                            py: 3,
-                            px: { xs: 2, sm: 3 },
+                            pt: 0,
+                            pb: 3,
+                            pl: 0,
+                            pr: { xs: 2, sm: 3 },
                             display: 'flex',
-                            justifyContent: 'center',
+                            justifyContent: 'flex-start',
                             alignItems: 'flex-start',
                             width: '100%',
                             minHeight: 'calc(100vh - 64px)',
