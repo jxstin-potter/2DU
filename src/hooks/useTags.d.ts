@@ -5,8 +5,8 @@ export declare const useTags: () => {
     error: string;
     addTag: (tag: Omit<Tag, "id">) => Promise<{
         id: string;
-        color: string;
         name: string;
+        color: string;
     }>;
     updateTag: (id: string, updates: Partial<Tag>) => Promise<void>;
     deleteTag: (id: string) => Promise<void>;

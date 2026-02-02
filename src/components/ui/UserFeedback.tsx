@@ -105,9 +105,9 @@ const FeedbackContainer: React.FC<FeedbackContainerProps> = ({ feedbacks, onClos
     {} as Record<FeedbackType, Feedback[]>
   );
 
-  // Get the most recent feedback of each type
+  // Get the most recent feedback of each type (slice before sort to avoid mutating state-derived data)
   const latestFeedbacks = Object.values(groupedFeedbacks).map((group) =>
-    group.sort((a, b) => b.timestamp - a.timestamp)[0]
+    group.slice().sort((a, b) => b.timestamp - a.timestamp)[0]
   );
 
   return (

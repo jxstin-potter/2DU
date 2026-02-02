@@ -1,6 +1,6 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useCallback, useState } from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, useTheme, Typography, Tooltip, Menu, MenuItem, Avatar, Divider, Button, alpha, } from '@mui/material';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, useTheme, Typography, Tooltip, Menu, MenuItem, Avatar, Divider, alpha, } from '@mui/material';
 import { Inbox as InboxIcon, Event as EventIcon, LocalOffer as TagIcon, CheckCircle as CompletedIcon, Logout as LogoutIcon, Settings as SettingsIcon, Keyboard as KeyboardIcon, Add as AddIcon, Search as SearchIcon, HelpOutline as HelpIcon, } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../contexts/I18nContext';
@@ -126,19 +126,12 @@ var Sidebar = function (_a) {
                             px: 1.5,
                             minHeight: 40,
                             height: 40,
-                        }, children: [!isCollapsed ? (_jsxs(Button, { onClick: handleProfileMenuOpen, sx: {
+                        }, children: [!isCollapsed ? (_jsxs(Box, { sx: {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 0.75,
-                                    textTransform: 'none',
-                                    color: theme.palette.text.primary,
-                                    p: 0.5,
-                                    minWidth: 0,
                                     flex: 1,
-                                    justifyContent: 'flex-start',
-                                    '&:hover': {
-                                        backgroundColor: 'action.hover',
-                                    },
+                                    minWidth: 0,
                                 }, children: [_jsx(Avatar, { src: profilePicture, alt: displayName, sx: {
                                             width: 28,
                                             height: 28,
@@ -151,15 +144,14 @@ var Sidebar = function (_a) {
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
                                             whiteSpace: 'nowrap',
-                                        }, children: displayName }), _jsx(ThinArrowDownIcon, { sx: { fontSize: '1rem', ml: 0.01 } })] })) : (_jsx(IconButton, { onClick: handleProfileMenuOpen, sx: {
-                                    color: theme.palette.text.primary,
-                                    p: 0.5,
-                                }, children: _jsx(Avatar, { src: profilePicture, alt: displayName, sx: {
-                                        width: 28,
-                                        height: 28,
-                                        fontSize: '0.75rem',
-                                        bgcolor: theme.palette.primary.main,
-                                    }, children: displayName.charAt(0).toUpperCase() }) })), _jsx(IconButton, { onClick: onToggleCollapse, "aria-label": isCollapsed ? 'Open sidebar' : 'Close sidebar', "aria-controls": "sidebar", "aria-expanded": !isCollapsed, sx: {
+                                        }, children: displayName }), _jsx(IconButton, { onClick: handleProfileMenuOpen, "aria-label": t('sidebar.openProfileMenu'), size: "small", sx: {
+                                            color: theme.palette.text.primary,
+                                            p: 0.25,
+                                            ml: -0.25,
+                                            '&:hover': {
+                                                backgroundColor: 'action.hover',
+                                            },
+                                        }, children: _jsx(ThinArrowDownIcon, { sx: { fontSize: '1rem' } }) })] })) : null, _jsx(IconButton, { onClick: onToggleCollapse, "aria-label": isCollapsed ? 'Open sidebar' : 'Close sidebar', "aria-controls": "sidebar", "aria-expanded": !isCollapsed, sx: {
                                     ml: isCollapsed ? 0 : -0.5,
                                     mr: isCollapsed ? 0 : -0.5,
                                     color: theme.palette.text.secondary,

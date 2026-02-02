@@ -147,7 +147,6 @@ export const createTaskFromData = async (
       collection(db, COLLECTIONS.TASKS),
       finalData
     );
-    
     tasksLogger.info('Task created successfully', { taskId: docRef.id, userId });
     return docRef.id;
   } catch (error) {
@@ -414,7 +413,6 @@ export const subscribeToTasks = (
             id: doc.id,
             ...doc.data()
           })) as (TaskDocument & { id: string })[];
-
           // Update cache
           setCachedTasks(userId, filterParams, tasks);
 

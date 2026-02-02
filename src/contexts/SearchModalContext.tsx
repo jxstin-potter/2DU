@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react';
 
 const RECENTLY_VIEWED_KEY = 'search-recently-viewed';
 const MAX_RECENT_VIEWS = 8;
@@ -70,8 +70,13 @@ export const SearchModalProvider: React.FC<{ children: ReactNode }> = ({ childre
     });
   }, []);
 
+  const value = useMemo(
+    () => ({ isOpen, openModal, closeModal, recentViews, recordRecentView }),
+    [isOpen, openModal, closeModal, recentViews, recordRecentView]
+  );
+
   return (
-    <SearchModalContext.Provider value={{ isOpen, openModal, closeModal, recentViews, recordRecentView }}>
+    <SearchModalContext.Provider value={value}>
       {children}
     </SearchModalContext.Provider>
   );

@@ -672,6 +672,9 @@ export var updateTask = function (taskId, taskData, userId) { return __awaiter(v
                 if (taskData.categoryId !== undefined) {
                     cleanedData.categoryId = taskData.categoryId;
                 }
+                if (taskData.order !== undefined) {
+                    cleanedData.order = taskData.order;
+                }
                 if (taskData.tags !== undefined) {
                     cleanedData.tags = taskData.tags;
                 }
@@ -690,10 +693,53 @@ export var updateTask = function (taskId, taskData, userId) { return __awaiter(v
     });
 }); };
 /**
+ * Batch update task order for reordering. Uses Firestore writeBatch.
+ */
+export var reorderTasks = function (userId, updates) { return __awaiter(void 0, void 0, void 0, function () {
+    var batch, _i, updates_2, _a, taskId, order, taskRef, error_10;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                validateUserId(userId);
+                if (!updates.length)
+                    return [2 /*return*/];
+                return [4 /*yield*/, Promise.all(updates.map(function (_a) {
+                        var taskId = _a.taskId;
+                        return verifyTaskOwnership(taskId, userId);
+                    }))];
+            case 1:
+                _b.sent();
+                batch = writeBatch(db);
+                for (_i = 0, updates_2 = updates; _i < updates_2.length; _i++) {
+                    _a = updates_2[_i], taskId = _a.taskId, order = _a.order;
+                    taskRef = doc(db, COLLECTIONS.TASKS, taskId);
+                    batch.update(taskRef, { order: order, updatedAt: serverTimestamp() });
+                }
+                return [4 /*yield*/, batch.commit()];
+            case 2:
+                _b.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_10 = _b.sent();
+                if (error_10 instanceof FirestoreError) {
+                    handleFirestoreError(error_10, 'reorder tasks', { userId: userId, count: updates.length });
+                }
+                tasksLogger.error('Failed to reorder tasks', {
+                    userId: userId,
+                    count: updates.length,
+                    error: error_10 instanceof Error ? error_10.message : 'Unknown error',
+                });
+                throw new Error('Failed to update task order.');
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+/**
  * Delete a task
  */
 export var deleteTask = function (taskId, userId) { return __awaiter(void 0, void 0, void 0, function () {
-    var error_10;
+    var error_11;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -708,14 +754,14 @@ export var deleteTask = function (taskId, userId) { return __awaiter(void 0, voi
                 _a.sent();
                 return [3 /*break*/, 4];
             case 3:
-                error_10 = _a.sent();
-                if (error_10 instanceof FirestoreError) {
-                    handleFirestoreError(error_10, 'deleting task', { taskId: taskId, userId: userId });
+                error_11 = _a.sent();
+                if (error_11 instanceof FirestoreError) {
+                    handleFirestoreError(error_11, 'deleting task', { taskId: taskId, userId: userId });
                 }
                 tasksLogger.error('Failed to delete task', {
                     taskId: taskId,
                     userId: userId,
-                    error: error_10 instanceof Error ? error_10.message : 'Unknown error'
+                    error: error_11 instanceof Error ? error_11.message : 'Unknown error'
                 });
                 throw new Error('Failed to delete task. Please try again.');
             case 4: return [2 /*return*/];

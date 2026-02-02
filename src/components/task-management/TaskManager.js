@@ -55,12 +55,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, CircularProgress, Container, } from '@mui/material';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTaskModal } from '../../contexts/TaskModalContext';
-import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../../services/tasksService';
+import { subscribeToTasks, createTaskFromData, updateTask, deleteTask, reorderTasks } from '../../services/tasksService';
 import { taskDocumentToTask, taskToTaskDocument } from '../../utils/taskHelpers';
 import TaskModal from '../modals/TaskModal';
 import TaskList from './TaskList';
@@ -75,6 +75,7 @@ var TaskManager = function () {
     var _g = useState(null), error = _g[0], setError = _g[1];
     var _h = useState(null), selectedTask = _h[0], setSelectedTask = _h[1];
     var _j = useState(null), selectedCategory = _j[0], setSelectedCategory = _j[1];
+    var _k = useState(null), justAddedTaskId = _k[0], setJustAddedTaskId = _k[1];
     // Subscribe to tasks using real-time listener (simplified approach)
     useEffect(function () {
         if (!(user === null || user === void 0 ? void 0 : user.id)) {
@@ -244,56 +245,57 @@ var TaskManager = function () {
             }
         });
     }); };
-    var handleDragEnd = function (result) { return __awaiter(void 0, void 0, void 0, function () {
-        var items, reorderedItem, updatedTasks, _a, doc, updateDoc, collection, db, _i, updatedTasks_1, task, taskRef, error_5;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    if (!result.destination || !(user === null || user === void 0 ? void 0 : user.id))
-                        return [2 /*return*/];
-                    items = Array.from(tasks);
-                    reorderedItem = items.splice(result.source.index, 1)[0];
-                    items.splice(result.destination.index, 0, reorderedItem);
-                    updatedTasks = items.map(function (task, index) { return (__assign(__assign({}, task), { order: index })); });
-                    setTasks(updatedTasks);
-                    _b.label = 1;
-                case 1:
-                    _b.trys.push([1, 8, , 9]);
-                    return [4 /*yield*/, import('firebase/firestore')];
-                case 2:
-                    _a = _b.sent(), doc = _a.doc, updateDoc = _a.updateDoc, collection = _a.collection;
-                    return [4 /*yield*/, import('../../firebase')];
-                case 3:
-                    db = (_b.sent()).db;
-                    _i = 0, updatedTasks_1 = updatedTasks;
-                    _b.label = 4;
-                case 4:
-                    if (!(_i < updatedTasks_1.length)) return [3 /*break*/, 7];
-                    task = updatedTasks_1[_i];
-                    taskRef = doc(collection(db, 'tasks'), task.id);
-                    return [4 /*yield*/, updateDoc(taskRef, { order: task.order })];
-                case 5:
-                    _b.sent();
-                    _b.label = 6;
-                case 6:
-                    _i++;
-                    return [3 /*break*/, 4];
-                case 7: return [3 /*break*/, 9];
-                case 8:
-                    error_5 = _b.sent();
-                    setError('Failed to update task order');
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
-            }
-        });
-    }); };
     var filteredTasks = useMemo(function () {
         if (!selectedCategory)
             return tasks;
         return tasks.filter(function (task) { return task.categoryId === selectedCategory; });
     }, [tasks, selectedCategory]);
+    var sortByOrder = useCallback(function (a, b) {
+        var _a, _b;
+        var orderA = (_a = a.order) !== null && _a !== void 0 ? _a : 999999;
+        var orderB = (_b = b.order) !== null && _b !== void 0 ? _b : 999999;
+        if (orderA !== orderB)
+            return orderA - orderB;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }, []);
+    var displayTasks = useMemo(function () { return __spreadArray([], filteredTasks, true).sort(sortByOrder); }, [filteredTasks, sortByOrder]);
+    var handleReorder = useCallback(function (fromIndex, toIndex) { return __awaiter(void 0, void 0, void 0, function () {
+        var prevTasks, items, reorderedItem, reorderedList, updatedTasks, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    if (!(user === null || user === void 0 ? void 0 : user.id))
+                        return [2 /*return*/];
+                    if (fromIndex === toIndex)
+                        return [2 /*return*/];
+                    prevTasks = tasks;
+                    items = __spreadArray([], displayTasks, true);
+                    reorderedItem = items.splice(fromIndex, 1)[0];
+                    items.splice(toIndex, 0, reorderedItem);
+                    reorderedList = items.map(function (task, index) { return (__assign(__assign({}, task), { order: index })); });
+                    updatedTasks = tasks.map(function (t) {
+                        var r = reorderedList.find(function (x) { return x.id === t.id; });
+                        return r !== undefined ? __assign(__assign({}, t), { order: r.order }) : t;
+                    });
+                    setTasks(updatedTasks);
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, reorderTasks(user.id, reorderedList.map(function (t) { return ({ taskId: t.id, order: t.order }); }))];
+                case 2:
+                    _b.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    _a = _b.sent();
+                    setError('Failed to update task order');
+                    setTasks(prevTasks);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    }); }, [displayTasks, tasks, user === null || user === void 0 ? void 0 : user.id]);
     var handleAddComment = function (taskId, comment) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, doc, updateDoc, Timestamp_1, db, collection, taskRef, newComment, task, updatedComments, error_6;
+        var _a, doc, updateDoc, Timestamp_1, db, collection, taskRef, newComment, task, updatedComments, error_5;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -332,15 +334,15 @@ var TaskManager = function () {
                     _b.sent();
                     return [3 /*break*/, 7];
                 case 6:
-                    error_6 = _b.sent();
-                    setError(error_6 instanceof Error ? error_6.message : 'Failed to add comment');
+                    error_5 = _b.sent();
+                    setError(error_5 instanceof Error ? error_5.message : 'Failed to add comment');
                     return [3 /*break*/, 7];
                 case 7: return [2 /*return*/];
             }
         });
     }); };
     var handleAddSubtask = function (taskId, subtaskTitle) { return __awaiter(void 0, void 0, void 0, function () {
-        var Timestamp_2, task, newSubtask, updatedSubtasks, error_7;
+        var Timestamp_2, task, newSubtask, updatedSubtasks, error_6;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -372,15 +374,15 @@ var TaskManager = function () {
                     _a.sent();
                     return [3 /*break*/, 5];
                 case 4:
-                    error_7 = _a.sent();
-                    setError(error_7 instanceof Error ? error_7.message : 'Failed to add subtask');
+                    error_6 = _a.sent();
+                    setError(error_6 instanceof Error ? error_6.message : 'Failed to add subtask');
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
         });
     }); };
     var handleToggleSubtask = function (taskId, subtaskId) { return __awaiter(void 0, void 0, void 0, function () {
-        var Timestamp_3, task, updatedSubtasks, error_8;
+        var Timestamp_3, task, updatedSubtasks, error_7;
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -409,15 +411,15 @@ var TaskManager = function () {
                     _b.sent();
                     return [3 /*break*/, 5];
                 case 4:
-                    error_8 = _b.sent();
-                    setError(error_8 instanceof Error ? error_8.message : 'Failed to toggle subtask');
+                    error_7 = _b.sent();
+                    setError(error_7 instanceof Error ? error_7.message : 'Failed to toggle subtask');
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
         });
     }); };
     var handleCreateTask = function (taskData) { return __awaiter(void 0, void 0, void 0, function () {
-        var taskDoc, error_9, errorMessage;
+        var taskDoc, newTaskId, error_8, errorMessage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -429,23 +431,23 @@ var TaskManager = function () {
                         throw new Error('Please log in to create tasks');
                     }
                     taskDoc = taskToTaskDocument(__assign(__assign({}, taskData), { userId: user.id, completed: false, order: tasks.length }));
-                    // Use simplified service function
                     return [4 /*yield*/, createTaskFromData(user.id, taskDoc)];
                 case 1:
-                    // Use simplified service function
-                    _a.sent();
+                    newTaskId = _a.sent();
+                    setJustAddedTaskId(newTaskId);
+                    setTimeout(function () { return setJustAddedTaskId(null); }, 600);
                     // Tasks will automatically update via the real-time subscription
                     // Close the modal after successful creation
                     setSelectedTask(null);
                     closeTaskModal();
                     return [3 /*break*/, 3];
                 case 2:
-                    error_9 = _a.sent();
-                    errorMessage = error_9 instanceof Error ? error_9.message : 'Failed to create task';
+                    error_8 = _a.sent();
+                    errorMessage = error_8 instanceof Error ? error_8.message : 'Failed to create task';
                     setError(errorMessage);
-                    console.error('Failed to create task:', error_9);
+                    console.error('Failed to create task:', error_8);
                     // Re-throw the error so the caller can handle it
-                    throw error_9;
+                    throw error_8;
                 case 3: return [2 /*return*/];
             }
         });
@@ -456,7 +458,10 @@ var TaskManager = function () {
     if (loading) {
         return (_jsx(Box, { display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px", children: _jsx(CircularProgress, {}) }));
     }
-    return (_jsxs(Container, { maxWidth: "lg", children: [_jsx(DragDropContext, { onDragEnd: handleDragEnd, children: _jsx(TaskList, { tasks: filteredTasks, loading: loading, error: error, onTaskAction: {
+    return (_jsxs(Container, { maxWidth: "lg", children: [_jsx(DragDropContext, { onDragEnd: function (result) {
+                    if (result.destination)
+                        handleReorder(result.source.index, result.destination.index);
+                }, children: _jsx(TaskList, { tasks: displayTasks, loading: loading, error: error, justAddedTaskId: justAddedTaskId, draggable: true, onReorder: handleReorder, onTaskAction: {
                         toggle: handleTaskToggle,
                         delete: handleTaskDelete,
                         update: function (taskId, updates) { return __awaiter(void 0, void 0, void 0, function () {

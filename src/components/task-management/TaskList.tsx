@@ -146,7 +146,7 @@ const TaskList: React.FC<TaskListProps> = ({
         case 'title':
           return a.title.localeCompare(b.title);
         case 'createdAt':
-          return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
+          return new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime();
         default:
           return 0;
       }

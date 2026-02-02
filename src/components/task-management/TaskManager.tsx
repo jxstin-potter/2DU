@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -13,7 +13,7 @@ import { useTaskModal } from '../../contexts/TaskModalContext';
 import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../../services/tasksService';
 import { taskDocumentToTask, taskToTaskDocument } from '../../utils/taskHelpers';
 import TaskModal from '../modals/TaskModal';
-import { Task, Category, Tag, Comment } from '../../types';
+import { Task, Category, Tag } from '../../types';
 import AddIcon from '@mui/icons-material/Add';
 import TaskList from './TaskList';
 import { DEFAULT_TAGS } from '../../constants/defaultTags';
@@ -29,17 +29,20 @@ const TaskManager: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
+  const lastAppliedTaskCountRef = useRef<number>(0);
 
   // Subscribe to tasks using real-time listener (simplified approach)
   useEffect(() => {
     if (!user?.id) {
       setTasks([]);
       setLoading(false);
+      lastAppliedTaskCountRef.current = 0;
       return;
     }
 
     setLoading(true);
     setError(null);
+    lastAppliedTaskCountRef.current = 0;
 
     // Use real-time subscription - automatically updates when tasks change
     const unsubscribe = subscribeToTasks(
@@ -47,6 +50,11 @@ const TaskManager: React.FC = () => {
       { completionStatus: 'all', sortBy: 'creationDate', sortOrder: 'desc' },
       (result) => {
         try {
+          const count = result.tasks.length;
+          if (count === 0 && lastAppliedTaskCountRef.current > 0) {
+            return;
+          }
+          lastAppliedTaskCountRef.current = count;
           // Convert TaskDocument to Task using helper (with error handling per task)
           const convertedTasks = result.tasks.map((taskDoc: any) => {
             try {
@@ -373,9 +381,7 @@ const TaskManager: React.FC = () => {
               update: async (taskId: string, updates: Partial<Task>) => {
                 await handleTaskUpdate(taskId, updates);
               },
-              edit: async (task: Task) => {
-                setSelectedTask(task);
-              },
+              edit: async (task: Task) => { handleTaskSelect(task); },
             }}
             onCreateTask={handleCreateTask}
             tags={tags}

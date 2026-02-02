@@ -5,10 +5,10 @@ export declare const useCategories: () => {
     error: string;
     addCategory: (category: Omit<Category, "id">) => Promise<{
         id: string;
-        color: string;
-        order: number;
         name: string;
         userId: string;
+        order: number;
+        color: string;
     }>;
     updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;

@@ -367,25 +367,25 @@ export const useTasks = () => {
     }
   }, [user]);
 
-  const editTask = async (task: Partial<Task> & { id: string }) => {
+  const editTask = useCallback(async (task: Partial<Task> & { id: string }) => {
     if (!user) {
       setTaskError('Please log in to edit tasks', 'AUTH_REQUIRED');
       return;
     }
 
-    tasksHookLogger.info('Editing task', { 
-      userId: user.id, 
+    tasksHookLogger.info('Editing task', {
+      userId: user.id,
       taskId: task.id,
-      updates: task 
+      updates: task
     });
-    
+
     try {
       clearError();
       const firestoreTask = convertAppTaskToFirestoreTask(task);
       await updateTask(task.id, firestoreTask, user.id);
-      tasksHookLogger.info('Task updated successfully', { 
-        userId: user.id, 
-        taskId: task.id 
+      tasksHookLogger.info('Task updated successfully', {
+        userId: user.id,
+        taskId: task.id
       });
     } catch (err) {
       setTaskError(
@@ -394,7 +394,7 @@ export const useTasks = () => {
         { error: err, taskId: task.id, updates: task }
       );
     }
-  };
+  }, [user]);
 
   return useMemo(() => ({
     tasks,

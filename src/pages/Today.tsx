@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Container, Box, useTheme, Snackbar, Button, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +15,7 @@ import { DEFAULT_TAGS } from '../constants/defaultTags';
 const Today: React.FC = () => {
   const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
-  const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
+  const { isOpen: isTaskModalOpen, openModal: openTaskModal, closeModal: closeTaskModal } = useTaskModal();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
@@ -25,23 +25,31 @@ const Today: React.FC = () => {
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
   const [completedSnackbarOpen, setCompletedSnackbarOpen] = useState(false);
   const [completedTaskIdForUndo, setCompletedTaskIdForUndo] = useState<string | null>(null);
+  const lastAppliedTaskCountRef = useRef<number>(0);
 
   // Subscribe to tasks
   useEffect(() => {
     if (!user?.id) {
       setTasks([]);
       setLoading(false);
+      lastAppliedTaskCountRef.current = 0;
       return;
     }
 
     setLoading(true);
     setError(null);
+    lastAppliedTaskCountRef.current = 0;
 
     const unsubscribe = subscribeToTasks(
       user.id,
       { completionStatus: 'all', sortBy: 'creationDate', sortOrder: 'desc' },
       (result) => {
         try {
+          const count = result.tasks.length;
+          if (count === 0 && lastAppliedTaskCountRef.current > 0) {
+            return;
+          }
+          lastAppliedTaskCountRef.current = count;
           const convertedTasks = result.tasks.map((taskDoc: any) => {
             try {
               return taskDocumentToTask(taskDoc);
@@ -241,6 +249,7 @@ const Today: React.FC = () => {
               update: handleTaskUpdate,
               edit: (task: Task) => {
                 setSelectedTask(task);
+                openTaskModal();
               },
             }}
             onCreateTask={handleCreateTask}

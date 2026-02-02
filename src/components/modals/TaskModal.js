@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Dialog, DialogContent, Button, TextField, FormControl, InputLabel, Select, MenuItem, Box, Stack, Alert, CircularProgress, useTheme, alpha, } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -52,36 +52,16 @@ var TaskModal = function (_a) {
     var _h = useState(false), isSubmitting = _h[0], setIsSubmitting = _h[1];
     var _j = useState(null), timeMatchInfo = _j[0], setTimeMatchInfo = _j[1];
     var titleInputRef = useRef(null);
-    // Track title changes for debugging
     useEffect(function () {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:48', message: 'Title state changed', data: { title: title, titleLength: title.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'F' }) }).catch(function () { });
-        // #endregion
-    }, [title]);
-    // Track dueDate changes for debugging
-    useEffect(function () {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:54', message: 'DueDate state changed', data: { dueDate: dueDate === null || dueDate === void 0 ? void 0 : dueDate.toISOString(), hasDueDate: !!dueDate }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'F' }) }).catch(function () { });
-        // #endregion
-    }, [dueDate]);
-    useEffect(function () {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:62', message: 'useEffect initialTask/open triggered', data: { hasInitialTask: !!initialTask, open: open, initialTaskId: initialTask === null || initialTask === void 0 ? void 0 : initialTask.id }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'G' }) }).catch(function () { });
-        // #endregion
         if (initialTask) {
-            // #region agent log
-            fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:66', message: 'Setting form from initialTask', data: { title: initialTask.title }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'G' }) }).catch(function () { });
-            // #endregion
             setTitle(initialTask.title);
             setDescription(initialTask.description || '');
             setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
             setPriority(initialTask.priority || '');
         }
         else {
-            // #region agent log
-            fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:69', message: 'Calling resetForm - this will clear title', data: { currentTitle: title }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'G' }) }).catch(function () { });
-            // #endregion
             resetForm();
+            setDueDate(new Date());
         }
     }, [initialTask, open]);
     // Auto-focus the title input when modal opens (backup mechanism)
@@ -96,10 +76,29 @@ var TaskModal = function (_a) {
             });
         }
     }, [open]);
+    // Warn on reload/close when modal is open and form has unsaved changes
+    var isDirty = useMemo(function () {
+        if (!open)
+            return false;
+        if (initialTask) {
+            var descMatch = (initialTask.description || '') === description;
+            var dateMatch = (initialTask.dueDate == null && dueDate == null) ||
+                (initialTask.dueDate != null && dueDate != null && new Date(initialTask.dueDate).getTime() === dueDate.getTime());
+            return title !== initialTask.title || !descMatch || !dateMatch || (initialTask.priority || '') !== priority;
+        }
+        return title.trim() !== '' || description.trim() !== '' || priority !== '';
+    }, [open, initialTask, title, description, dueDate, priority]);
+    useEffect(function () {
+        var handleBeforeUnload = function (e) {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return function () { return window.removeEventListener('beforeunload', handleBeforeUnload); };
+    }, [isDirty]);
     var resetForm = function () {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:85', message: 'resetForm called', data: { currentTitle: title }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'G' }) }).catch(function () { });
-        // #endregion
         setTitle('');
         setDescription('');
         setDueDate(null);
@@ -122,12 +121,7 @@ var TaskModal = function (_a) {
             switch (_c.label) {
                 case 0:
                     e.preventDefault();
-                    // #region agent log
-                    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:118', message: 'handleSubmit called', data: { title: title, titleLength: title.length, titleTrimmed: title.trim(), hasDueDate: !!dueDate, priority: priority, isSubmitting: isSubmitting }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H3' }) }).catch(function () { });
                     currentTitle = ((_a = titleInputRef.current) === null || _a === void 0 ? void 0 : _a.textContent) || title;
-                    // #region agent log
-                    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:123', message: 'Reading title from contentEditable', data: { currentTitle: currentTitle, currentTitleLength: currentTitle.length, stateTitle: title, stateTitleLength: title.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H3' }) }).catch(function () { });
-                    // #endregion
                     // Update title state if it differs from contentEditable
                     if (currentTitle !== title) {
                         setTitle(currentTitle);
@@ -138,9 +132,6 @@ var TaskModal = function (_a) {
                     // Wait a tick for state to update, then validate
                     _c.sent();
                     if (!validateForm() || isSubmitting) {
-                        // #region agent log
-                        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:132', message: 'Form validation failed or submitting', data: { title: title, titleTrimmed: title.trim(), isSubmitting: isSubmitting }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H3' }) }).catch(function () { });
-                        // #endregion
                         return [2 /*return*/];
                     }
                     _c.label = 2;
@@ -157,9 +148,6 @@ var TaskModal = function (_a) {
                         createdAt: (initialTask === null || initialTask === void 0 ? void 0 : initialTask.createdAt) || new Date(),
                         updatedAt: new Date(),
                     };
-                    // #region agent log
-                    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:147', message: 'Submitting task data', data: { taskData: JSON.stringify(taskData) }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H3' }) }).catch(function () { });
-                    // #endregion
                     return [4 /*yield*/, onSubmit(taskData)];
                 case 3:
                     // #endregion
@@ -169,9 +157,6 @@ var TaskModal = function (_a) {
                     return [3 /*break*/, 6];
                 case 4:
                     error_1 = _c.sent();
-                    // #region agent log
-                    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:153', message: 'Submit error', data: { error: error_1 instanceof Error ? error_1.message : String(error_1) }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'H3' }) }).catch(function () { });
-                    // #endregion
                     setErrors({
                         submit: 'Failed to save task. Please try again.'
                     });
@@ -228,14 +213,8 @@ var TaskModal = function (_a) {
                                     color: theme.palette.error.main,
                                 },
                             }, children: errors.submit })), _jsxs(Box, { sx: { display: 'flex', gap: 1.5 }, children: [_jsx(HighlightedTimeInput, { inputRef: titleInputRef, autoFocus: true, label: "Task name", value: title, onChange: function (inputValue) {
-                                        // #region agent log
-                                        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:214', message: 'onChange handler called', data: { inputValue: inputValue, inputLength: inputValue.length }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'D' }) }).catch(function () { });
-                                        // #endregion
                                         setTitle(inputValue);
                                     }, onTimeParsed: function (time, matchInfo) {
-                                        // #region agent log
-                                        fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'TaskModal.tsx:220', message: 'Time parsed callback', data: { hasTime: !!time, timeISO: time === null || time === void 0 ? void 0 : time.toISOString(), matchInfo: matchInfo }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run2', hypothesisId: 'B' }) }).catch(function () { });
-                                        // #endregion
                                         setTimeMatchInfo(matchInfo);
                                         if (time) {
                                             setDueDate(time);

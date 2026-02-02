@@ -46,38 +46,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeMatchInfo, setTimeMatchInfo] = useState<{ start: number; end: number; text: string } | null>(null);
   const titleInputRef = useRef<HTMLDivElement>(null);
-  
-  // Track title changes for debugging
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:48',message:'Title state changed',data:{title,titleLength:title.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
-  }, [title]);
-  
-  // Track dueDate changes for debugging
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:54',message:'DueDate state changed',data:{dueDate:dueDate?.toISOString(),hasDueDate:!!dueDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
-  }, [dueDate]);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:62',message:'useEffect initialTask/open triggered',data:{hasInitialTask:!!initialTask,open,initialTaskId:initialTask?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
-    // #endregion
-    
     if (initialTask) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:66',message:'Setting form from initialTask',data:{title:initialTask.title},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
-      // #endregion
       setTitle(initialTask.title);
       setDescription(initialTask.description || '');
       setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
       setPriority(initialTask.priority || '');
     } else {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:69',message:'Calling resetForm - this will clear title',data:{currentTitle:title},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
-      // #endregion
       resetForm();
       setDueDate(new Date());
     }
@@ -119,9 +95,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
   }, [isDirty]);
 
   const resetForm = () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:85',message:'resetForm called',data:{currentTitle:title},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
-    // #endregion
     setTitle('');
     setDescription('');
     setDueDate(null);
@@ -141,18 +114,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:118',message:'handleSubmit called',data:{title,titleLength:title.length,titleTrimmed:title.trim(),hasDueDate:!!dueDate,priority,isSubmitting},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
-    
+
     // Ensure we have the latest title from contentEditable
     const currentTitle = titleInputRef.current?.textContent || title;
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:123',message:'Reading title from contentEditable',data:{currentTitle,currentTitleLength:currentTitle.length,stateTitle:title,stateTitleLength:title.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
-    
+
     // Update title state if it differs from contentEditable
     if (currentTitle !== title) {
       setTitle(currentTitle);
@@ -162,9 +127,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
     await new Promise(resolve => setTimeout(resolve, 0));
     
     if (!validateForm() || isSubmitting) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:132',message:'Form validation failed or submitting',data:{title,titleTrimmed:title.trim(),isSubmitting},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
-      // #endregion
       return;
     }
 
@@ -181,17 +143,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
         updatedAt: new Date(),
       };
 
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:147',message:'Submitting task data',data:{taskData:JSON.stringify(taskData)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
-      // #endregion
-
       await onSubmit(taskData);
       resetForm();
       onClose();
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:153',message:'Submit error',data:{error:error instanceof Error ? error.message : String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H3'})}).catch(()=>{});
-      // #endregion
       setErrors({
         submit: 'Failed to save task. Please try again.'
       });
@@ -270,15 +225,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 label="Task name"
                 value={title}
                 onChange={(inputValue) => {
-                  // #region agent log
-                  fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:214',message:'onChange handler called',data:{inputValue,inputLength:inputValue.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-                  // #endregion
                   setTitle(inputValue);
                 }}
                 onTimeParsed={(time, matchInfo) => {
-                  // #region agent log
-                  fetch('http://127.0.0.1:7246/ingest/34247929-af1b-4eac-ae69-aa4ba0eeeaf9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'TaskModal.tsx:220',message:'Time parsed callback',data:{hasTime:!!time,timeISO:time?.toISOString(),matchInfo},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-                  // #endregion
                   setTimeMatchInfo(matchInfo);
                   if (time) {
                     setDueDate(time);
