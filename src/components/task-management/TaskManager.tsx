@@ -1,22 +1,20 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
-  Typography,
   CircularProgress,
-  IconButton,
   Container,
-  Button,
 } from '@mui/material';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTaskModal } from '../../contexts/TaskModalContext';
-import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../../services/tasksService';
-import { taskDocumentToTask, taskToTaskDocument } from '../../utils/taskHelpers';
+import { subscribeToTasks, createTaskFromData, updateTask, deleteTask, updateTaskOrder } from '../../services/tasksService';
+import { taskDocumentToTask, taskToTaskDocument, computeNewOrder } from '../../utils/taskHelpers';
 import TaskModal from '../modals/TaskModal';
 import { Task, Category, Tag } from '../../types';
-import AddIcon from '@mui/icons-material/Add';
 import TaskList from './TaskList';
 import { DEFAULT_TAGS } from '../../constants/defaultTags';
+
+export type SortMode = 'manual' | 'dueDate' | 'title' | 'createdAt';
 
 const TaskManager: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -29,9 +27,12 @@ const TaskManager: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>('createdAt');
   const lastAppliedTaskCountRef = useRef<number>(0);
 
-  // Subscribe to tasks using real-time listener (simplified approach)
+  const subscriptionSortBy = sortMode === 'manual' ? 'manual' : sortMode === 'dueDate' ? 'dueDate' : 'creationDate';
+
+  // Subscribe to tasks using real-time listener; sort mode drives query sort
   useEffect(() => {
     if (!user?.id) {
       setTasks([]);
@@ -44,10 +45,9 @@ const TaskManager: React.FC = () => {
     setError(null);
     lastAppliedTaskCountRef.current = 0;
 
-    // Use real-time subscription - automatically updates when tasks change
     const unsubscribe = subscribeToTasks(
       user.id,
-      { completionStatus: 'all', sortBy: 'creationDate', sortOrder: 'desc' },
+      { completionStatus: 'all', sortBy: subscriptionSortBy, sortOrder: 'desc' },
       (result) => {
         try {
           const count = result.tasks.length;
@@ -112,7 +112,7 @@ const TaskManager: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [user?.id]);
+  }, [user?.id, subscriptionSortBy]);
 
   const handleTaskSelect = (task: Task) => {
     setSelectedTask(task);
@@ -175,29 +175,25 @@ const TaskManager: React.FC = () => {
   };
 
   const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination || !user?.id) return;
+    if (!result.destination || !user?.id || sortMode !== 'manual') return;
+    const { source, destination } = result;
+    if (source.index === destination.index) return;
 
-    const items = Array.from(tasks);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const displayTasks = filteredTasks;
+    const movedTask = displayTasks[source.index];
+    if (!movedTask) return;
 
-    // Update the order of all tasks
-    const updatedTasks = items.map((task, index) => ({
-      ...task,
-      order: index
-    }));
+    const before = displayTasks[destination.index - 1];
+    const after = displayTasks[destination.index + 1];
+    const newOrder = computeNewOrder(before, after);
 
-    setTasks(updatedTasks);
+    setTasks((prev) => {
+      const updated = prev.map((t) => (t.id === movedTask.id ? { ...t, order: newOrder } : t));
+      return [...updated].sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+    });
 
-    // Update the order in the database
     try {
-      const { doc, updateDoc, collection } = await import('firebase/firestore');
-      const { db } = await import('../../firebase');
-      
-      for (const task of updatedTasks) {
-        const taskRef = doc(collection(db, 'tasks'), task.id);
-        await updateDoc(taskRef, { order: task.order });
-      }
+      await updateTaskOrder(movedTask.id, newOrder, user.id);
     } catch (error) {
       setError('Failed to update task order');
     }
@@ -329,12 +325,12 @@ const TaskManager: React.FC = () => {
         throw new Error('Please log in to create tasks');
       }
       
-      // Convert Task to TaskDocument format using helper
+      const maxOrder = tasks.length === 0 ? 0 : Math.max(...tasks.map((t) => t.order ?? 0), 0);
       const taskDoc = taskToTaskDocument({
         ...taskData,
         userId: user.id,
         completed: false,
-        order: tasks.length,
+        order: maxOrder + 1,
       });
       
       // Use simplified service function
@@ -370,24 +366,27 @@ const TaskManager: React.FC = () => {
   return (
     <Container maxWidth="lg">
       <DragDropContext onDragEnd={handleDragEnd}>
-          <TaskList
-            tasks={filteredTasks}
-            loading={loading}
-            error={error}
-            justAddedTaskId={justAddedTaskId}
-            onTaskAction={{
-              toggle: handleTaskToggle,
-              delete: handleTaskDelete,
-              update: async (taskId: string, updates: Partial<Task>) => {
-                await handleTaskUpdate(taskId, updates);
-              },
-              edit: async (task: Task) => { handleTaskSelect(task); },
-            }}
-            onCreateTask={handleCreateTask}
-            tags={tags}
-            categories={categories}
-          />
-        </DragDropContext>
+        <TaskList
+          tasks={filteredTasks}
+          loading={loading}
+          error={error}
+          justAddedTaskId={justAddedTaskId}
+          sortBy={sortMode}
+          onSortChange={setSortMode}
+          draggable={sortMode === 'manual'}
+          onTaskAction={{
+            toggle: handleTaskToggle,
+            delete: handleTaskDelete,
+            update: async (taskId: string, updates: Partial<Task>) => {
+              await handleTaskUpdate(taskId, updates);
+            },
+            edit: async (task: Task) => { handleTaskSelect(task); },
+          }}
+          onCreateTask={handleCreateTask}
+          tags={tags}
+          categories={categories}
+        />
+      </DragDropContext>
 
       {/* Show TaskModal for both creating and editing tasks */}
       <TaskModal

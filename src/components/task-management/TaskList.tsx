@@ -14,7 +14,7 @@ import {
 import {
   Sort as SortIcon,
 } from '@mui/icons-material';
-import { Droppable, Draggable, DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { Droppable, Draggable } from 'react-beautiful-dnd';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import { motion } from 'framer-motion';
 import { Task, Tag, Category } from '../../types';
@@ -22,7 +22,7 @@ import TaskItem from './TaskItem';
 import InlineTaskEditor from './InlineTaskEditor';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 
-type SortOption = 'dueDate' | 'title' | 'createdAt';
+export type SortOption = 'manual' | 'dueDate' | 'title' | 'createdAt';
 
 interface TaskListProps {
   tasks: Task[];
@@ -36,6 +36,8 @@ interface TaskListProps {
     share?: (task: Task) => Promise<void>;
   };
   onCreateTask?: (taskData: Partial<Task>) => Promise<void>;
+  sortBy?: SortOption;
+  onSortChange?: (sortBy: SortOption) => void;
   draggable?: boolean;
   tags: Tag[];
   categories: Category[];
@@ -52,6 +54,8 @@ const TaskList: React.FC<TaskListProps> = ({
   error = null,
   onTaskAction,
   onCreateTask,
+  sortBy: sortByProp = 'dueDate',
+  onSortChange,
   draggable = false,
   tags,
   categories,
@@ -64,9 +68,9 @@ const TaskList: React.FC<TaskListProps> = ({
   const theme = useTheme();
   const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('dueDate');
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
+  const sortBy = sortByProp;
 
   // Don't auto-show inline editor - it should only be triggered explicitly
   // The inline editor is for quick adding within the list, not for sidebar "Add task"
@@ -104,24 +108,6 @@ const TaskList: React.FC<TaskListProps> = ({
     }
   }, [actionInProgress, onTaskAction]);
 
-  const handleDragEnd = async (result: any) => {
-    if (!result.destination || actionInProgress) return;
-
-    const { source, destination } = result;
-    if (source.index === destination.index) return;
-
-    try {
-      setActionInProgress('update');
-      await onTaskAction.update(tasks[source.index].id, {
-        order: destination.index
-      });
-    } catch (error) {
-      // Error updating task order - handled by parent
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
   const handleSortClick = (event: React.MouseEvent<HTMLElement>) => {
     setSortAnchorEl(event.currentTarget);
   };
@@ -131,12 +117,13 @@ const TaskList: React.FC<TaskListProps> = ({
   };
 
   const handleSortSelect = (option: SortOption) => {
-    setSortBy(option);
+    onSortChange?.(option);
     handleSortClose();
   };
 
-  // Memoized sorted tasks
-  const sortedTasks = useMemo(() => {
+  // Display list: manual = use tasks as-is (already ordered from subscription); else sort locally
+  const displayTasks = useMemo(() => {
+    if (sortBy === 'manual') return tasks;
     return [...tasks].sort((a, b) => {
       switch (sortBy) {
         case 'dueDate':
@@ -156,7 +143,7 @@ const TaskList: React.FC<TaskListProps> = ({
 
   // Virtualized list item renderer
   const Row = useCallback(({ index, style }: ListChildComponentProps) => {
-    const task = sortedTasks[index];
+    const task = displayTasks[index];
     if (!task) return null;
     const isJustAdded = task.id === justAddedTaskId;
     const content = draggable ? (
@@ -166,6 +153,7 @@ const TaskList: React.FC<TaskListProps> = ({
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
+            data-testid={`task-${task.id}`}
           >
             <TaskItem
               task={task}
@@ -207,7 +195,7 @@ const TaskList: React.FC<TaskListProps> = ({
         )}
       </div>
     );
-  }, [sortedTasks, tags, categories, actionInProgress, draggable, handleTaskAction, justAddedTaskId]);
+  }, [displayTasks, tags, categories, actionInProgress, draggable, handleTaskAction, justAddedTaskId]);
 
   // Throttle scroll handler to prevent excessive calls
   const scrollThrottleRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -275,8 +263,8 @@ const TaskList: React.FC<TaskListProps> = ({
     <FixedSizeList
       height={listHeight}
       width="100%"
-      itemCount={sortedTasks.length}
-      itemSize={72} // Adjust based on your TaskItem height
+      itemCount={displayTasks.length}
+      itemSize={72}
       onScroll={handleScroll}
     >
       {Row}
@@ -298,7 +286,8 @@ const TaskList: React.FC<TaskListProps> = ({
           startIcon={<SortIcon />}
           onClick={handleSortClick}
         >
-          Sort: {sortBy === 'dueDate' ? 'Due Date' : 
+          Sort: {sortBy === 'manual' ? 'Manual' :
+                sortBy === 'dueDate' ? 'Due Date' :
                 sortBy === 'title' ? 'Title' : 'Created'}
         </Button>
       </Box>
@@ -316,18 +305,16 @@ const TaskList: React.FC<TaskListProps> = ({
       )}
 
       {draggable ? (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="task-list" mode="virtual">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps}>
-                {listContent}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+        <Droppable droppableId="task-list" mode="virtual">
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps} data-testid="task-list">
+              {listContent}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
       ) : (
-        listContent
+        <div data-testid="task-list">{listContent}</div>
       )}
 
       {isLoadingMore && (
@@ -341,6 +328,9 @@ const TaskList: React.FC<TaskListProps> = ({
         open={Boolean(sortAnchorEl)}
         onClose={handleSortClose}
       >
+        <MenuItem onClick={() => handleSortSelect('manual')}>
+          <ListItemText>Manual</ListItemText>
+        </MenuItem>
         <MenuItem onClick={() => handleSortSelect('dueDate')}>
           <ListItemText>Due Date</ListItemText>
         </MenuItem>

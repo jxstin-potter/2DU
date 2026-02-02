@@ -206,16 +206,9 @@ export const getUserTasks = async (userId: string): Promise<(TaskDocument & { id
 };
 
 /**
- * Filter and sort parameters for tasks
+ * Filter and sort parameters for tasks (re-export from types/firestore; extended here for local use)
  */
-export interface TaskFilterParams {
-  completionStatus?: 'all' | 'active' | 'completed';
-  sortBy?: 'creationDate' | 'dueDate';
-  sortOrder?: 'asc' | 'desc';
-  view?: 'today' | 'upcoming' | 'calendar' | 'completed';
-  filterFutureDates?: boolean;
-  limit?: number;
-}
+export type { TaskFilterParams } from '../types/firestore';
 
 /**
  * Get filtered and sorted tasks for a specific user
@@ -243,23 +236,25 @@ export const getFilteredTasks = async (
     // Determine sort direction
     const sortDirection = filterParams.sortOrder === 'asc' ? 'asc' : 'desc';
     
-    // Create and execute the query
+    // Create and execute the query (manual sort applied in-memory after fetch)
+    const orderField = filterParams.sortBy === 'dueDate' ? 'dueDate' : 'createdAt';
     let q = query(
       collection(db, COLLECTIONS.TASKS),
       ...conditions,
-      filterParams.sortBy === 'dueDate' ? orderBy('dueDate', sortDirection) : orderBy('createdAt', sortDirection)
+      orderBy(orderField, sortDirection)
     );
-    
+
     const querySnapshot = await getDocs(q);
-    
+
     // Map documents to the expected return type
     let tasks = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data() as TaskDocument
     }));
-    
-    // If sorting by dueDate, handle null dueDate values (Firebase can't mix null and non-null in orderBy)
-    if (filterParams.sortBy === 'dueDate') {
+
+    if (filterParams.sortBy === 'manual') {
+      tasks = sortByManualOrder(tasks);
+    } else if (filterParams.sortBy === 'dueDate') {
       // Sort tasks with missing due dates to the end if descending, start if ascending
       tasks.sort((a, b) => {
         // If either task has no dueDate
@@ -328,6 +323,18 @@ const setCachedTasks = (userId: string, filterParams: TaskFilterParams, tasks: T
   localStorage.setItem(cacheKey, JSON.stringify(cache));
 };
 
+/** Sort tasks by manual order (order ?? Infinity so missing order goes to end), then createdAt as tie-break. */
+const sortByManualOrder = <T extends { order?: number; createdAt?: Timestamp }>(tasks: T[]): T[] => {
+  return [...tasks].sort((a, b) => {
+    const orderA = a.order ?? Infinity;
+    const orderB = b.order ?? Infinity;
+    if (orderA !== orderB) return orderA - orderB;
+    const timeA = a.createdAt?.toMillis?.() ?? 0;
+    const timeB = b.createdAt?.toMillis?.() ?? 0;
+    return timeA - timeB;
+  });
+};
+
 /**
  * Build Firestore query based on filter parameters
  */
@@ -357,12 +364,13 @@ const buildTaskQuery = (
     conditions.push(where('dueDate', '>', Timestamp.fromDate(new Date())));
   }
 
-  // Add sorting
+  // Add sorting. Manual sort is applied in-memory after fetch so tasks without order are included.
   const sortDirection = filterParams.sortOrder === 'asc' ? 'asc' : 'desc';
-  if (filterParams.sortBy === 'dueDate') {
+  if (filterParams.sortBy === 'manual') {
+    conditions.push(orderBy('createdAt', sortDirection));
+  } else if (filterParams.sortBy === 'dueDate') {
     conditions.push(orderBy('dueDate', sortDirection));
   } else if (filterParams.completionStatus === 'completed') {
-    // For completed tasks, sort by updatedAt (completion time) to avoid index requirement
     conditions.push(orderBy('updatedAt', sortDirection));
   } else {
     conditions.push(orderBy('createdAt', sortDirection));
@@ -409,10 +417,13 @@ export const subscribeToTasks = (
     const unsubscribe = onSnapshot(q, 
       (querySnapshot) => {
         try {
-          const tasks = querySnapshot.docs.map(doc => ({
+          let tasks = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
           })) as (TaskDocument & { id: string })[];
+          if (filterParams.sortBy === 'manual') {
+            tasks = sortByManualOrder(tasks);
+          }
           // Update cache
           setCachedTasks(userId, filterParams, tasks);
 
@@ -492,10 +503,13 @@ export const loadMoreTasks = async (
     const q = buildTaskQuery(userId, filterParams, lastVisible);
     const querySnapshot = await getDocs(q);
 
-    const tasks = querySnapshot.docs.map(doc => ({
+    let tasks = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as (TaskDocument & { id: string })[];
+    if (filterParams.sortBy === 'manual') {
+      tasks = sortByManualOrder(tasks);
+    }
 
     return {
       tasks,
@@ -685,6 +699,10 @@ export const updateTask = async (
     if (taskData.tags !== undefined) {
       cleanedData.tags = taskData.tags;
     }
+
+    if (taskData.order !== undefined) {
+      cleanedData.order = taskData.order;
+    }
     
     // Always update updatedAt timestamp
     cleanedData.updatedAt = serverTimestamp();
@@ -693,6 +711,37 @@ export const updateTask = async (
   } catch (error) {
     console.error('Error updating task:', error);
     throw new Error('Failed to update task');
+  }
+};
+
+/**
+ * Update a task's manual order (single write). Use for drag reorder.
+ */
+export const updateTaskOrder = async (
+  taskId: string,
+  order: number,
+  userId: string
+): Promise<void> => {
+  try {
+    validateTaskId(taskId);
+    validateUserId(userId);
+    await verifyTaskOwnership(taskId, userId);
+    const taskRef = doc(db, COLLECTIONS.TASKS, taskId);
+    await updateDoc(taskRef, {
+      order,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    if (error instanceof FirestoreError) {
+      handleFirestoreError(error, 'updating task order', { taskId, userId, order });
+    }
+    tasksLogger.error('Failed to update task order', {
+      taskId,
+      userId,
+      order,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    throw new Error('Failed to update task order. Please try again.');
   }
 };
 

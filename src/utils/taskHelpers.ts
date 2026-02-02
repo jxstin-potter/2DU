@@ -123,6 +123,60 @@ export const parseTimeFromText = (text: string): { time: Date | null; cleanedTex
   };
 };
 
+/** Minimum gap between order ranks; below this triggers rebalance */
+export const ORDER_EPSILON = 0.5;
+
+/**
+ * Get effective order for a task (used for manual sort). Missing order treated as 0.
+ */
+export const getOrder = (task: Pick<Task, 'order'>): number => task.order ?? 0;
+
+/**
+ * Compute new order rank when moving a task between two neighbors (fractional indexing).
+ * Updates only the moved task; avoids O(n) writes per drag.
+ * @param before - Task immediately above the drop position (undefined = moving to top)
+ * @param after - Task immediately below the drop position (undefined = moving to bottom)
+ * @returns New order value for the moved task
+ */
+export function computeNewOrder(before?: Pick<Task, 'order'>, after?: Pick<Task, 'order'>): number {
+  const orderBefore = before !== undefined ? getOrder(before) : undefined;
+  const orderAfter = after !== undefined ? getOrder(after) : undefined;
+
+  if (orderBefore === undefined && orderAfter !== undefined) {
+    return orderAfter - 1;
+  }
+  if (orderBefore !== undefined && orderAfter === undefined) {
+    return orderBefore + 1;
+  }
+  if (orderBefore !== undefined && orderAfter !== undefined) {
+    return (orderBefore + orderAfter) / 2;
+  }
+  return 0;
+}
+
+/**
+ * Check if tasks need rebalance (consecutive order gap below ORDER_EPSILON).
+ * Call after computeNewOrder if you want to optionally rebalance.
+ */
+export function needsRebalance(tasks: Pick<Task, 'id' | 'order'>[]): boolean {
+  const sorted = [...tasks].sort((a, b) => getOrder(a) - getOrder(b));
+  for (let i = 1; i < sorted.length; i++) {
+    if (getOrder(sorted[i]) - getOrder(sorted[i - 1]) < ORDER_EPSILON) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Produce sequential order values 0, 1, 2, ... from current order for batch update.
+ * Preserves current relative order. Use with batchUpdateTasks for rebalance.
+ */
+export function rebalanceOrderUpdates(tasks: Pick<Task, 'id' | 'order'>[]): Array<{ id: string; order: number }> {
+  const sorted = [...tasks].sort((a, b) => getOrder(a) - getOrder(b));
+  return sorted.map((task, index) => ({ id: task.id, order: index }));
+}
+
 /**
  * Convert app Task to Firestore TaskDocument (for creating/updating)
  */
