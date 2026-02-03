@@ -175,7 +175,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
   return (
     <ListItem
-      onClick={handleOpenDetails}
+      onClick={isInlineEditing ? undefined : handleOpenDetails}
       onKeyDown={(e) => {
         if (isInlineEditing) return;
         if (e.key === 'Enter' || e.key === ' ') {
@@ -183,8 +183,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
           handleOpenDetails();
         }
       }}
-      role="button"
-      tabIndex={0}
+      role={isInlineEditing ? undefined : 'button'}
+      tabIndex={isInlineEditing ? -1 : 0}
       aria-label={`Open task: ${task.title}`}
       sx={{
         mb: 2,
@@ -193,7 +193,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
         cursor: isInlineEditing ? 'default' : 'pointer',
         borderRadius: 1,
         '&:hover': {
-          backgroundColor: isInlineEditing ? 'transparent' : alpha(theme.palette.action.hover, 0.6),
+          // Task rows are already visually distinct; avoid hover "highlight" background.
+          // Also overrides the global theme's MuiListItem hover background.
+          backgroundColor: 'transparent !important',
         },
         '& .MuiListItemSecondaryAction-root': {
           opacity: 0,
@@ -208,50 +210,52 @@ const TaskItem: React.FC<TaskItemProps> = ({
         },
       }}
     >
-      <IconButton
-        edge="start"
-        onClick={(e) => handleToggleComplete(e)}
-        disabled={isActionInProgress}
-        size="small"
-        sx={{
-          p: 0.25,
-          mr: 0.5,
-          backgroundColor: 'transparent',
-          '&:hover': { backgroundColor: 'transparent' },
-          '&:hover .check-hover': { opacity: 1 },
-        }}
-        aria-label={task.completed ? 'Mark incomplete' : 'Mark complete'}
-      >
-        {task.completed ? (
-          <CheckCircleOutlineIcon sx={{ fontSize: 17, color: 'success.main' }} />
-        ) : (
-          <Box
-            component="span"
-            sx={{
-              position: 'relative',
-              display: 'inline-flex',
-              width: 17,
-              height: 17,
-            }}
-          >
-            <RadioButtonUncheckedIcon sx={{ fontSize: 17, color: 'action.active' }} />
-            <CheckCircleOutlineIcon
-              className="check-hover"
+      {!isInlineEditing && (
+        <IconButton
+          edge="start"
+          onClick={(e) => handleToggleComplete(e)}
+          disabled={isActionInProgress}
+          size="small"
+          sx={{
+            p: 0.25,
+            mr: 0.5,
+            backgroundColor: 'transparent',
+            '&:hover': { backgroundColor: 'transparent' },
+            '&:hover .check-hover': { opacity: 1 },
+          }}
+          aria-label={task.completed ? 'Mark incomplete' : 'Mark complete'}
+        >
+          {task.completed ? (
+            <CheckCircleOutlineIcon sx={{ fontSize: 17, color: 'success.main' }} />
+          ) : (
+            <Box
+              component="span"
               sx={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                fontSize: 16,
-                color: 'white',
-                opacity: 0,
-                transition: 'opacity 0.15s ease',
-                pointerEvents: 'none',
-                backgroundColor: 'transparent',
+                position: 'relative',
+                display: 'inline-flex',
+                width: 17,
+                height: 17,
               }}
-            />
-          </Box>
-        )}
-      </IconButton>
+            >
+              <RadioButtonUncheckedIcon sx={{ fontSize: 17, color: 'action.active' }} />
+              <CheckCircleOutlineIcon
+                className="check-hover"
+                sx={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  fontSize: 16,
+                  color: 'white',
+                  opacity: 0,
+                  transition: 'opacity 0.15s ease',
+                  pointerEvents: 'none',
+                  backgroundColor: 'transparent',
+                }}
+              />
+            </Box>
+          )}
+        </IconButton>
+      )}
       {isInlineEditing && onUpdate ? (
         <Box sx={{ flex: 1 }} onClick={(e) => e.stopPropagation()}>
           <InlineTaskEditor
@@ -366,35 +370,37 @@ const TaskItem: React.FC<TaskItemProps> = ({
           }
         />
       )}
-      <ListItemSecondaryAction>
-        <Tooltip title="Edit">
-          <span>
-            <IconButton
-              edge="end"
-              onClick={(e) => handleInlineEdit(e)}
-              disabled={isActionInProgress}
-              sx={{ mr: 0.5 }}
-              size="small"
-              aria-label="Edit task"
-            >
-              <EditIcon sx={{ fontSize: '1rem' }} />
-            </IconButton>
-          </span>
-        </Tooltip>
-        <Tooltip title="Delete">
-          <span>
-            <IconButton
-              edge="end"
-              onClick={(e) => handleDelete(e)}
-              disabled={isActionInProgress}
-              size="small"
-              aria-label="Delete task"
-            >
-              <DeleteIcon sx={{ fontSize: '1rem' }} />
-            </IconButton>
-          </span>
-        </Tooltip>
-      </ListItemSecondaryAction>
+      {!isInlineEditing && (
+        <ListItemSecondaryAction>
+          <Tooltip title="Edit">
+            <span>
+              <IconButton
+                edge="end"
+                onClick={(e) => handleInlineEdit(e)}
+                disabled={isActionInProgress}
+                sx={{ mr: 0.5 }}
+                size="small"
+                aria-label="Edit task"
+              >
+                <EditIcon sx={{ fontSize: '1rem' }} />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <span>
+              <IconButton
+                edge="end"
+                onClick={(e) => handleDelete(e)}
+                disabled={isActionInProgress}
+                size="small"
+                aria-label="Delete task"
+              >
+                <DeleteIcon sx={{ fontSize: '1rem' }} />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </ListItemSecondaryAction>
+      )}
       
       {onUpdate && (
         <Popover
