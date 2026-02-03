@@ -44,16 +44,20 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useTheme, alpha } from '@mui/material/styles';
 import { format, isBefore, startOfDay } from 'date-fns';
+import InlineTaskEditor from './InlineTaskEditor';
 var TaskItem = function (_a) {
     var task = _a.task, onToggleComplete = _a.onToggleComplete, onDelete = _a.onDelete, onEdit = _a.onEdit, onUpdate = _a.onUpdate, tags = _a.tags, categories = _a.categories, _b = _a.isActionInProgress, isActionInProgress = _b === void 0 ? false : _b;
     var theme = useTheme();
     var _c = useState(null), datePickerAnchor = _c[0], setDatePickerAnchor = _c[1];
     var _d = useState(null), tempDate = _d[0], setTempDate = _d[1];
     var _e = useState(null), tempTime = _e[0], setTempTime = _e[1];
+    var _f = useState(false), isInlineEditing = _f[0], setIsInlineEditing = _f[1];
     var dateDisplayRef = useRef(null);
     var category = useMemo(function () {
-        return task.category ? categories.find(function (c) { return c.id === task.category; }) : undefined;
-    }, [task.category, categories]);
+        var _a;
+        var categoryId = (_a = task.categoryId) !== null && _a !== void 0 ? _a : task.category;
+        return categoryId ? categories.find(function (c) { return c.id === categoryId; }) : undefined;
+    }, [task.categoryId, task.category, categories]);
     var taskTags = useMemo(function () {
         var _a;
         return ((_a = task.tags) === null || _a === void 0 ? void 0 : _a.map(function (tagId) { return tags.find(function (t) { return t.id === tagId; }); }).filter(Boolean)) || [];
@@ -78,15 +82,28 @@ var TaskItem = function (_a) {
         // Date only: "MMM d yyyy" (e.g., "Jan 28 2026")
         return format(date, 'MMM d yyyy');
     }, [task.dueDate]);
-    var handleToggleComplete = useCallback(function () {
+    var handleToggleComplete = useCallback(function (e) {
+        e === null || e === void 0 ? void 0 : e.stopPropagation();
         onToggleComplete(task.id);
     }, [onToggleComplete, task.id]);
-    var handleDelete = useCallback(function () {
+    var handleDelete = useCallback(function (e) {
+        e === null || e === void 0 ? void 0 : e.stopPropagation();
         onDelete(task.id);
     }, [onDelete, task.id]);
-    var handleEdit = useCallback(function () {
+    var handleOpenDetails = useCallback(function () {
+        if (isInlineEditing)
+            return;
         onEdit(task);
-    }, [onEdit, task]);
+    }, [onEdit, task, isInlineEditing]);
+    var handleInlineEdit = useCallback(function (e) {
+        e === null || e === void 0 ? void 0 : e.stopPropagation();
+        // Prefer inline editing when onUpdate exists; otherwise fall back to opening details
+        if (!onUpdate) {
+            handleOpenDetails();
+            return;
+        }
+        setIsInlineEditing(true);
+    }, [onUpdate, handleOpenDetails]);
     var handleDateClick = useCallback(function (event) {
         if (!onUpdate)
             return;
@@ -158,10 +175,24 @@ var TaskItem = function (_a) {
             }
         });
     }); }, [onUpdate, task.id]);
-    return (_jsxs(ListItem, { sx: {
+    return (_jsxs(ListItem, { onClick: isInlineEditing ? undefined : handleOpenDetails, onKeyDown: function (e) {
+            if (isInlineEditing)
+                return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleOpenDetails();
+            }
+        }, role: isInlineEditing ? undefined : "button", tabIndex: isInlineEditing ? -1 : 0, "aria-label": "Open task: ".concat(task.title), sx: {
             mb: 2,
             bgcolor: 'transparent',
             transition: 'opacity 0.2s ease',
+            cursor: isInlineEditing ? 'default' : 'pointer',
+            borderRadius: 1,
+            '&:hover': {
+                // Task rows are already visually distinct; avoid hover "highlight" background.
+                // Also overrides the global theme's MuiListItem hover background.
+                backgroundColor: 'transparent !important',
+            },
             '& .MuiListItemSecondaryAction-root': {
                 opacity: 0,
                 transition: 'opacity 0.2s ease',
@@ -169,7 +200,11 @@ var TaskItem = function (_a) {
             '&:hover .MuiListItemSecondaryAction-root': {
                 opacity: 1,
             },
-        }, children: [_jsx(IconButton, { edge: "start", onClick: handleToggleComplete, disabled: isActionInProgress, size: "small", sx: {
+            '&:focus-visible': {
+                outline: "2px solid ".concat(alpha(theme.palette.primary.main, 0.5)),
+                outlineOffset: 2,
+            },
+        }, children: [!isInlineEditing && (_jsx(IconButton, { edge: "start", onClick: function (e) { return handleToggleComplete(e); }, disabled: isActionInProgress, size: "small", sx: {
                     p: 0.25,
                     mr: 0.5,
                     backgroundColor: 'transparent',
@@ -190,7 +225,17 @@ var TaskItem = function (_a) {
                                 transition: 'opacity 0.15s ease',
                                 pointerEvents: 'none',
                                 backgroundColor: 'transparent',
-                            } })] })) }), _jsx(ListItemText, { primary: _jsx(Typography, { variant: "body1", sx: {
+                            } })] })) }) })), isInlineEditing && onUpdate ? (_jsx(Box, { sx: { flex: 1 }, onClick: function (e) { return e.stopPropagation(); }, children: _jsx(InlineTaskEditor, { initialTask: task, onSubmit: function (taskData) { return __awaiter(void 0, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, onUpdate(task.id, taskData)];
+                                case 1:
+                                    _a.sent();
+                                    setIsInlineEditing(false);
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }, onCancel: function () { return setIsInlineEditing(false); }, categories: categories, defaultCategoryId: task.categoryId, autoFocus: true }) })) : (_jsx(ListItemText, { primary: _jsx(Typography, { variant: "body1", sx: {
                         fontSize: '0.875rem',
                         textDecoration: task.completed ? 'line-through' : 'none',
                         color: task.completed ? 'text.secondary' : 'text.primary',
@@ -217,18 +262,18 @@ var TaskItem = function (_a) {
                                     }, children: [_jsx(CalendarIcon, { fontSize: "small", sx: { fontSize: '0.8125rem' } }), _jsx(Typography, { variant: "body2", sx: {
                                                 color: isOverdue ? 'error.main' : 'text.secondary',
                                                 fontSize: '0.8125rem',
-                                            }, children: formattedDate })] })), category && (_jsx(Tooltip, { title: "Category", children: _jsx(Chip, { size: "small", icon: _jsx(LabelIcon, { fontSize: "small" }), label: category.name, sx: {
+                                            }, children: formattedDate })] })), category && (_jsx(Tooltip, { title: "Category", children: _jsx(Chip, { size: "small", icon: _jsx(LabelIcon, { fontSize: "small" }), label: category.name, onClick: function (e) { return e.stopPropagation(); }, sx: {
                                             bgcolor: 'background.default',
                                             '& .MuiChip-label': {
                                                 px: 1,
                                             },
-                                        } }) })), taskTags.map(function (tag) { return (_jsx(Tooltip, { title: tag.name, children: _jsx(Chip, { size: "small", label: tag.name, sx: {
+                                        } }) })), taskTags.map(function (tag) { return (_jsx(Tooltip, { title: tag.name, children: _jsx(Chip, { size: "small", label: tag.name, onClick: function (e) { return e.stopPropagation(); }, sx: {
                                             bgcolor: tag.color || 'background.default',
                                             color: 'white',
                                             '& .MuiChip-label': {
                                                 px: 1,
                                             },
-                                        } }) }, tag.id)); })] })] }) }), _jsxs(ListItemSecondaryAction, { children: [_jsx(Tooltip, { title: "Edit", children: _jsx("span", { children: _jsx(IconButton, { edge: "end", onClick: handleEdit, disabled: isActionInProgress, sx: { mr: 0.5 }, size: "small", "aria-label": "Edit task", children: _jsx(EditIcon, { sx: { fontSize: '1rem' } }) }) }) }), _jsx(Tooltip, { title: "Delete", children: _jsx("span", { children: _jsx(IconButton, { edge: "end", onClick: handleDelete, disabled: isActionInProgress, size: "small", "aria-label": "Delete task", children: _jsx(DeleteIcon, { sx: { fontSize: '1rem' } }) }) }) })] }), onUpdate && (_jsx(Popover, { open: Boolean(datePickerAnchor), anchorEl: datePickerAnchor, onClose: handleDatePickerClose, anchorOrigin: {
+                                        } }) }, tag.id)); })] })] }) })), !isInlineEditing && (_jsxs(ListItemSecondaryAction, { children: [_jsx(Tooltip, { title: "Edit", children: _jsx("span", { children: _jsx(IconButton, { edge: "end", onClick: function (e) { return handleInlineEdit(e); }, disabled: isActionInProgress, sx: { mr: 0.5 }, size: "small", "aria-label": "Edit task", children: _jsx(EditIcon, { sx: { fontSize: '1rem' } }) }) }) }), _jsx(Tooltip, { title: "Delete", children: _jsx("span", { children: _jsx(IconButton, { edge: "end", onClick: function (e) { return handleDelete(e); }, disabled: isActionInProgress, size: "small", "aria-label": "Delete task", children: _jsx(DeleteIcon, { sx: { fontSize: '1rem' } }) }) }) })] })), onUpdate && (_jsx(Popover, { open: Boolean(datePickerAnchor), anchorEl: datePickerAnchor, onClose: handleDatePickerClose, anchorOrigin: {
                     vertical: 'bottom',
                     horizontal: 'left',
                 }, transformOrigin: {

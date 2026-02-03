@@ -197,23 +197,26 @@ var InlineTaskEditor = function (_a) {
                     return [4 /*yield*/, onSubmit(taskData)];
                 case 2:
                     _a.sent();
-                    // Reset form
-                    setTitle('');
-                    setDescription('');
-                    setDueDate(null);
-                    setPriority('');
-                    setSelectedCategoryId(defaultCategoryId);
-                    setShowQuickActions(false);
-                    // Clear and focus title for next task
-                    if (titleRef.current) {
-                        titleRef.current.textContent = '';
-                        requestAnimationFrame(function () {
-                            var _a;
-                            (_a = titleRef.current) === null || _a === void 0 ? void 0 : _a.focus();
-                        });
-                    }
-                    if (descriptionRef.current) {
-                        descriptionRef.current.textContent = '';
+                    // Create-mode: reset for quick entry.
+                    // Edit-mode: parent will close the editor; avoid clearing fields (prevents flicker).
+                    if (!initialTask) {
+                        setTitle('');
+                        setDescription('');
+                        setDueDate(null);
+                        setPriority('');
+                        setSelectedCategoryId(defaultCategoryId);
+                        setShowQuickActions(false);
+                        // Clear and focus title for next task
+                        if (titleRef.current) {
+                            titleRef.current.textContent = '';
+                            requestAnimationFrame(function () {
+                                var _a;
+                                (_a = titleRef.current) === null || _a === void 0 ? void 0 : _a.focus();
+                            });
+                        }
+                        if (descriptionRef.current) {
+                            descriptionRef.current.textContent = '';
+                        }
                     }
                     return [3 /*break*/, 5];
                 case 3:
@@ -231,10 +234,12 @@ var InlineTaskEditor = function (_a) {
         if (e.key === 'Enter' && !e.shiftKey) {
             // Submit the form from either field
             e.preventDefault();
+            e.stopPropagation();
             handleSubmit();
         }
         else if (e.key === 'Escape') {
             e.preventDefault();
+            e.stopPropagation();
             onCancel();
         }
     }, [handleSubmit, onCancel]);
@@ -274,6 +279,7 @@ var InlineTaskEditor = function (_a) {
     var isTodaySelected = dueDate && isToday(dueDate);
     return (_jsx(Box, { component: motion.div, initial: { opacity: 0, y: -6 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.2, ease: 'easeOut' }, sx: { mb: 2 }, children: _jsxs(Box, { ref: containerRef, component: "form", onSubmit: function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 handleSubmit();
             }, sx: {
                 display: 'block',
@@ -282,20 +288,20 @@ var InlineTaskEditor = function (_a) {
                 border: 'none',
                 boxShadow: 'none',
                 overflow: 'hidden',
-            }, children: [_jsxs(Box, { sx: { display: 'flex', alignItems: 'flex-start', p: 1.5, gap: 1.5 }, children: [_jsx(Box, { sx: {
-                                width: 20,
-                                height: 20,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                mt: 0.5,
-                            }, children: _jsx(Box, { sx: {
-                                    width: 16,
-                                    height: 16,
-                                    border: "2px solid ".concat(alpha(theme.palette.text.secondary, 0.4)),
-                                    borderRadius: '50%',
-                                    transition: 'all 0.2s ease',
-                                } }) }), _jsxs(Box, { sx: { flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }, children: [_jsx(Box, { ref: titleRef, contentEditable: true, suppressContentEditableWarning: true, onInput: handleTitleInput, onKeyDown: function (e) { return handleKeyDown(e, 'title'); }, "data-placeholder": "Task name", sx: {
+            }, children: [_jsxs(Box, { sx: { display: 'flex', alignItems: 'flex-start', p: 1.5, gap: 1.5 }, children: [!initialTask && (_jsx(Box, { sx: {
+                                    width: 20,
+                                    height: 20,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    mt: 0.5,
+                                }, children: _jsx(Box, { sx: {
+                                        width: 16,
+                                        height: 16,
+                                        border: "2px solid ".concat(alpha(theme.palette.text.secondary, 0.4)),
+                                        borderRadius: '50%',
+                                        transition: 'all 0.2s ease',
+                                    } }) })), _jsxs(Box, { sx: { flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }, children: [_jsx(Box, { ref: titleRef, contentEditable: true, suppressContentEditableWarning: true, onInput: handleTitleInput, onKeyDown: function (e) { return handleKeyDown(e, 'title'); }, "data-placeholder": "Task name", sx: {
                                         minHeight: '28px',
                                         maxHeight: '200px',
                                         overflowY: 'auto',
@@ -412,31 +418,31 @@ var InlineTaskEditor = function (_a) {
                                                     fontSize: '1rem',
                                                     color: priorityColors[priority],
                                                 },
-                                            } })), _jsx(Button, { size: "small", startIcon: _jsx(RemindersIcon, { sx: { fontSize: '0.875rem' } }), sx: {
-                                                textTransform: 'none',
-                                                fontSize: '0.8125rem',
-                                                color: theme.palette.text.secondary,
-                                                minWidth: 'auto',
-                                                px: 1.25,
-                                                py: 0.5,
-                                                height: '28px',
-                                                borderRadius: '6px',
-                                                border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
-                                                backgroundColor: 'transparent',
-                                                '&:hover': {
-                                                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                                                    borderColor: alpha(theme.palette.divider, 0.8),
-                                                },
-                                            }, children: "Reminders" }), _jsx(IconButton, { size: "small", onClick: function (e) { return setMoreMenuAnchor(e.currentTarget); }, sx: {
-                                                width: '28px',
-                                                height: '28px',
-                                                color: theme.palette.text.secondary,
-                                                border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
-                                                borderRadius: '6px',
-                                                '&:hover': {
-                                                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                                                },
-                                            }, children: _jsx(MoreVertIcon, { sx: { fontSize: '1rem' } }) })] })), _jsxs(Box, { sx: {
+                                            } })), !initialTask && (_jsxs(_Fragment, { children: [_jsx(Button, { size: "small", startIcon: _jsx(RemindersIcon, { sx: { fontSize: '0.875rem' } }), sx: {
+                                                            textTransform: 'none',
+                                                            fontSize: '0.8125rem',
+                                                            color: theme.palette.text.secondary,
+                                                            minWidth: 'auto',
+                                                            px: 1.25,
+                                                            py: 0.5,
+                                                            height: '28px',
+                                                            borderRadius: '6px',
+                                                            border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
+                                                            backgroundColor: 'transparent',
+                                                            '&:hover': {
+                                                                backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                                                                borderColor: alpha(theme.palette.divider, 0.8),
+                                                            },
+                                                        }, children: "Reminders" }), _jsx(IconButton, { size: "small", onClick: function (e) { return setMoreMenuAnchor(e.currentTarget); }, sx: {
+                                                            width: '28px',
+                                                            height: '28px',
+                                                            color: theme.palette.text.secondary,
+                                                            border: "1px solid ".concat(alpha(theme.palette.divider, 0.5)),
+                                                            borderRadius: '6px',
+                                                            '&:hover': {
+                                                                backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                                                            },
+                                                        }, children: _jsx(MoreVertIcon, { sx: { fontSize: '1rem' } }) })] })), _jsxs(Box, { sx: {
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 0.75,
@@ -450,6 +456,49 @@ var InlineTaskEditor = function (_a) {
                                                 color: theme.palette.text.secondary,
                                                 fontWeight: 500,
                                             }, children: (selectedCategory === null || selectedCategory === void 0 ? void 0 : selectedCategory.name) || 'Inbox' }), _jsx(KeyboardArrowDownIcon, { sx: { fontSize: '1rem', color: theme.palette.text.secondary } })] })] })] }), _jsxs(Menu, { anchorEl: categoryMenuAnchor, open: Boolean(categoryMenuAnchor), onClose: function () { return setCategoryMenuAnchor(null); }, PaperProps: {
+                    }), !!initialTask && (_jsxs(Box, { sx: {
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            alignItems: 'center',
+                            gap: 1,
+                            mt: 1.25,
+                            pt: 1,
+                            borderTop: "1px solid ".concat(alpha(theme.palette.divider, 0.6)),
+                        }, children: [_jsx(Button, { type: "button", variant: "text", color: "inherit", onClick: function (e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onCancel();
+                                }, disabled: isSubmitting, size: "small", sx: {
+                                    textTransform: 'none',
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 600,
+                                    height: '28px',
+                                    borderRadius: '6px',
+                                    px: 1.5,
+                                    minWidth: '68px',
+                                    color: theme.palette.text.secondary,
+                                    '&:hover': {
+                                        backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                                    },
+                                }, children: "Cancel" }), _jsx(Button, { type: "submit", variant: "contained", disableElevation: true, onClick: function (e) { return e.stopPropagation(); }, disabled: isSubmitting || title.trim() === '', size: "small", sx: {
+                                    textTransform: 'none',
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 600,
+                                    height: '28px',
+                                    borderRadius: '6px',
+                                    px: 2,
+                                    minWidth: '68px',
+                                    // Match sidebar gold accent (#5c4e00)
+                                    backgroundColor: '#5c4e00',
+                                    color: theme.palette.common.white,
+                                    '&:hover': {
+                                        backgroundColor: '#4a3f00',
+                                    },
+                                    '&.Mui-disabled': {
+                                        backgroundColor: alpha('#5c4e00', 0.35),
+                                        color: alpha(theme.palette.common.white, 0.75),
+                                    },
+                                }, children: "Save" })] })), _jsxs(Menu, { anchorEl: categoryMenuAnchor, open: Boolean(categoryMenuAnchor), onClose: function () { return setCategoryMenuAnchor(null); }, PaperProps: {
                         sx: {
                             minWidth: 200,
                             mt: 1,

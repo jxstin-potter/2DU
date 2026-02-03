@@ -187,22 +187,25 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
       };
 
       await onSubmit(taskData);
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setDueDate(null); 
-      setPriority('');
-      setSelectedCategoryId(defaultCategoryId);
-      setShowQuickActions(false);
-      // Clear and focus title for next task
-      if (titleRef.current) {
-        titleRef.current.textContent = '';
-        requestAnimationFrame(() => {
-          titleRef.current?.focus();
-        });
-      }
-      if (descriptionRef.current) {
-        descriptionRef.current.textContent = '';
+      // Create-mode: reset for quick entry.
+      // Edit-mode: parent will close the editor; avoid clearing fields (prevents flicker).
+      if (!initialTask) {
+        setTitle('');
+        setDescription('');
+        setDueDate(null); 
+        setPriority('');
+        setSelectedCategoryId(defaultCategoryId);
+        setShowQuickActions(false);
+        // Clear and focus title for next task
+        if (titleRef.current) {
+          titleRef.current.textContent = '';
+          requestAnimationFrame(() => {
+            titleRef.current?.focus();
+          });
+        }
+        if (descriptionRef.current) {
+          descriptionRef.current.textContent = '';
+        }
       }
     } catch (error) {
       console.error('Failed to submit task:', error);
@@ -216,9 +219,11 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
       if (e.key === 'Enter' && !e.shiftKey) {
         // Submit the form from either field
         e.preventDefault();
+        e.stopPropagation();
         handleSubmit();
       } else if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         onCancel();
       }
     },
@@ -277,6 +282,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
         component="form"
         onSubmit={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           handleSubmit();
         }}
         sx={{
@@ -288,26 +294,28 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
           overflow: 'hidden',
         }}
       >
-      {/* Checkbox placeholder */}
       <Box sx={{ display: 'flex', alignItems: 'flex-start', p: 1.5, gap: 1.5 }}>
-        <Box sx={{ 
-          width: 20, 
-          height: 20, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          mt: 0.5,
-        }}>
-          <Box
-            sx={{
-              width: 16,
-              height: 16,
-              border: `2px solid ${alpha(theme.palette.text.secondary, 0.4)}`,
-              borderRadius: '50%',
-              transition: 'all 0.2s ease',
-            }}
-          />
-        </Box>
+        {/* Checkbox placeholder (create-mode only; no checkbox UI while editing an existing task) */}
+        {!initialTask && (
+          <Box sx={{ 
+            width: 20, 
+            height: 20, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            mt: 0.5,
+          }}>
+            <Box
+              sx={{
+                width: 16,
+                height: 16,
+                border: `2px solid ${alpha(theme.palette.text.secondary, 0.4)}`,
+                borderRadius: '50%',
+                transition: 'all 0.2s ease',
+              }}
+            />
+          </Box>
+        )}
 
         {/* Editor area */}
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -493,47 +501,52 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
                 />
               )}
 
-              {/* Reminders button */}
-              <Button
-                size="small"
-                startIcon={<RemindersIcon sx={{ fontSize: '0.875rem' }} />}
-                sx={{
-                  textTransform: 'none',
-                  fontSize: '0.8125rem',
-                  color: theme.palette.text.secondary,
-                  minWidth: 'auto',
-                  px: 1.25,
-                  py: 0.5,
-                  height: '28px',
-                  borderRadius: '6px',
-                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                  backgroundColor: 'transparent',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                    borderColor: alpha(theme.palette.divider, 0.8),
-                  },
-                }}
-              >
-                Reminders
-              </Button>
+              {/* Create-mode only controls */}
+              {!initialTask && (
+                <>
+                  {/* Reminders button */}
+                  <Button
+                    size="small"
+                    startIcon={<RemindersIcon sx={{ fontSize: '0.875rem' }} />}
+                    sx={{
+                      textTransform: 'none',
+                      fontSize: '0.8125rem',
+                      color: theme.palette.text.secondary,
+                      minWidth: 'auto',
+                      px: 1.25,
+                      py: 0.5,
+                      height: '28px',
+                      borderRadius: '6px',
+                      border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                      backgroundColor: 'transparent',
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                        borderColor: alpha(theme.palette.divider, 0.8),
+                      },
+                    }}
+                  >
+                    Reminders
+                  </Button>
 
-              {/* More options button */}
-              <IconButton
-                size="small"
-                onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
-                sx={{
-                  width: '28px',
-                  height: '28px',
-                  color: theme.palette.text.secondary,
-                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                  borderRadius: '6px',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                  },
-                }}
-              >
-                <MoreVertIcon sx={{ fontSize: '1rem' }} />
-              </IconButton>
+                  {/* More options button */}
+                  <IconButton
+                    size="small"
+                    onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+                    sx={{
+                      width: '28px',
+                      height: '28px',
+                      color: theme.palette.text.secondary,
+                      border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                      borderRadius: '6px',
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                      },
+                    }}
+                  >
+                    <MoreVertIcon sx={{ fontSize: '1rem' }} />
+                  </IconButton>
+                </>
+              )}
             </Box>
           )}
 
@@ -564,6 +577,78 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
             </Box>
             <KeyboardArrowDownIcon sx={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
           </Box>
+
+          {/* Footer actions (Todoist-like) */}
+          {!!initialTask && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                gap: 1,
+                mt: 1.25,
+                pt: 1,
+                borderTop: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+              }}
+            >
+              <Button
+                type="button"
+                variant="text"
+                color="inherit"
+                size="small"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCancel();
+                }}
+                disabled={isSubmitting}
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  height: '28px',
+                  borderRadius: '6px',
+                  px: 1.5,
+                  minWidth: '68px',
+                  color: theme.palette.text.secondary,
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disableElevation
+                size="small"
+                onClick={(e) => e.stopPropagation()}
+                disabled={isSubmitting || title.trim() === ''}
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  height: '28px',
+                  borderRadius: '6px',
+                  px: 2,
+                  minWidth: '68px',
+                  // Match sidebar gold accent (#5c4e00)
+                  backgroundColor: '#5c4e00',
+                  color: theme.palette.common.white,
+                  '&:hover': {
+                    backgroundColor: '#4a3f00',
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: alpha('#5c4e00', 0.35),
+                    color: alpha(theme.palette.common.white, 0.75),
+                  },
+                }}
+              >
+                Save
+              </Button>
+            </Box>
+          )}
         </Box>
       </Box>
 
