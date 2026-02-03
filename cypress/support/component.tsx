@@ -1,8 +1,10 @@
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { mount } from 'cypress/react18';
 import 'cypress-real-events/support';
+import { AuthProvider } from '../../src/contexts/AuthContext';
 
-// Augment the Cypress namespace to include type definitions for
-// your custom command.
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -11,4 +13,20 @@ declare global {
   }
 }
 
-Cypress.Commands.add('mount', mount); 
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: { main: '#4a90e2' },
+  },
+});
+
+Cypress.Commands.add('mount', (component, options = {}) => {
+  return mount(
+    <ThemeProvider theme={theme}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <AuthProvider>{component}</AuthProvider>
+      </LocalizationProvider>
+    </ThemeProvider>,
+    options
+  );
+});

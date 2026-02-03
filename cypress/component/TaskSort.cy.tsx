@@ -29,7 +29,7 @@ describe('TaskSort Component', () => {
     cy.get('[data-testid="sort-option-dueDate"]').click();
     
     // Verify onSortChange was called with correct sort option
-    cy.get('@onSortChange').should('have.been.calledWith('dueDate', 'asc');
+    cy.get('@onSortChange').should('have.been.calledWith', 'dueDate', 'asc');
   });
 
   it('handles sort by title', () => {
@@ -38,7 +38,7 @@ describe('TaskSort Component', () => {
     cy.get('[data-testid="sort-option-title"]').click();
     
     // Verify onSortChange was called with correct sort option
-    cy.get('@onSortChange').should('have.been.calledWith('title', 'asc');
+    cy.get('@onSortChange').should('have.been.calledWith', 'title', 'asc');
   });
 
   it('handles sort by created date', () => {
@@ -47,7 +47,7 @@ describe('TaskSort Component', () => {
     cy.get('[data-testid="sort-option-createdDate"]').click();
     
     // Verify onSortChange was called with correct sort option
-    cy.get('@onSortChange').should('have.been.calledWith('createdDate', 'asc');
+    cy.get('@onSortChange').should('have.been.calledWith', 'createdDate', 'asc');
   });
 
   it('handles sort by priority', () => {
@@ -56,7 +56,7 @@ describe('TaskSort Component', () => {
     cy.get('[data-testid="sort-option-priority"]').click();
     
     // Verify onSortChange was called with correct sort option
-    cy.get('@onSortChange').should('have.been.calledWith('priority', 'asc');
+    cy.get('@onSortChange').should('have.been.calledWith', 'priority', 'asc');
   });
 
   it('toggles sort direction', () => {
@@ -68,7 +68,7 @@ describe('TaskSort Component', () => {
     cy.get('[data-testid="sort-direction-toggle"]').click();
     
     // Verify onSortChange was called with descending direction
-    cy.get('@onSortChange').should('have.been.calledWith('dueDate', 'desc');
+    cy.get('@onSortChange').should('have.been.calledWith', 'dueDate', 'desc');
   });
 
   it('maintains sort direction when changing sort field', () => {
@@ -82,7 +82,7 @@ describe('TaskSort Component', () => {
     cy.get('[data-testid="sort-option-title"]').click();
     
     // Verify onSortChange was called with descending direction
-    cy.get('@onSortChange').should('have.been.calledWith('title', 'desc');
+    cy.get('@onSortChange').should('have.been.calledWith', 'title', 'desc');
   });
 
   it('displays current sort option', () => {

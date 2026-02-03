@@ -255,8 +255,8 @@ export const keyframes = {
   `,
 };
 
-// Define component styles
-const components = {
+// Define component styles (currently unused; kept for future theming work)
+const _components = {
   MuiCssBaseline: {
     styleOverrides: (theme) => ({
       body: {
@@ -465,98 +465,6 @@ const components = {
     },
   },
 };
-
-// Create theme for light mode
-const lightTheme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: colors.primary,
-    secondary: colors.secondary,
-    success: {
-      main: colors.success.main,
-      light: colors.success.light,
-      dark: colors.success.dark,
-    },
-    warning: {
-      main: colors.warning.main,
-      light: colors.warning.light,
-      dark: colors.warning.dark,
-    },
-    error: {
-      main: colors.error.main,
-      light: colors.error.light,
-      dark: colors.error.dark,
-    },
-    info: {
-      main: colors.info.main,
-      light: colors.info.light,
-      dark: colors.info.dark,
-    },
-    background: {
-      default: colors.neutral[50],
-      paper: '#FFFFFF',
-    },
-    text: {
-      primary: colors.neutral[900],
-      secondary: colors.neutral[600],
-    },
-    divider: 'rgba(0, 0, 0, 0.08)',
-  },
-  typography,
-  spacing,
-  breakpoints,
-  shape,
-  shadows,
-  transitions,
-  zIndex,
-  components,
-});
-
-// Create theme for dark mode
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: colors.primary,
-    secondary: colors.secondary,
-    success: {
-      main: colors.success.main,
-      light: colors.success.light,
-      dark: colors.success.dark,
-    },
-    warning: {
-      main: colors.warning.main,
-      light: colors.warning.light,
-      dark: colors.warning.dark,
-    },
-    error: {
-      main: colors.error.main,
-      light: colors.error.light,
-      dark: colors.error.dark,
-    },
-    info: {
-      main: colors.info.main,
-      light: colors.info.light,
-      dark: colors.info.dark,
-    },
-    background: {
-      default: '#191919',
-      paper: '#2d2d2d',
-    },
-    text: {
-      primary: colors.neutral[100],
-      secondary: colors.neutral[400],
-    },
-    divider: 'rgba(255, 255, 255, 0.08)',
-  },
-  typography,
-  spacing,
-  breakpoints,
-  shape,
-  shadows,
-  transitions,
-  zIndex,
-  components,
-});
 
 // Export theme based on mode
 export const getTheme = (mode: 'light' | 'dark') => {

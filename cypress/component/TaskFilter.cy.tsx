@@ -37,7 +37,7 @@ describe('TaskFilter Component', () => {
     cy.get('[data-testid="status-option-active"]').click();
     
     // Verify onFilterChange was called with correct status
-    cy.get('@onFilterChange').should('have.been.calledWith({
+    cy.get('@onFilterChange').should('have.been.calledWith', {
       status: 'active',
       tags: []
     });
@@ -49,7 +49,7 @@ describe('TaskFilter Component', () => {
     cy.get('[data-testid="tag-Personal"]').click();
     
     // Verify onFilterChange was called with correct tags
-    cy.get('@onFilterChange').should('have.been.calledWith({
+    cy.get('@onFilterChange').should('have.been.calledWith', {
       status: 'all',
       tags: ['Work', 'Personal']
     });
@@ -64,7 +64,7 @@ describe('TaskFilter Component', () => {
     cy.get('[data-testid="tag-Work"]').click();
     
     // Verify onFilterChange was called with correct filters
-    cy.get('@onFilterChange').should('have.been.calledWith({
+    cy.get('@onFilterChange').should('have.been.calledWith', {
       status: 'completed',
       tags: ['Work']
     });
@@ -80,7 +80,7 @@ describe('TaskFilter Component', () => {
     cy.get('[data-testid="clear-filters"]').click();
     
     // Verify onFilterChange was called with empty filters
-    cy.get('@onFilterChange').should('have.been.calledWith({
+    cy.get('@onFilterChange').should('have.been.calledWith', {
       status: 'all',
       tags: []
     });

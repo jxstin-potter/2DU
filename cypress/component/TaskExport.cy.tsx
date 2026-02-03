@@ -55,7 +55,7 @@ describe('TaskExport Component', () => {
     cy.get('[data-testid="export-button"]').click();
     
     // Verify onExport was called with correct format
-    cy.get('@onExport').should('have.been.calledWith('csv');
+    cy.get('@onExport').should('have.been.calledWith', 'csv');
   });
 
   it('handles JSON export', () => {
@@ -67,7 +67,7 @@ describe('TaskExport Component', () => {
     cy.get('[data-testid="export-button"]').click();
     
     // Verify onExport was called with correct format
-    cy.get('@onExport').should('have.been.calledWith('json');
+    cy.get('@onExport').should('have.been.calledWith', 'json');
   });
 
   it('handles PDF export', () => {
@@ -79,7 +79,7 @@ describe('TaskExport Component', () => {
     cy.get('[data-testid="export-button"]').click();
     
     // Verify onExport was called with correct format
-    cy.get('@onExport').should('have.been.calledWith('pdf');
+    cy.get('@onExport').should('have.been.calledWith', 'pdf');
   });
 
   it('handles date range selection', () => {
@@ -98,7 +98,7 @@ describe('TaskExport Component', () => {
     cy.get('[data-testid="export-button"]').click();
     
     // Verify onExport was called with date range
-    cy.get('@onExport').should('have.been.calledWith(expect.any(String), {
+    cy.get('@onExport').should('have.been.calledWith', Cypress.sinon.match.string, {
       startDate: new Date('2023-12-01'),
       endDate: new Date('2023-12-31')
     });
@@ -113,7 +113,7 @@ describe('TaskExport Component', () => {
     cy.get('[data-testid="export-button"]').click();
     
     // Verify onExport was called with tag filter
-    cy.get('@onExport').should('have.been.calledWith(expect.any(String), {
+    cy.get('@onExport').should('have.been.calledWith', Cypress.sinon.match.string, {
       tags: ['Work']
     });
   });
@@ -127,7 +127,7 @@ describe('TaskExport Component', () => {
     cy.get('[data-testid="export-button"]').click();
     
     // Verify onExport was called with completion filter
-    cy.get('@onExport').should('have.been.calledWith(expect.any(String), {
+    cy.get('@onExport').should('have.been.calledWith', Cypress.sinon.match.string, {
       completed: true
     });
   });

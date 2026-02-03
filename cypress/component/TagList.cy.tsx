@@ -45,7 +45,7 @@ describe('TagList Component', () => {
     cy.get('[data-testid="tag-Shopping"]').click();
     
     // Verify onTagSelect was called with the correct tag
-    cy.get('@onTagSelect').should('have.been.calledWith('Shopping');
+    cy.get('@onTagSelect').should('have.been.calledWith', 'Shopping');
   });
 
   it('handles tag creation', () => {
@@ -56,7 +56,7 @@ describe('TagList Component', () => {
       .type(`${newTag}{enter}`);
     
     // Verify onTagCreate was called with the new tag
-    cy.get('@onTagCreate').should('have.been.calledWith(newTag);
+    cy.get('@onTagCreate').should('have.been.calledWith', newTag);
   });
 
   it('handles tag deletion', () => {
@@ -66,7 +66,7 @@ describe('TagList Component', () => {
       .click();
     
     // Verify onTagDelete was called with the correct tag
-    cy.get('@onTagDelete').should('have.been.calledWith('Work');
+    cy.get('@onTagDelete').should('have.been.calledWith', 'Work');
   });
 
   it('validates new tag input', () => {

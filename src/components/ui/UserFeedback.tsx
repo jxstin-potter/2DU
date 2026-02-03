@@ -32,6 +32,17 @@ interface FeedbackContextType {
 
 const FeedbackContext = createContext<FeedbackContextType | undefined>(undefined);
 
+// Allow non-hook callers (e.g. services) to trigger feedback safely.
+// This is initialized by `FeedbackProvider` when mounted.
+let feedbackApi: FeedbackContextType | null = null;
+
+function requireFeedbackApi(): FeedbackContextType {
+  if (!feedbackApi) {
+    throw new Error('FeedbackProvider is not mounted');
+  }
+  return feedbackApi;
+}
+
 // Feedback provider props
 interface FeedbackProviderProps {
   children: ReactNode;
@@ -76,6 +87,16 @@ export const FeedbackProvider: React.FC<FeedbackProviderProps> = ({ children }) 
     hideFeedback,
     clearAllFeedback,
   }), [showFeedback, hideFeedback, clearAllFeedback]);
+
+  // Expose the current API for non-hook helpers.
+  useEffect(() => {
+    feedbackApi = contextValue;
+    return () => {
+      if (feedbackApi === contextValue) {
+        feedbackApi = null;
+      }
+    };
+  }, [contextValue]);
 
   return (
     <FeedbackContext.Provider value={contextValue}>
@@ -165,8 +186,7 @@ export const showSuccessFeedback = (
   title?: string,
   action?: { label: string; onClick: () => void }
 ) => {
-  const { showFeedback } = useFeedback();
-  showFeedback({
+  requireFeedbackApi().showFeedback({
     type: FeedbackType.SUCCESS,
     title,
     message,
@@ -179,8 +199,7 @@ export const showErrorFeedback = (
   title?: string,
   action?: { label: string; onClick: () => void }
 ) => {
-  const { showFeedback } = useFeedback();
-  showFeedback({
+  requireFeedbackApi().showFeedback({
     type: FeedbackType.ERROR,
     title,
     message,
@@ -194,8 +213,7 @@ export const showWarningFeedback = (
   title?: string,
   action?: { label: string; onClick: () => void }
 ) => {
-  const { showFeedback } = useFeedback();
-  showFeedback({
+  requireFeedbackApi().showFeedback({
     type: FeedbackType.WARNING,
     title,
     message,
@@ -208,8 +226,7 @@ export const showInfoFeedback = (
   title?: string,
   action?: { label: string; onClick: () => void }
 ) => {
-  const { showFeedback } = useFeedback();
-  showFeedback({
+  requireFeedbackApi().showFeedback({
     type: FeedbackType.INFO,
     title,
     message,

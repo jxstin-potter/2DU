@@ -26,7 +26,6 @@ describe('TaskImport Component', () => {
   it('handles CSV file import', () => {
     // Create a CSV file
     const csvContent = 'title,completed,dueDate,tags\nTask 1,false,2023-12-31,Work';
-    const csvFile = new File([csvContent], 'tasks.csv', { type: 'text/csv' });
     
     // Trigger file input change
     cy.get('[data-testid="file-input"]').attachFile({
@@ -36,7 +35,7 @@ describe('TaskImport Component', () => {
     });
     
     // Verify onImport was called with correct data
-    cy.get('@onImport').should('have.been.calledWith(expect.any(Array), 'csv');
+    cy.get('@onImport').should('have.been.calledWith', Cypress.sinon.match.array, 'csv');
   });
 
   it('handles JSON file import', () => {
@@ -58,7 +57,7 @@ describe('TaskImport Component', () => {
     });
     
     // Verify onImport was called with correct data
-    cy.get('@onImport').should('have.been.calledWith(expect.any(Array), 'json');
+    cy.get('@onImport').should('have.been.calledWith', Cypress.sinon.match.array, 'json');
   });
 
   it('validates file format', () => {
@@ -111,7 +110,7 @@ describe('TaskImport Component', () => {
       });
     
     // Verify onImport was called with correct data
-    cy.get('@onImport').should('have.been.calledWith(expect.any(Array), 'csv');
+    cy.get('@onImport').should('have.been.calledWith', Cypress.sinon.match.array, 'csv');
   });
 
   it('displays loading state during import', () => {

@@ -32,7 +32,7 @@ describe('SearchBar Component', () => {
       .type(searchTerm);
     
     // Verify onSearch was called with the search term
-    cy.get('@onSearch').should('have.been.calledWith(searchTerm);
+    cy.get('@onSearch').should('have.been.calledWith', searchTerm);
   });
 
   it('handles filter changes', () => {
@@ -43,7 +43,7 @@ describe('SearchBar Component', () => {
       .click();
     
     // Verify onFilterChange was called with the correct filter
-    cy.get('@onFilterChange').should('have.been.calledWith('completed');
+    cy.get('@onFilterChange').should('have.been.calledWith', 'completed');
   });
 
   it('handles sort changes', () => {
@@ -54,7 +54,7 @@ describe('SearchBar Component', () => {
       .click();
     
     // Verify onSortChange was called with the correct sort option
-    cy.get('@onSortChange').should('have.been.calledWith('dueDate');
+    cy.get('@onSortChange').should('have.been.calledWith', 'dueDate');
   });
 
   it('debounces search input', () => {
@@ -69,7 +69,7 @@ describe('SearchBar Component', () => {
     cy.wait(500);
     
     // Verify onSearch was called after debounce
-    cy.get('@onSearch').should('have.been.calledWith('test');
+    cy.get('@onSearch').should('have.been.calledWith', 'test');
   });
 
   it('clears search input', () => {
@@ -84,7 +84,7 @@ describe('SearchBar Component', () => {
     cy.get('[data-testid="search-input"]').should('have.value', '');
     
     // Verify onSearch was called with empty string
-    cy.get('@onSearch').should('have.been.calledWith('');
+    cy.get('@onSearch').should('have.been.calledWith', '');
   });
 
   it('handles keyboard shortcuts', () => {

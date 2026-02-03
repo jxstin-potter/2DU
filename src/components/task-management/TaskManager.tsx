@@ -25,7 +25,7 @@ const TaskManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, _setSelectedCategory] = useState<string | null>(null);
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('createdAt');
   const lastAppliedTaskCountRef = useRef<number>(0);
@@ -204,118 +204,6 @@ const TaskManager: React.FC = () => {
     return tasks.filter((task) => task.categoryId === selectedCategory);
   }, [tasks, selectedCategory]);
 
-  const handleAddComment = async (taskId: string, comment: string) => {
-    if (!user?.id) {
-      setError('Please log in to add comments');
-      return;
-    }
-
-    try {
-      const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
-      const { db } = await import('../../firebase');
-      const { collection } = await import('firebase/firestore');
-      
-      const taskRef = doc(collection(db, 'tasks'), taskId);
-      const newComment = {
-        id: Date.now().toString(),
-        userId: user.id,
-        text: comment,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
-      };
-
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-
-      const updatedComments = [...(task.comments || []), {
-        ...newComment,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }];
-      
-      await updateTask(taskId, { 
-        comments: updatedComments.map(c => ({
-          ...c,
-          createdAt: Timestamp.fromDate(c.createdAt),
-          updatedAt: Timestamp.fromDate(c.updatedAt)
-        }))
-      }, user.id);
-      // Tasks will automatically update via the real-time subscription
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to add comment');
-    }
-  };
-
-  const handleAddSubtask = async (taskId: string, subtaskTitle: string) => {
-    if (!user?.id) {
-      setError('Please log in to add subtasks');
-      return;
-    }
-
-    try {
-      const { Timestamp } = await import('firebase/firestore');
-      
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-
-      const newSubtask = {
-        id: Date.now().toString(),
-        title: subtaskTitle,
-        completed: false,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
-      };
-
-      const updatedSubtasks = [...(task.subtasks || []), {
-        ...newSubtask,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }];
-      
-      await updateTask(taskId, { 
-        subtasks: updatedSubtasks.map(s => ({
-          ...s,
-          createdAt: Timestamp.fromDate(s.createdAt),
-          updatedAt: Timestamp.fromDate(s.updatedAt)
-        }))
-      }, user.id);
-      // Tasks will automatically update via the real-time subscription
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to add subtask');
-    }
-  };
-
-  const handleToggleSubtask = async (taskId: string, subtaskId: string) => {
-    if (!user?.id) {
-      setError('Please log in to toggle subtasks');
-      return;
-    }
-
-    try {
-      const { Timestamp } = await import('firebase/firestore');
-      
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-
-      const updatedSubtasks = task.subtasks?.map(subtask =>
-        subtask.id === subtaskId
-          ? { ...subtask, completed: !subtask.completed }
-          : subtask
-      );
-
-      await updateTask(taskId, { 
-        subtasks: updatedSubtasks?.map(s => ({
-          ...s,
-          createdAt: s.createdAt instanceof Date ? Timestamp.fromDate(s.createdAt) : s.createdAt,
-          updatedAt: Timestamp.now()
-        }))
-      }, user.id);
-      // Tasks will automatically update via the real-time subscription
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to toggle subtask');
-    }
-  };
-
   const handleCreateTask = async (taskData: Partial<Task>) => {
     try {
       if (authLoading) {
@@ -349,10 +237,6 @@ const TaskManager: React.FC = () => {
       // Re-throw the error so the caller can handle it
       throw error;
     }
-  };
-
-  const handleAddTask = () => {
-    setSelectedTask(null);
   };
 
   if (loading) {

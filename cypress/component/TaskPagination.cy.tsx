@@ -44,7 +44,7 @@ describe('TaskPagination Component', () => {
     cy.get('[data-testid="next-page"]').click();
     
     // Verify onPageChange was called with correct page
-    cy.get('@onPageChange').should('have.been.calledWith(2);
+    cy.get('@onPageChange').should('have.been.calledWith', 2);
   });
 
   it('handles page size changes', () => {
@@ -53,7 +53,7 @@ describe('TaskPagination Component', () => {
     cy.get('[data-testid="page-size-option-25"]').click();
     
     // Verify onPageSizeChange was called with correct size
-    cy.get('@onPageSizeChange').should('have.been.calledWith(25);
+    cy.get('@onPageSizeChange').should('have.been.calledWith', 25);
   });
 
   it('disables navigation buttons appropriately', () => {
@@ -83,7 +83,7 @@ describe('TaskPagination Component', () => {
     cy.get('[data-testid="page-input"]').type('5{enter}');
     
     // Verify onPageChange was called with correct page
-    cy.get('@onPageChange').should('have.been.calledWith(5);
+    cy.get('@onPageChange').should('have.been.calledWith', 5);
   });
 
   it('validates page input', () => {

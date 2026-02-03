@@ -25,16 +25,15 @@ const HighlightedTimeInput: React.FC<HighlightedTimeInputProps> = ({
   helperText,
   required,
   disabled,
-  autoFocus,
   inputRef: externalRef,
   sx,
 }) => {
   const theme = useTheme();
   const internalRef = useRef<HTMLDivElement>(null);
   const inputRef = externalRef || internalRef;
-  const [matchInfo, setMatchInfo] = useState<{ start: number; end: number; text: string } | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const isUpdatingRef = useRef(false);
+  const didInitContentRef = useRef(false);
 
   // Import parseTimeFromText dynamically to avoid circular dependencies
   const parseTime = useCallback(async (text: string) => {
@@ -44,10 +43,12 @@ const HighlightedTimeInput: React.FC<HighlightedTimeInputProps> = ({
 
   // Initialize content on mount
   useEffect(() => {
+    if (didInitContentRef.current) return;
+    didInitContentRef.current = true;
     if (inputRef.current && !inputRef.current.textContent && value) {
       inputRef.current.textContent = value;
     }
-  }, []); // Only run on mount
+  }, [inputRef, value]); // intentionally mount-only semantics via ref
 
   // Parse time and update content when value changes
   useEffect(() => {
@@ -55,7 +56,6 @@ const HighlightedTimeInput: React.FC<HighlightedTimeInputProps> = ({
     const parseAndNotify = async () => {
       const { time, matchInfo: parsedMatchInfo } = await parseTime(value);
 
-      setMatchInfo(parsedMatchInfo || null);
       onTimeParsed?.(time, parsedMatchInfo || null);
     };
     

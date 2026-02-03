@@ -4,7 +4,7 @@ import { Task } from '../types';
 export const calendarService = {
   // Google Calendar
   googleCalendar: {
-    addEvent: async (task: Task) => {
+    addEvent: async (_task: Task) => {
       /* 
       const event = {
         summary: task.title,
@@ -45,7 +45,7 @@ export const calendarService = {
 
   // Microsoft Outlook Calendar
   outlookCalendar: {
-    addEvent: async (task: Task) => {
+    addEvent: async (_task: Task) => {
       /*
       const event = {
         subject: task.title,
@@ -91,7 +91,7 @@ export const calendarService = {
 // Email Integration
 export const emailService = {
   // Send task reminder
-  sendReminder: async (task: Task, recipientEmail: string) => {
+  sendReminder: async (_task: Task, _recipientEmail: string) => {
     /*
     const emailData = {
       to: recipientEmail,
@@ -165,7 +165,7 @@ export const notificationService = {
 // Social Sharing
 export const socialSharingService = {
   // Share on Twitter
-  shareOnTwitter: (task: Task) => {
+  shareOnTwitter: (_task: Task) => {
     /*
     const text = encodeURIComponent(`Check out my task: ${task.title}`);
     const url = encodeURIComponent(window.location.origin);
@@ -174,7 +174,7 @@ export const socialSharingService = {
   },
 
   // Share on LinkedIn
-  shareOnLinkedIn: (task: Task) => {
+  shareOnLinkedIn: (_task: Task) => {
     /*
     const url = encodeURIComponent(window.location.origin);
     const title = encodeURIComponent(`Task: ${task.title}`);
@@ -187,7 +187,7 @@ export const socialSharingService = {
   },
 
   // Share via Email
-  shareViaEmail: (task: Task, recipientEmail: string) => {
+  shareViaEmail: (_task: Task, _recipientEmail: string) => {
     /*
     const subject = encodeURIComponent(`Shared Task: ${task.title}`);
     const body = encodeURIComponent(`
@@ -202,7 +202,7 @@ ${task.tags.length > 0 ? `Tags: ${task.tags.join(', ')}` : ''}
   },
 
   // Generate shareable link
-  generateShareableLink: async (task: Task) => {
+  generateShareableLink: async (_task: Task) => {
     /*
     try {
       const response = await fetch('/api/v1/tasks/share', {

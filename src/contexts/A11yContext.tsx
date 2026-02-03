@@ -39,34 +39,12 @@ interface A11yProviderProps {
 }
 
 export const A11yProvider: React.FC<A11yProviderProps> = ({ children }) => {
-  const { t } = useI18n();
+  const { t: _t } = useI18n();
   const [highContrast, setHighContrast] = useState<boolean>(false);
   const [reducedMotion, setReducedMotion] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<number>(16);
   const [focusVisible, setFocusVisible] = useState<boolean>(false);
   const [screenReaderOnly, setScreenReaderOnly] = useState<boolean>(false);
-
-  // Initialize accessibility settings from localStorage
-  useEffect(() => {
-    const savedHighContrast = localStorage.getItem('highContrast') === 'true';
-    const savedReducedMotion = localStorage.getItem('reducedMotion') === 'true';
-    const savedFontSize = parseInt(localStorage.getItem('fontSize') || '16', 10);
-    const savedFocusVisible = localStorage.getItem('focusVisible') === 'true';
-    const savedScreenReaderOnly = localStorage.getItem('screenReaderOnly') === 'true';
-
-    setHighContrast(savedHighContrast);
-    setReducedMotion(savedReducedMotion);
-    setFontSize(savedFontSize);
-    setFocusVisible(savedFocusVisible);
-    setScreenReaderOnly(savedScreenReaderOnly);
-
-    // Apply initial settings
-    applyHighContrast(savedHighContrast);
-    applyReducedMotion(savedReducedMotion);
-    applyFontSize(savedFontSize);
-    applyFocusVisible(savedFocusVisible);
-    applyScreenReaderOnly(savedScreenReaderOnly);
-  }, []);
 
   // Apply high contrast mode
   const applyHighContrast = useCallback((value: boolean) => {
@@ -178,6 +156,34 @@ export const A11yProvider: React.FC<A11yProviderProps> = ({ children }) => {
       return newValue;
     });
   }, [applyScreenReaderOnly]);
+
+  // Initialize accessibility settings from localStorage
+  useEffect(() => {
+    const savedHighContrast = localStorage.getItem('highContrast') === 'true';
+    const savedReducedMotion = localStorage.getItem('reducedMotion') === 'true';
+    const savedFontSize = parseInt(localStorage.getItem('fontSize') || '16', 10);
+    const savedFocusVisible = localStorage.getItem('focusVisible') === 'true';
+    const savedScreenReaderOnly = localStorage.getItem('screenReaderOnly') === 'true';
+
+    setHighContrast(savedHighContrast);
+    setReducedMotion(savedReducedMotion);
+    setFontSize(savedFontSize);
+    setFocusVisible(savedFocusVisible);
+    setScreenReaderOnly(savedScreenReaderOnly);
+
+    // Apply initial settings
+    applyHighContrast(savedHighContrast);
+    applyReducedMotion(savedReducedMotion);
+    applyFontSize(savedFontSize);
+    applyFocusVisible(savedFocusVisible);
+    applyScreenReaderOnly(savedScreenReaderOnly);
+  }, [
+    applyFocusVisible,
+    applyFontSize,
+    applyHighContrast,
+    applyReducedMotion,
+    applyScreenReaderOnly,
+  ]);
 
   // Create the context value - memoize to prevent unnecessary re-renders
   const contextValue: A11yContextType = useMemo(() => ({

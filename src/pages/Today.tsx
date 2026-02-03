@@ -20,7 +20,7 @@ const Today: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
   const [completedSnackbarOpen, setCompletedSnackbarOpen] = useState(false);
@@ -107,7 +107,7 @@ const Today: React.FC = () => {
     };
   }, [user?.id]);
 
-  const handleTaskToggle = async (taskId: string) => {
+  const handleTaskToggle = useCallback(async (taskId: string) => {
     if (!user?.id) {
       setError('Please log in to toggle tasks');
       return;
@@ -130,7 +130,7 @@ const Today: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to toggle task status');
     }
-  };
+  }, [tasks, user?.id]);
 
   const handleUndoComplete = useCallback(() => {
     if (completedTaskIdForUndo) {
@@ -138,7 +138,7 @@ const Today: React.FC = () => {
       setCompletedSnackbarOpen(false);
       setCompletedTaskIdForUndo(null);
     }
-  }, [completedTaskIdForUndo]);
+  }, [completedTaskIdForUndo, handleTaskToggle]);
 
   const handleCloseCompletedSnackbar = useCallback((_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;

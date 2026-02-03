@@ -66,7 +66,7 @@ const TaskList: React.FC<TaskListProps> = ({
   justAddedTaskId = null,
 }) => {
   const theme = useTheme();
-  const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
+  const { closeModal: closeTaskModal } = useTaskModal();
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
@@ -92,12 +92,12 @@ const TaskList: React.FC<TaskListProps> = ({
     closeTaskModal();
   }, [closeTaskModal]);
 
-  const handleTaskAction = useCallback(async (action: keyof TaskListProps['onTaskAction'], ...args: any[]) => {
+  const handleTaskAction = useCallback(async (action: keyof TaskListProps['onTaskAction'], ...args: unknown[]) => {
     if (actionInProgress) return;
     
     try {
       setActionInProgress(action);
-      const actionFn = onTaskAction[action];
+      const actionFn = onTaskAction[action] as ((...a: unknown[]) => Promise<void>) | undefined;
       if (actionFn) {
         await actionFn(...args);
       }
@@ -195,7 +195,16 @@ const TaskList: React.FC<TaskListProps> = ({
         )}
       </div>
     );
-  }, [displayTasks, tags, categories, actionInProgress, draggable, handleTaskAction, justAddedTaskId]);
+  }, [
+    displayTasks,
+    tags,
+    categories,
+    actionInProgress,
+    draggable,
+    handleTaskAction,
+    justAddedTaskId,
+    onTaskAction.update,
+  ]);
 
   // Throttle scroll handler to prevent excessive calls
   const scrollThrottleRef = React.useRef<NodeJS.Timeout | null>(null);

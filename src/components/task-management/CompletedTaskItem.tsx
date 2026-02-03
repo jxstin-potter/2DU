@@ -20,22 +20,6 @@ const CompletedTaskItem: React.FC<CompletedTaskItemProps> = ({ task }) => {
     return format(new Date(task.updatedAt), 'h:mm a');
   }, [task.updatedAt]);
 
-  const formattedDate = useMemo(() => {
-    if (!task.updatedAt) return '';
-    const taskDate = new Date(task.updatedAt);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (taskDate.toDateString() === today.toDateString()) {
-      return format(taskDate, "MMM d 'Today' ‧ EEEE");
-    } else if (taskDate.toDateString() === yesterday.toDateString()) {
-      return format(taskDate, "MMM d 'Yesterday' ‧ EEEE");
-    } else {
-      return format(taskDate, 'MMM d ‧ EEEE');
-    }
-  }, [task.updatedAt]);
-
   const userInitials = useMemo(() => {
     if (user?.name) {
       return user.name
