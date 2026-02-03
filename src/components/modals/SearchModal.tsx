@@ -13,6 +13,7 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
+import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useSearchModal } from '../../contexts/SearchModalContext';
 import type { RecentView } from '../../contexts/SearchModalContext';
@@ -227,7 +228,7 @@ function RecentViewItem({
   item: RecentView;
   label: string;
   isHighlighted: boolean;
-  theme: ReturnType<typeof useTheme>;
+  theme: Theme;
   onSelect: () => void;
   onHover: () => void;
 }) {

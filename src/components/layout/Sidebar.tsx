@@ -14,7 +14,6 @@ import {
   MenuItem,
   Avatar,
   Divider,
-  Button,
   alpha,
 } from '@mui/material';
 import {
@@ -52,8 +51,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggleCollapse,
-  darkMode,
-  toggleDarkMode,
+  darkMode: _darkMode,
+  toggleDarkMode: _toggleDarkMode,
   onLogout,
   userName,
   user,
@@ -187,7 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </ListItem>
     );
-  }, [location.pathname, navigate, isCollapsed, theme.palette.mode]);
+  }, [location.pathname, navigate, theme.palette.mode, theme.palette.common.white]);
 
   const drawerWidth = isCollapsed ? 64 : 240;
   

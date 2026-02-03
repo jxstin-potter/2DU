@@ -78,11 +78,11 @@ const AuthForm: React.FC = () => {
           const event = new Event('input', { bubbles: true });
           input.dispatchEvent(event);
           // Update our state if the input has a name that matches our form fields
-          if (input.name && input.name in formData) {
-            setFormData(prev => ({
-              ...prev,
-              [input.name]: value
-            }));
+          if (input.name) {
+            setFormData((prev) => {
+              if (!(input.name in prev)) return prev;
+              return { ...prev, [input.name]: value };
+            });
           }
         }
       });

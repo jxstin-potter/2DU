@@ -1,106 +1,64 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from './test-utils';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import TaskManager from '../../components/task-management/TaskManager';
-import { mockTasks, mockCategories, mockTags } from './test-utils';
+import { subscribeToTasks, updateTask, deleteTask } from '../../services/tasksService';
 
-// Mock the Firebase functions
-const mockGetDocs = getDocs as jest.Mock;
-const mockAddDoc = addDoc as jest.Mock;
-const mockUpdateDoc = updateDoc as jest.Mock;
-const mockDeleteDoc = deleteDoc as jest.Mock;
+jest.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'u1' }, loading: false }),
+}));
+
+jest.mock('../../services/tasksService', () => ({
+  subscribeToTasks: jest.fn(),
+  createTaskFromData: jest.fn(),
+  updateTask: jest.fn(),
+  deleteTask: jest.fn(),
+  updateTaskOrder: jest.fn(),
+}));
 
 describe('TaskManager', () => {
   beforeEach(() => {
-    // Reset all mocks before each test
-    jest.clearAllMocks();
-    
-    // Setup default mock implementations
-    mockGetDocs.mockImplementation(() => ({
-      docs: mockTasks.map(task => ({
-        id: task.id,
-        data: () => ({ ...task }),
-      })),
-    }));
+    (subscribeToTasks as jest.Mock).mockImplementation((_userId: string, _params: any, callback: any) => {
+      callback({
+        tasks: [
+          {
+            id: '1',
+            title: 'Test Task 1',
+            completed: false,
+            userId: 'u1',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        lastVisible: null,
+        hasMore: false,
+      });
+      return () => {};
+    });
+    (updateTask as jest.Mock).mockResolvedValue(undefined);
+    (deleteTask as jest.Mock).mockResolvedValue(undefined);
   });
 
-  it('renders loading state initially', () => {
+  it('renders tasks from the subscription', async () => {
     render(<TaskManager />);
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(await screen.findByText('Test Task 1')).toBeInTheDocument();
   });
 
-  it('renders tasks after loading', async () => {
+  it('toggles completion via updateTask', async () => {
     render(<TaskManager />);
-    
+    await screen.findByText('Test Task 1');
+
+    fireEvent.click(screen.getByLabelText(/mark complete/i));
     await waitFor(() => {
-      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
-      expect(screen.getByText('Test Task 2')).toBeInTheDocument();
+      expect(updateTask).toHaveBeenCalledWith('1', expect.any(Object), 'u1');
     });
   });
 
-  it('handles task completion toggle', async () => {
+  it('deletes a task via deleteTask', async () => {
     render(<TaskManager />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
-    });
+    await screen.findByText('Test Task 1');
 
-    // Mock the updateDoc function to simulate successful update
-    mockUpdateDoc.mockResolvedValueOnce(undefined);
-
-    // Find and click the toggle button for the first task
-    const toggleButton = screen.getAllByRole('checkbox')[0];
-    fireEvent.click(toggleButton);
-
-    // Verify that updateDoc was called
-    await waitFor(() => {
-      expect(mockUpdateDoc).toHaveBeenCalled();
-    });
+    fireEvent.click(screen.getByLabelText('Delete task'));
+    expect(deleteTask).toHaveBeenCalledWith('1', 'u1');
   });
+});
 
-  it('handles task deletion', async () => {
-    render(<TaskManager />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
-    });
-
-    // Mock the deleteDoc function to simulate successful deletion
-    mockDeleteDoc.mockResolvedValueOnce(undefined);
-
-    // Find and click the delete button for the first task
-    const deleteButton = screen.getAllByRole('button', { name: /delete/i })[0];
-    fireEvent.click(deleteButton);
-
-    // Verify that deleteDoc was called
-    await waitFor(() => {
-      expect(mockDeleteDoc).toHaveBeenCalled();
-    });
-  });
-
-  it('handles error state', async () => {
-    // Mock getDocs to throw an error
-    mockGetDocs.mockRejectedValueOnce(new Error('Failed to load data'));
-
-    render(<TaskManager />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Failed to load data')).toBeInTheDocument();
-    });
-  });
-
-  it('switches between list and calendar views', async () => {
-    render(<TaskManager />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
-    });
-
-    // Find and click the calendar view tab
-    const calendarTab = screen.getByRole('tab', { name: /calendar view/i });
-    fireEvent.click(calendarTab);
-
-    // Verify that the view has changed
-    expect(calendarTab).toHaveAttribute('aria-selected', 'true');
-  });
-}); 

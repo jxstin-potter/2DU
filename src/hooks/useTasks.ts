@@ -26,25 +26,32 @@ type TaskError = {
 
 // Helper function to convert Firestore task to app task
 const convertFirestoreTaskToAppTask = (task: TaskDocument & { id: string }): Task => {
+  const timestampLikeToDate = (value: any): Date => {
+    if (!value) return new Date();
+    if (value instanceof Date) return value;
+    if (typeof value.toDate === 'function') return value.toDate();
+    return new Date();
+  };
+
   const appTask: Task = {
     ...task,
-    createdAt: task.createdAt.toDate(),
-    updatedAt: task.updatedAt.toDate(),
-    dueDate: task.dueDate?.toDate() || undefined,
-    lastSharedAt: task.lastSharedAt?.toDate() || undefined,
+    createdAt: timestampLikeToDate(task.createdAt),
+    updatedAt: timestampLikeToDate(task.updatedAt),
+    dueDate: task.dueDate ? timestampLikeToDate(task.dueDate) : undefined,
+    lastSharedAt: task.lastSharedAt ? timestampLikeToDate(task.lastSharedAt) : undefined,
     subtasks: task.subtasks?.map(subtask => ({
       ...subtask,
-      createdAt: subtask.createdAt.toDate(),
-      updatedAt: subtask.updatedAt.toDate()
+      createdAt: timestampLikeToDate(subtask.createdAt),
+      updatedAt: timestampLikeToDate(subtask.updatedAt)
     })),
     comments: task.comments?.map(comment => ({
       ...comment,
-      createdAt: comment.createdAt.toDate(),
-      updatedAt: comment.updatedAt.toDate()
+      createdAt: timestampLikeToDate(comment.createdAt),
+      updatedAt: timestampLikeToDate(comment.updatedAt)
     })),
     attachments: task.attachments?.map(attachment => ({
       ...attachment,
-      uploadedAt: attachment.uploadedAt.toDate()
+      uploadedAt: timestampLikeToDate(attachment.uploadedAt)
     }))
   };
   return appTask;
@@ -147,7 +154,6 @@ export const useTasks = () => {
       clearError();
       tasksHookLogger.info('Loading more tasks', { 
         userId: user.id, 
-        currentTaskCount: tasks.length,
         filterParams 
       });
 
@@ -155,16 +161,18 @@ export const useTasks = () => {
       
       const newTasks = result.tasks.map(convertFirestoreTaskToAppTask);
 
-      setTasks(prev => [...prev, ...newTasks]);
+      setTasks((prev) => {
+        const next = [...prev, ...newTasks];
+        tasksHookLogger.info('Successfully loaded more tasks', {
+          userId: user.id,
+          newTaskCount: newTasks.length,
+          totalTaskCount: next.length,
+          hasMore: result.hasMore,
+        });
+        return next;
+      });
       setLastVisible(result.lastVisible);
       setHasMore(result.hasMore);
-
-      tasksHookLogger.info('Successfully loaded more tasks', { 
-        userId: user.id, 
-        newTaskCount: newTasks.length,
-        totalTaskCount: tasks.length + newTasks.length,
-        hasMore: result.hasMore 
-      });
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown error occurred');
       logHookError(error, 'useTasks', 'Failed to load more tasks', { 

@@ -25,7 +25,6 @@ import {
   Settings as SettingsIcon,
   Search as SearchIcon,
 } from '@mui/icons-material';
-import { useI18n } from '../../contexts/I18nContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 
@@ -77,7 +76,6 @@ type SettingsTab = 'account' | 'general';
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
-  const { t } = useI18n();
   const { user, updateUserProfile } = useAuth();
   const { mode, toggleColorMode } = useCustomTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');

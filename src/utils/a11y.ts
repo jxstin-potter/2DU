@@ -1,5 +1,3 @@
-import { t } from './i18n';
-
 // Accessibility utility functions - Streamlined version
 // Only keeping functions that are actually used in the application
 

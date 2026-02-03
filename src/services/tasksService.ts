@@ -16,7 +16,6 @@ import {
   limit,
   startAfter,
   DocumentSnapshot,
-  QueryDocumentSnapshot,
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -324,7 +323,7 @@ const setCachedTasks = (userId: string, filterParams: TaskFilterParams, tasks: T
 };
 
 /** Sort tasks by manual order (order ?? Infinity so missing order goes to end), then createdAt as tie-break. */
-const sortByManualOrder = <T extends { order?: number; createdAt?: Timestamp }>(tasks: T[]): T[] => {
+const sortByManualOrder = <T extends { order?: number; createdAt?: any }>(tasks: T[]): T[] => {
   return [...tasks].sort((a, b) => {
     const orderA = a.order ?? Infinity;
     const orderB = b.order ?? Infinity;
@@ -445,16 +444,16 @@ export const subscribeToTasks = (
           });
         }
       },
-      (error) => {
+      (error: unknown) => {
         if (error instanceof FirestoreError) {
           handleFirestoreError(error, 'task subscription', { userId, filterParams });
-        } else {
-          tasksLogger.error('Unexpected error in task subscription', { 
-            userId, 
-            filterParams, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
-          });
+          return;
         }
+        tasksLogger.error('Unexpected error in task subscription', { 
+          userId, 
+          filterParams, 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
         // Call callback with empty result so loading state gets updated
         callback({
           tasks: [],
@@ -619,30 +618,6 @@ export const updateTaskStatus = async (
 };
 
 /**
- * Update a task's text
- */
-export const updateTaskText = async (
-  taskId: string,
-  text: string,
-  userId: string
-): Promise<void> => {
-  try {
-    // Verify task ownership
-    await verifyTaskOwnership(taskId, userId);
-    
-    if (!text || typeof text !== 'string' || text.trim() === '') {
-      throw new Error('Task text is required');
-    }
-    
-    const taskRef = doc(db, COLLECTIONS.TASKS, taskId);
-    await updateDoc(taskRef, { text: text.trim() });
-  } catch (error) {
-    console.error('Error updating task text:', error);
-    throw new Error('Failed to update task');
-  }
-};
-
-/**
  * Update an entire task with all fields
  */
 export const updateTask = async (
@@ -653,11 +628,6 @@ export const updateTask = async (
   try {
     // Verify task ownership
     await verifyTaskOwnership(taskId, userId);
-    
-    // Validate required fields if they are being updated
-    if (taskData.text !== undefined && (!taskData.text || typeof taskData.text !== 'string' || taskData.text.trim() === '')) {
-      throw new Error('Task text is required');
-    }
     
     const taskRef = doc(db, COLLECTIONS.TASKS, taskId);
     

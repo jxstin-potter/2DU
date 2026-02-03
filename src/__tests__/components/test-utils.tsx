@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
+import { TaskModalProvider } from '../../contexts/TaskModalContext';
 
 // Mock Firebase
 jest.mock('../../firebase', () => ({
@@ -18,13 +19,50 @@ jest.mock('firebase/firestore', () => ({
   query: jest.fn(),
   orderBy: jest.fn(),
   where: jest.fn(),
+  Timestamp: {
+    now: jest.fn(() => ({
+      toDate: () => new Date(),
+      toMillis: () => Date.now(),
+    })),
+    fromDate: jest.fn((date: Date) => ({
+      toDate: () => date,
+      toMillis: () => date.getTime(),
+    })),
+  },
 }));
 
 // Mock react-beautiful-dnd
 jest.mock('react-beautiful-dnd', () => ({
   DragDropContext: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Droppable: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Draggable: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Droppable: ({ children }: any) => (
+    <div>
+      {typeof children === 'function'
+        ? children(
+            { innerRef: () => {}, droppableProps: {} },
+            { isDraggingOver: false }
+          )
+        : children}
+    </div>
+  ),
+  Draggable: ({ children, draggableId }: any) => (
+    <div data-testid={`draggable-${draggableId}`}>
+      {typeof children === 'function'
+        ? children(
+            { innerRef: () => {}, draggableProps: {}, dragHandleProps: {} },
+            { isDragging: false }
+          )
+        : children}
+    </div>
+  ),
+}));
+
+// Mock react-window virtualization to render all rows
+jest.mock('react-window', () => ({
+  FixedSizeList: ({ itemCount, children }: any) => (
+    <div>
+      {Array.from({ length: itemCount }, (_, index) => children({ index, style: {} }))}
+    </div>
+  ),
 }));
 
 // Create a theme instance
@@ -35,7 +73,7 @@ const customRender = (ui: React.ReactElement, options = {}) =>
   render(ui, {
     wrapper: ({ children }) => (
       <ThemeProvider theme={theme}>
-        {children}
+        <TaskModalProvider>{children}</TaskModalProvider>
       </ThemeProvider>
     ),
     ...options,

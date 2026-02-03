@@ -17,7 +17,6 @@ import {
   KeyboardArrowLeft as ArrowLeftIcon,
   KeyboardArrowRight as ArrowRightIcon,
 } from '@mui/icons-material';
-import { useI18n } from '../../contexts/I18nContext';
 
 interface KeyboardShortcutsHelpProps {
   open: boolean;
@@ -29,7 +28,6 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
   onClose,
 }) => {
   const theme = useTheme();
-  const { t } = useI18n();
 
   const shortcuts = [
     {

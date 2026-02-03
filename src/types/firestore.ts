@@ -1,18 +1,19 @@
-import { Timestamp, DocumentSnapshot } from 'firebase/firestore';
-import { Task, Subtask, Comment, Attachment } from './task';
+import { Timestamp, DocumentSnapshot, FieldValue } from 'firebase/firestore';
+import { Task } from './task';
 
 /**
  * Interface for tasks collection in Firestore
  * This matches the Task interface but uses Firestore types
  */
 export interface TaskDocument {
-  id: string;
+  /** Firestore document id (not stored in doc data). */
+  id?: string;
   title: string;
   description?: string;
   completed: boolean;
   userId: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Timestamp | FieldValue;
+  updatedAt: Timestamp | FieldValue;
   dueDate?: Timestamp | null;
   tags?: string[];
   order?: number;
@@ -63,13 +64,13 @@ export interface TaskFilterParams {
 }
 
 export interface TaskQueryResult {
-  tasks: (TaskDocument & { id: string })[];
+  tasks: TaskDocument[];
   lastVisible: DocumentSnapshot | null;
   hasMore: boolean;
 }
 
 export interface TaskCache {
-  data: (TaskDocument & { id: string })[];
+  data: TaskDocument[];
   timestamp: number;
   filterParams: TaskFilterParams;
 }
@@ -92,14 +93,21 @@ export const dateToTimestamp = (date: Date | null | undefined): Timestamp | null
   return Timestamp.fromDate(date);
 };
 
+const timestampLikeToDate = (value: Timestamp | FieldValue | null | undefined): Date => {
+  if (!value) return new Date();
+  const maybeTimestamp = value as unknown as { toDate?: () => Date };
+  return typeof maybeTimestamp.toDate === 'function' ? maybeTimestamp.toDate() : new Date();
+};
+
 /**
  * Convert TaskDocument to Task
  */
 export const taskDocumentToTask = (doc: TaskDocument): Task => {
   return {
     ...doc,
-    createdAt: doc.createdAt.toDate(),
-    updatedAt: doc.updatedAt.toDate(),
+    id: doc.id ?? '',
+    createdAt: timestampLikeToDate(doc.createdAt),
+    updatedAt: timestampLikeToDate(doc.updatedAt),
     dueDate: timestampToDate(doc.dueDate),
     subtasks: doc.subtasks?.map(subtask => ({
       ...subtask,
@@ -123,8 +131,12 @@ export const taskDocumentToTask = (doc: TaskDocument): Task => {
  * Convert Task to TaskDocument
  */
 export const taskToTaskDocument = (task: Task): Omit<TaskDocument, 'id'> => {
+  // `id` is part of the document path, not the stored data.
+  const { id: _id, ...taskData } = task;
   return {
-    ...task,
+    ...taskData,
+    // Persist only user ids/emails (strings) in Firestore.
+    sharedWith: taskData.sharedWith?.filter((entry): entry is string => typeof entry === 'string'),
     createdAt: dateToTimestamp(task.createdAt) || Timestamp.now(),
     updatedAt: dateToTimestamp(task.updatedAt) || Timestamp.now(),
     dueDate: dateToTimestamp(task.dueDate),

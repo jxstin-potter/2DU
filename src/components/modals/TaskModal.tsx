@@ -19,7 +19,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Task } from '../../types';
-import { parseTimeFromText } from '../../utils/taskHelpers';
 import HighlightedTimeInput from '../ui/HighlightedTimeInput';
 
 interface TaskModalProps {
@@ -44,7 +43,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timeMatchInfo, setTimeMatchInfo] = useState<{ start: number; end: number; text: string } | null>(null);
   const titleInputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -227,8 +225,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={(inputValue) => {
                   setTitle(inputValue);
                 }}
-                onTimeParsed={(time, matchInfo) => {
-                  setTimeMatchInfo(matchInfo);
+                onTimeParsed={(time) => {
                   if (time) {
                     setDueDate(time);
                   } else {

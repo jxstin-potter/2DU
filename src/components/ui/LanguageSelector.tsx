@@ -6,12 +6,10 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  SelectChangeEvent,
   Paper,
-  useTheme,
 } from '@mui/material';
 import { useI18n } from '../../contexts/I18nContext';
-import { createAccessibleSelect } from '../../utils/a11y';
+import type { Language } from '../../utils/i18n';
 import { supportedLanguages } from '../../utils/i18n';
 
 /**
@@ -22,16 +20,7 @@ import { supportedLanguages } from '../../utils/i18n';
  * language when a new selection is made.
  */
 const LanguageSelector: React.FC = () => {
-  const theme = useTheme();
   const { language, setLanguage, t } = useI18n();
-
-  // Create accessible select props
-  const languageSelectProps = createAccessibleSelect(
-    'language-select',
-    t('settings.language'),
-    language,
-    (event: SelectChangeEvent) => setLanguage(event.target.value as string)
-  );
 
   return (
     <Paper
@@ -58,8 +47,8 @@ const LanguageSelector: React.FC = () => {
             labelId="language-select-label"
             value={language}
             label={t('settings.language.select')}
-            onChange={(event) => setLanguage(event.target.value as string)}
-            {...languageSelectProps}
+            inputProps={{ 'aria-label': t('settings.language') }}
+            onChange={(event) => setLanguage(event.target.value as Language)}
           >
             {supportedLanguages.map((lang) => (
               <MenuItem key={lang.code} value={lang.code}>

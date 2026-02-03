@@ -83,7 +83,7 @@ describe('TaskBulkActions Component', () => {
     cy.get('[data-testid="bulk-complete"]').click();
     
     // Verify onBulkAction was called with correct action
-    cy.get('@onBulkAction').should('have.been.calledWith('complete', ['1']);
+    cy.get('@onBulkAction').should('have.been.calledWith', 'complete', ['1']);
   });
 
   it('handles bulk delete action', () => {
@@ -106,7 +106,7 @@ describe('TaskBulkActions Component', () => {
     cy.get('[data-testid="confirm-delete"]').click();
     
     // Verify onBulkAction was called with correct action
-    cy.get('@onBulkAction').should('have.been.calledWith('delete', ['1']);
+    cy.get('@onBulkAction').should('have.been.calledWith', 'delete', ['1']);
   });
 
   it('handles bulk tag action', () => {
@@ -130,7 +130,7 @@ describe('TaskBulkActions Component', () => {
     cy.get('[data-testid="apply-tag"]').click();
     
     // Verify onBulkAction was called with correct action
-    cy.get('@onBulkAction').should('have.been.calledWith('tag', ['1'], 'Work');
+    cy.get('@onBulkAction').should('have.been.calledWith', 'tag', ['1'], 'Work');
   });
 
   it('displays selected tasks count', () => {
@@ -152,7 +152,7 @@ describe('TaskBulkActions Component', () => {
     cy.get('[data-testid="select-all"]').click();
     
     // Verify onBulkAction was called with all task IDs
-    cy.get('@onBulkAction').should('have.been.calledWith('select', ['1', '2']);
+    cy.get('@onBulkAction').should('have.been.calledWith', 'select', ['1', '2']);
   });
 
   it('handles keyboard shortcuts', () => {

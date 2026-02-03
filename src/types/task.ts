@@ -1,5 +1,4 @@
 import { SharedUser } from './user';
-import { Timestamp } from 'firebase/firestore';
 
 export interface Comment {
   id: string;
@@ -27,7 +26,7 @@ export interface Task {
   subtasks?: Subtask[];
   comments?: Comment[];
   attachments?: Attachment[];
-  sharedWith?: string[];
+  sharedWith?: Array<string | SharedUser>;
   isShared?: boolean;
   lastSharedAt?: Date;
   estimatedTime?: number;
@@ -58,7 +57,6 @@ export interface FullTask extends Task {
   subtasks: Subtask[];
   reminder?: Date;
   attachments?: Attachment[];
-  sharedWith?: SharedUser[];
   isShared?: boolean;
   lastSharedAt?: Date;
   estimatedTime?: number;

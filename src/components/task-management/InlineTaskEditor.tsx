@@ -18,11 +18,10 @@ import {
   MoreVert as MoreVertIcon,
   Inbox as InboxIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
-  Close as CloseIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Task, Category } from '../../types';
-import { format, isToday, startOfDay } from 'date-fns';
+import { isToday, startOfDay } from 'date-fns';
 
 interface InlineTaskEditorProps {
   onSubmit: (taskData: Partial<Task>) => Promise<void>;
@@ -215,7 +214,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   }, [title, description, dueDate, priority, selectedCategoryId, onSubmit, initialTask, isSubmitting, defaultCategoryId]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>, field: 'title' | 'description') => {
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         // Submit the form from either field
         e.preventDefault();
@@ -325,7 +324,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
             contentEditable
             suppressContentEditableWarning
             onInput={handleTitleInput}
-            onKeyDown={(e) => handleKeyDown(e, 'title')}
+            onKeyDown={handleKeyDown}
             data-placeholder="Task name"
             sx={{
               minHeight: '28px',
@@ -355,7 +354,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
             contentEditable
             suppressContentEditableWarning
             onInput={handleDescriptionInput}
-            onKeyDown={(e) => handleKeyDown(e, 'description')}
+            onKeyDown={handleKeyDown}
             data-placeholder="Description"
             sx={{
               minHeight: '24px',

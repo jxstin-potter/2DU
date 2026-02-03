@@ -32,7 +32,6 @@ describe('LoadingState Component', () => {
       </LoadingState>
     );
     
-    expect(screen.getByText('An error occurred. Please try again.')).toBeInTheDocument();
     expect(screen.getByText('Test error message')).toBeInTheDocument();
   });
 

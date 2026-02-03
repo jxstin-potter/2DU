@@ -10,7 +10,6 @@ import {
   Grid,
   IconButton,
   Tooltip,
-  useTheme,
 } from '@mui/material';
 import {
   Contrast as ContrastIcon,
@@ -33,7 +32,6 @@ import { createAccessibleButton, createAccessibleCheckbox } from "../../utils/a1
  * such as high contrast mode, reduced motion, font size, focus visibility, and screen reader mode.
  */
 const AccessibilitySettings: React.FC = () => {
-  const theme = useTheme();
   const { t } = useI18n();
   const {
     highContrast,

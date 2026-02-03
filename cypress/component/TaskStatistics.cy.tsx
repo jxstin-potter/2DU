@@ -74,7 +74,7 @@ describe('TaskStatistics Component', () => {
     cy.get('[data-testid="filter-completed"]').click();
     
     // Verify onFilterChange was called with correct filter
-    cy.get('@onFilterChange').should('have.been.calledWith('completed');
+    cy.get('@onFilterChange').should('have.been.calledWith', 'completed');
   });
 
   it('updates statistics when tasks change', () => {

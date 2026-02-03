@@ -1,4 +1,4 @@
-import { WebSocketEventType, WebSocketEventData } from '../types/websocket';
+import { WebSocketEventType } from '../types/websocket';
 import { logError } from '../utils/errorLogging';
 
 type EventCallback = (data: any) => void;
