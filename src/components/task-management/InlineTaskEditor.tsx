@@ -632,15 +632,14 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
                   borderRadius: '6px',
                   px: 2,
                   minWidth: '68px',
-                  // Match sidebar gold accent (#5c4e00)
-                  backgroundColor: '#5c4e00',
-                  color: theme.palette.common.white,
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
                   '&:hover': {
-                    backgroundColor: '#4a3f00',
+                    backgroundColor: theme.palette.primary.dark,
                   },
                   '&.Mui-disabled': {
-                    backgroundColor: alpha('#5c4e00', 0.35),
-                    color: alpha(theme.palette.common.white, 0.75),
+                    backgroundColor: alpha(theme.palette.primary.main, 0.35),
+                    color: alpha(theme.palette.primary.contrastText, 0.75),
                   },
                 }}
               >
