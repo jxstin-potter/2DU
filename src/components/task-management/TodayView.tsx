@@ -524,12 +524,12 @@ const TodayView: React.FC<TodayViewProps> = ({
                       transition: 'background-color 0.2s ease, color 0.2s ease',
                     },
                     '&:hover': {
-                      color: '#5c4e00',
+                      color: 'primary.main',
                       backgroundColor: 'transparent',
                     },
                     '&:hover .MuiButton-startIcon > *': {
-                      backgroundColor: '#5c4e00',
-                      color: 'common.white',
+                      backgroundColor: 'primary.main',
+                      color: 'primary.contrastText',
                     },
                   }}
                 >
@@ -659,12 +659,12 @@ const TodayView: React.FC<TodayViewProps> = ({
                         transition: 'background-color 0.2s ease, color 0.2s ease',
                       },
                       '&:hover': {
-                        color: '#5c4e00',
+                        color: 'primary.main',
                         backgroundColor: 'transparent',
                       },
                       '&:hover .MuiButton-startIcon > *': {
-                        backgroundColor: '#5c4e00',
-                        color: 'common.white',
+                        backgroundColor: 'primary.main',
+                        color: 'primary.contrastText',
                       },
                     }}
                   >

@@ -1,34 +1,69 @@
-import React from 'react';
-import { Container, Typography, Box } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Box, Typography, Link } from '@mui/material';
+import { Navigate, useLocation } from 'react-router-dom';
 import AuthForm from '../components/forms/AuthForm';
+import { useAuth } from '../contexts/AuthContext';
+
+type AuthRedirectState = {
+  from?: { pathname?: string; search?: string; hash?: string };
+};
 
 const Login: React.FC = () => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  const redirectTo = useMemo(() => {
+    const from = (location.state as AuthRedirectState | null)?.from;
+    if (from?.pathname) {
+      const search = from.search ?? '';
+      const hash = from.hash ?? '';
+      return `${from.pathname}${search}${hash}`;
+    }
+    return '/today';
+  }, [location.state]);
+
+  // If already authenticated, don't show the login page.
+  if (!loading && user) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
   return (
-    <Container maxWidth="sm">
-      <Box 
-        sx={{ 
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Typography 
-          component="h1" 
-          variant="h4" 
-          sx={{ 
-            mb: 4,
-            fontWeight: 600,
-            background: 'linear-gradient(45deg, #4a90e2 30%, #21CBF3 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
-          2DU Task Manager
-        </Typography>
+    <Box
+      component="main"
+      sx={{
+        height: '100dvh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        px: 2,
+        py: 3,
+        overflow: 'hidden',
+        bgcolor: 'background.default',
+        backgroundImage: theme =>
+          theme.palette.mode === 'dark'
+            ? 'radial-gradient(1200px circle at 20% 10%, rgba(212,175,55,0.14), transparent 40%), radial-gradient(900px circle at 90% 80%, rgba(212,175,55,0.08), transparent 40%)'
+            : 'radial-gradient(1200px circle at 20% 10%, rgba(212,175,55,0.14), transparent 40%), radial-gradient(900px circle at 90% 80%, rgba(212,175,55,0.08), transparent 40%)',
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 420 }}>
         <AuthForm />
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block', textAlign: 'center', mt: 2 }}
+        >
+          By continuing you agree to our{' '}
+          <Link href="#" underline="hover" color="inherit">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link href="#" underline="hover" color="inherit">
+            Privacy Policy
+          </Link>
+          .
+        </Typography>
       </Box>
-    </Container>
+    </Box>
   );
 };
 

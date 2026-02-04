@@ -122,6 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     const offWhiteColor = theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.1)
       : alpha(theme.palette.common.white, 0.7);
+    const activeColor = theme.palette.primary.main;
     return (
       <ListItem
         button
@@ -140,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             backgroundColor: isActive ? offWhiteColor : 'action.hover',
           },
           '& .MuiListItemIcon-root': {
-            color: isActive ? '#5c4e00' : 'text.secondary',
+            color: isActive ? activeColor : 'text.secondary',
             minWidth: 36,
           },
         }}
@@ -151,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               sx={{
                 minWidth: 0,
                 justifyContent: 'center',
-                color: isActive ? '#5c4e00' : 'text.secondary',
+                color: isActive ? activeColor : 'text.secondary',
                 '& svg': {
                   fontSize: '1.25rem',
                 },
@@ -167,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 minWidth: 36,
                 mr: iconSpacing,
                 justifyContent: 'center',
-                color: isActive ? '#5c4e00' : 'text.secondary',
+                color: isActive ? activeColor : 'text.secondary',
                 '& svg': {
                   fontSize: '1.25rem',
                 },
@@ -342,7 +343,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       width: 24,
                       height: 24,
                       borderRadius: '50%',
-                      backgroundColor: '#5c4e00', // Gold color
+                      backgroundColor: theme.palette.primary.main,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -357,7 +358,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 variant: 'body2',
                 sx: { 
                   fontSize: '0.8125rem',
-                  color: '#5c4e00', // Match the gold circle color
+                  color: 'primary.main',
                 }
               }} 
             />

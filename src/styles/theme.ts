@@ -2,19 +2,27 @@ import { createTheme, ThemeOptions } from '@mui/material/styles';
 
 // Define color palette
 const colors = {
-  // Primary colors
-  primary: {
-    main: '#3b82f6', // Modern blue
-    light: '#60a5fa',
-    dark: '#2563eb',
-    contrastText: '#ffffff',
+  // Brand colors (black + classic gold)
+  brand: {
+    black: '#0B0B0B',
+    blackElevated: '#121212',
+    blackElevated2: '#171717',
+    gold: '#D4AF37',
+    goldHover: '#C7A633',
+    goldActive: '#B9962E',
   },
-  // Secondary colors
+  // Theme tokens kept for existing style helpers
+  primary: {
+    main: '#D4AF37',
+    light: '#E2C55C',
+    dark: '#B9962E',
+    contrastText: '#0B0B0B',
+  },
   secondary: {
-    main: '#10b981', // Modern green
-    light: '#34d399',
-    dark: '#059669',
-    contrastText: '#ffffff',
+    main: '#E5E7EB',
+    light: '#F3F4F6',
+    dark: '#D1D5DB',
+    contrastText: '#0B0B0B',
   },
   // Accent colors
   accent: {
@@ -53,9 +61,10 @@ const colors = {
     dark: '#dc2626',
   },
   info: {
-    main: '#3b82f6',
-    light: '#60a5fa',
-    dark: '#2563eb',
+    // Keep info aligned with brand accent (gold) to avoid random blues.
+    main: '#D4AF37',
+    light: '#E2C55C',
+    dark: '#B9962E',
   },
 };
 
@@ -468,22 +477,37 @@ const _components = {
 
 // Export theme based on mode
 export const getTheme = (mode: 'light' | 'dark') => {
+  // App-wide decision: always use dark mode (mode param kept for compatibility).
+  const _mode: 'dark' = 'dark';
+
   const baseTheme: ThemeOptions = {
     palette: {
-      mode,
+      mode: _mode,
       primary: {
-        main: mode === 'light' ? '#1976d2' : '#90caf9',
+        main: colors.brand.gold,
+        dark: colors.brand.goldActive,
+        light: '#E2C55C',
+        contrastText: '#0B0B0B',
       },
       secondary: {
-        main: mode === 'light' ? '#dc004e' : '#f48fb1',
+        main: '#E5E7EB',
+        contrastText: '#0B0B0B',
       },
       background: {
-        default: mode === 'light' ? '#f5f5f5' : '#121212',
-        paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
+        default: colors.brand.black,
+        paper: colors.brand.blackElevated,
       },
       text: {
-        primary: mode === 'light' ? 'rgba(0, 0, 0, 0.87)' : '#ffffff',
-        secondary: mode === 'light' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+        primary: '#F5F5F5',
+        secondary: 'rgba(245, 245, 245, 0.72)',
+      },
+      divider: 'rgba(245, 245, 245, 0.12)',
+      action: {
+        hover: 'rgba(212, 175, 55, 0.08)',
+        selected: 'rgba(212, 175, 55, 0.12)',
+        focus: 'rgba(212, 175, 55, 0.14)',
+        disabled: 'rgba(245, 245, 245, 0.28)',
+        disabledBackground: 'rgba(245, 245, 245, 0.08)',
       },
     },
     typography: {
@@ -504,28 +528,99 @@ export const getTheme = (mode: 'light' | 'dark') => {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            scrollbarColor: mode === 'light' ? '#6b6b6b #2b2b2b' : '#2b2b2b #6b6b6b',
+            scrollbarColor: `rgba(245,245,245,0.28) ${colors.brand.black}`,
             '&::-webkit-scrollbar, & *::-webkit-scrollbar': {
-              backgroundColor: mode === 'light' ? '#f5f5f5' : '#121212',
+              backgroundColor: colors.brand.black,
             },
             '&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb': {
               borderRadius: 8,
-              backgroundColor: mode === 'light' ? '#6b6b6b' : '#2b2b2b',
+              backgroundColor: 'rgba(245,245,245,0.18)',
               minHeight: 24,
-              border: mode === 'light' ? '3px solid #f5f5f5' : '3px solid #121212',
+              border: `3px solid ${colors.brand.black}`,
             },
             '&::-webkit-scrollbar-thumb:focus, & *::-webkit-scrollbar-thumb:focus': {
-              backgroundColor: mode === 'light' ? '#2b2b2b' : '#6b6b6b',
+              backgroundColor: 'rgba(245,245,245,0.28)',
             },
             '&::-webkit-scrollbar-thumb:active, & *::-webkit-scrollbar-thumb:active': {
-              backgroundColor: mode === 'light' ? '#2b2b2b' : '#6b6b6b',
+              backgroundColor: 'rgba(245,245,245,0.28)',
             },
             '&::-webkit-scrollbar-thumb:hover, & *::-webkit-scrollbar-thumb:hover': {
-              backgroundColor: mode === 'light' ? '#2b2b2b' : '#6b6b6b',
+              backgroundColor: 'rgba(245,245,245,0.24)',
             },
             '&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner': {
-              backgroundColor: mode === 'light' ? '#f5f5f5' : '#121212',
+              backgroundColor: colors.brand.black,
             },
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          contained: {
+            backgroundColor: colors.brand.gold,
+            color: '#0B0B0B',
+            '&:hover': {
+              backgroundColor: colors.brand.goldHover,
+            },
+            '&:active': {
+              backgroundColor: colors.brand.goldActive,
+            },
+          },
+          outlined: {
+            borderColor: 'rgba(245,245,245,0.18)',
+            color: '#F5F5F5',
+            '&:hover': {
+              borderColor: 'rgba(212,175,55,0.55)',
+              backgroundColor: 'rgba(212,175,55,0.06)',
+            },
+          },
+        },
+      },
+      MuiLink: {
+        styleOverrides: {
+          root: {
+            color: colors.brand.gold,
+            '&:hover': { color: colors.brand.goldHover },
+          },
+        },
+      },
+      MuiCheckbox: {
+        styleOverrides: {
+          root: {
+            color: 'rgba(245,245,245,0.42)',
+            '&.Mui-checked': { color: colors.brand.gold },
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: colors.brand.gold,
+            },
+          },
+          notchedOutline: {
+            borderColor: 'rgba(245,245,245,0.18)',
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: {
+            backgroundColor: colors.brand.gold,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
           },
         },
       },

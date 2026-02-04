@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  Box,
   Paper,
   TextField,
   Button,
   Typography,
   Alert,
-  Tabs,
-  Tab,
   CircularProgress,
+  Box,
+  Divider,
+  Stack,
+  Checkbox,
+  FormControlLabel,
+  Link,
   styled,
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import GoogleIcon from '@mui/icons-material/Google';
+import AppleIcon from '@mui/icons-material/Apple';
 
 // Styled TextField component with enhanced autofill fixes
 const StyledTextField = styled(TextField)(({ theme }) => ({
@@ -53,43 +58,33 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   },
 }));
 
+type AuthRedirectState = {
+  from?: { pathname?: string; search?: string; hash?: string };
+};
+
 const AuthForm: React.FC = () => {
-  const { login, signup } = useAuth();
+  const { login, signup, loginWithGoogle, loginWithApple } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
   });
-  
-  // Force update on mounted to handle autofill
-  useEffect(() => {
-    // Force a re-render after a short delay to handle autofill
-    const timer = setTimeout(() => {
-      // This forces the component to recognize autofilled fields
-      const inputs = document.querySelectorAll('input');
-      inputs.forEach(input => {
-        const value = input.value;
-        // Trigger change event if the input has a value
-        if (value) {
-          const event = new Event('input', { bubbles: true });
-          input.dispatchEvent(event);
-          // Update our state if the input has a name that matches our form fields
-          if (input.name) {
-            setFormData((prev) => {
-              if (!(input.name in prev)) return prev;
-              return { ...prev, [input.name]: value };
-            });
-          }
-        }
-      });
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
+
+  const redirectTo = useMemo(() => {
+    const from = (location.state as AuthRedirectState | null)?.from;
+    if (from?.pathname) {
+      const search = from.search ?? '';
+      const hash = from.hash ?? '';
+      return `${from.pathname}${search}${hash}`;
+    }
+    return '/today';
+  }, [location.state]);
 
   const validateForm = () => {
     if (!formData.email || !formData.password) {
@@ -129,13 +124,43 @@ const AuthForm: React.FC = () => {
     setIsLoading(true);
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
+        await login(formData.email, formData.password, rememberMe);
       } else {
-        await signup(formData.email, formData.password, formData.name);
+        await signup(formData.email, formData.password, formData.name, rememberMe);
       }
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      const result = await loginWithGoogle(rememberMe);
+      if (result === 'success') {
+        navigate(redirectTo, { replace: true });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleApple = async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      const result = await loginWithApple(rememberMe);
+      if (result === 'success') {
+        navigate(redirectTo, { replace: true });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Apple sign-in failed');
     } finally {
       setIsLoading(false);
     }
@@ -150,106 +175,186 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <Box
+    <Paper
+      elevation={0}
       sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        bgcolor: 'background.default',
+        p: { xs: 3, sm: 4 },
+        width: '100%',
+        maxWidth: 380,
+        borderRadius: 3,
+        border: theme => `1px solid ${theme.palette.divider}`,
+        bgcolor: 'background.paper',
       }}
     >
-      <Paper
-        elevation={3}
-        sx={{
-          p: 4,
-          width: '100%',
-          maxWidth: 400,
-        }}
-      >
-        <Typography
-          variant="h4"
-          align="center"
-          gutterBottom
-          sx={{
-            background: 'linear-gradient(45deg, #4a90e2 30%, #21CBF3 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontWeight: 'bold',
-          }}
-        >
-          2DU
-        </Typography>
-        <Typography variant="subtitle1" align="center" color="text.secondary" gutterBottom>
-          {isLogin ? 'Welcome back!' : 'Create your account'}
-        </Typography>
+      <Stack spacing={2.25}>
+        {/* Brand */}
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Box
+            aria-label="2DU"
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: 2,
+              bgcolor: '#000',
+              color: '#fff',
+              display: 'grid',
+              placeItems: 'center',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              userSelect: 'none',
+            }}
+          >
+            2DU
+          </Box>
+        </Box>
 
-        <Tabs
-          value={isLogin ? 0 : 1}
-          onChange={(_, newValue) => setIsLogin(newValue === 0)}
-          sx={{ mb: 3 }}
-        >
-          <Tab label="Login" />
-          <Tab label="Sign Up" />
-        </Tabs>
+        <Box>
+          <Typography component="h1" variant="h5" align="center" sx={{ fontWeight: 800 }}>
+            {isLogin ? 'Welcome!' : 'Create your account'}
+          </Typography>
+          <Typography variant="body2" align="center" color="text.secondary" sx={{ mt: 0.5 }}>
+            {isLogin ? 'Log in to start completing tasks.' : 'Sign up to start completing tasks.'}
+          </Typography>
+        </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+        {/* Social auth (UI only for now) */}
+        <Stack spacing={1}>
+          <Button
+            fullWidth
+            variant="outlined"
+            size="large"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogle}
+            disabled={isLoading}
+            sx={{ borderRadius: 2, textTransform: 'none' }}
+          >
+            Continue with Google
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            size="large"
+            startIcon={<AppleIcon />}
+            onClick={handleApple}
+            disabled={isLoading}
+            sx={{ borderRadius: 2, textTransform: 'none' }}
+          >
+            Continue with Apple
+          </Button>
+        </Stack>
 
-        <form onSubmit={handleSubmit}>
-          {!isLogin && (
+        <Divider sx={{ color: 'text.secondary' }}>OR</Divider>
+
+        {error && <Alert severity="error">{error}</Alert>}
+
+        <Box component="form" onSubmit={handleSubmit} autoComplete="on">
+          <Stack spacing={1.5}>
+            {!isLogin && (
+              <StyledTextField
+                fullWidth
+                label="Name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                disabled={isLoading}
+                variant="outlined"
+                autoComplete="name"
+                inputProps={{ autoCapitalize: 'words' }}
+              />
+            )}
             <StyledTextField
               fullWidth
-              label="Name"
-              name="name"
-              value={formData.name}
+              label="Email"
+              name="email"
+              type="email"
+              value={formData.email}
               onChange={handleChange}
               required
               disabled={isLoading}
               variant="outlined"
+              autoComplete="email"
+              inputProps={{ autoCapitalize: 'none', spellCheck: 'false' }}
             />
+            <StyledTextField
+              fullWidth
+              label="Password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              variant="outlined"
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
+            />
+
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.25 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label={<Typography variant="body2">Remember me</Typography>}
+              />
+              <Link
+                component="button"
+                type="button"
+                onClick={() => setError('Password reset is not implemented yet.')}
+                underline="hover"
+                sx={{ fontSize: '0.875rem' }}
+              >
+                Forgot password?
+              </Link>
+            </Stack>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              sx={{ mt: 0.5, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+              disabled={isLoading}
+            >
+              {isLoading ? <CircularProgress size={22} color="inherit" /> : isLogin ? 'Log in' : 'Sign up'}
+            </Button>
+          </Stack>
+        </Box>
+
+        <Typography variant="body2" color="text.secondary" align="center">
+          {isLogin ? (
+            <>
+              Don&apos;t have an account?{' '}
+              <Link
+                component="button"
+                type="button"
+                onClick={() => setIsLogin(false)}
+                underline="hover"
+                sx={{ fontWeight: 700 }}
+              >
+                Sign up
+              </Link>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <Link
+                component="button"
+                type="button"
+                onClick={() => setIsLogin(true)}
+                underline="hover"
+                sx={{ fontWeight: 700 }}
+              >
+                Log in
+              </Link>
+            </>
           )}
-          <StyledTextField
-            fullWidth
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            disabled={isLoading}
-            variant="outlined"
-          />
-          <StyledTextField
-            fullWidth
-            label="Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            disabled={isLoading}
-            variant="outlined"
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3 }}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              isLogin ? 'Sign In' : 'Sign Up'
-            )}
-          </Button>
-        </form>
-      </Paper>
-    </Box>
+        </Typography>
+      </Stack>
+    </Paper>
   );
 };
 

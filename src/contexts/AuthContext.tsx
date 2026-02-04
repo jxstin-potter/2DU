@@ -2,9 +2,17 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  GoogleAuthProvider,
+  OAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, enablePersistence } from '../firebase';
@@ -17,8 +25,10 @@ export type UserProfileUpdate = Partial<Pick<User, 'name' | 'profilePicture'>>;
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  signup: (email: string, password: string, name: string, rememberMe?: boolean) => Promise<void>;
+  loginWithGoogle: (rememberMe?: boolean) => Promise<'success' | 'cancelled' | 'redirect'>;
+  loginWithApple: (rememberMe?: boolean) => Promise<'success' | 'cancelled' | 'redirect'>;
   logout: () => Promise<void>;
   updateUserProfile: (updates: UserProfileUpdate) => Promise<void>;
 }
@@ -29,6 +39,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => {},
   signup: async () => {},
+  loginWithGoogle: async () => 'cancelled',
+  loginWithApple: async () => 'cancelled',
   logout: async () => {},
   updateUserProfile: async () => {},
 });
@@ -41,6 +53,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
+
+  const applyAuthPersistence = useCallback(async (rememberMe: boolean) => {
+    await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+  }, []);
+
+  const ensureUserDocument = useCallback(async (authUser: FirebaseUser) => {
+    const userRef = doc(db, 'users', authUser.uid);
+    const existing = await getDoc(userRef);
+    if (existing.exists()) return;
+
+    const userData: Omit<User, 'id'> = {
+      email: (authUser.email || '').toLowerCase(),
+      name: authUser.displayName || '',
+      profilePicture: authUser.photoURL || undefined,
+      preferences: {
+        theme: 'dark',
+        highContrast: false,
+        notifications: true,
+        defaultView: 'today',
+      },
+    };
+
+    await setDoc(userRef, userData, { merge: true });
+  }, []);
 
   // Handle fetching user data from Firestore
   const fetchUserData = async (firebaseUser: FirebaseUser) => {
@@ -63,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: firebaseUser.email || '',
           name: firebaseUser.displayName || '',
           preferences: {
-            theme: 'light' as const,
+            theme: 'dark' as const,
             highContrast: false,
             notifications: true,
             defaultView: 'today' as const
@@ -96,10 +132,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (authUser) {
               setFirebaseUser(authUser);
               
+              // If we landed here from a redirect auth flow, consume the result to surface
+              // any provider errors (user state is still derived from onAuthStateChanged).
+              try {
+                await getRedirectResult(auth);
+              } catch {
+                // ignore: errors will be handled by the initiating action
+              }
+
               // Wait before trying Firestore operations
               await new Promise(resolve => setTimeout(resolve, 1000));
               
               try {
+                await ensureUserDocument(authUser);
                 const userData = await fetchUserData(authUser);
                 setUser(userData);
               } catch (fetchError) {
@@ -109,8 +154,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   id: authUser.uid,
                   email: authUser.email || '',
                   name: authUser.displayName || '',
+                  profilePicture: authUser.photoURL || undefined,
                   preferences: {
-                    theme: 'light' as const,
+                    theme: 'dark' as const,
                     highContrast: false,
                     notifications: true,
                     defaultView: 'today' as const
@@ -150,9 +196,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, rememberMe: boolean = true) => {
     try {
       setIsLoading(true);
+      await applyAuthPersistence(rememberMe);
       
       // Handle the authentication (simplified - no network manipulation)
       await signInWithEmailAndPassword(auth, email, password);
@@ -161,11 +208,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [applyAuthPersistence]);
 
-  const signup = useCallback(async (email: string, password: string, name: string) => {
+  const signup = useCallback(async (email: string, password: string, name: string, rememberMe: boolean = true) => {
     try {
       setIsLoading(true);
+      await applyAuthPersistence(rememberMe);
       
       // Create user in Firebase Auth (simplified - no network manipulation)
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -176,7 +224,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: email.toLowerCase(),
         name: name.trim(),
         preferences: {
-          theme: 'light',
+          theme: 'dark',
           highContrast: false,
           notifications: true,
           defaultView: 'today'
@@ -192,7 +240,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [applyAuthPersistence]);
+
+  const loginWithGoogle = useCallback(async (rememberMe: boolean = true): Promise<'success' | 'cancelled' | 'redirect'> => {
+    try {
+      setIsLoading(true);
+      await applyAuthPersistence(rememberMe);
+
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      try {
+        const result = await signInWithPopup(auth, provider);
+        await ensureUserDocument(result.user);
+        return 'success';
+      } catch (err: any) {
+        // User cancelled/closed the popup -> treat as a no-op.
+        if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
+          return 'cancelled';
+        }
+
+        // Popup may be blocked (Safari/mobile). Fall back to redirect.
+        if (err?.code === 'auth/popup-blocked') {
+          await signInWithRedirect(auth, provider);
+          return 'redirect';
+        }
+        throw err;
+      }
+    } catch (error) {
+      throw new Error('Google sign-in failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [applyAuthPersistence, ensureUserDocument]);
+
+  const loginWithApple = useCallback(async (rememberMe: boolean = true): Promise<'success' | 'cancelled' | 'redirect'> => {
+    try {
+      setIsLoading(true);
+      await applyAuthPersistence(rememberMe);
+
+      const provider = new OAuthProvider('apple.com');
+      provider.addScope('email');
+      provider.addScope('name');
+
+      try {
+        const result = await signInWithPopup(auth, provider);
+        await ensureUserDocument(result.user);
+        return 'success';
+      } catch (err: any) {
+        if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
+          return 'cancelled';
+        }
+        if (err?.code === 'auth/popup-blocked') {
+          await signInWithRedirect(auth, provider);
+          return 'redirect';
+        }
+        // This is the common case when Apple provider isn't configured in Firebase.
+        if (err?.code === 'auth/operation-not-allowed') {
+          throw new Error('Apple sign-in is not enabled for this project yet.');
+        }
+        throw err;
+      }
+    } catch (error) {
+      throw error instanceof Error ? error : new Error('Apple sign-in failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [applyAuthPersistence, ensureUserDocument]);
 
   const logout = useCallback(async () => {
     try {
@@ -215,9 +329,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading: isLoading,
     login,
     signup,
+    loginWithGoogle,
+    loginWithApple,
     logout,
     updateUserProfile,
-  }), [user, isLoading, login, signup, logout, updateUserProfile]);
+  }), [user, isLoading, login, signup, loginWithGoogle, loginWithApple, logout, updateUserProfile]);
 
   if (!isAuthReady) {
     return <div>Initializing authentication...</div>;

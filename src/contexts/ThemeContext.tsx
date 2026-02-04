@@ -10,17 +10,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<ThemeMode>(() => {
-    const savedMode = localStorage.getItem('themeMode') as ThemeMode;
-    return savedMode || 'light';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('themeMode', mode);
-  }, [mode]);
+  // App-wide decision: always-dark theme for consistent black/gold brand styling.
+  // We keep the context shape stable, but `toggleColorMode` is intentionally a no-op.
+  const [mode] = useState<ThemeMode>('dark');
 
   const toggleColorMode = useCallback(() => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+    // no-op: theme mode is fixed
   }, []);
 
   const contextValue = useMemo(() => ({

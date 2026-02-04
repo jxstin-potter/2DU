@@ -28,27 +28,27 @@
 
 .iconToday {
   composes: iconContainer;
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: rgba(212, 175, 55, 0.10);
 }
 
 .iconUpcoming {
   composes: iconContainer;
-  background-color: rgba(236, 72, 153, 0.1);
+  background-color: rgba(212, 175, 55, 0.08);
 }
 
 .iconCompleted {
   composes: iconContainer;
-  background-color: rgba(16, 185, 129, 0.1);
+  background-color: rgba(212, 175, 55, 0.08);
 }
 
 .iconTags {
   composes: iconContainer;
-  background-color: rgba(245, 158, 11, 0.1);
+  background-color: rgba(212, 175, 55, 0.08);
 }
 
 .iconCalendar {
   composes: iconContainer;
-  background-color: rgba(139, 92, 246, 0.1);
+  background-color: rgba(212, 175, 55, 0.08);
 }
 
 .title {
@@ -71,7 +71,7 @@
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
-  background-color: var(--primary-main, #3b82f6);
+  background-color: var(--primary-main, #D4AF37);
   color: white;
   font-weight: 500;
   border: none;
@@ -80,9 +80,9 @@
 }
 
 .addButton:hover {
-  background-color: var(--primary-dark, #2563eb);
+  background-color: var(--primary-dark, #C7A633);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.18);
 }
 
 .addButtonIcon {

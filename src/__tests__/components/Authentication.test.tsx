@@ -1,4 +1,5 @@
 import React from 'react';
+import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AuthForm from '../../components/forms/AuthForm';
@@ -15,6 +16,8 @@ jest.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
     login: jest.fn().mockResolvedValue(undefined),
     signup: jest.fn().mockResolvedValue(undefined),
+    loginWithGoogle: jest.fn().mockResolvedValue(undefined),
+    loginWithApple: jest.fn().mockResolvedValue(undefined),
   }),
 }));
 
@@ -26,12 +29,12 @@ describe('AuthForm', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/login/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
-  it('switches to signup mode when tab is clicked', () => {
+  it('switches to signup mode when sign up link is clicked', () => {
     render(
       <MemoryRouter>
         <AuthForm />

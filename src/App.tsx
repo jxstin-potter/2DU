@@ -15,7 +15,7 @@ import { TaskModalProvider } from './contexts/TaskModalContext';
 import { SearchModalProvider } from './contexts/SearchModalContext';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import LoadingState from './components/ui/LoadingState';
-import MainLayout from './components/layout/MainLayout';
+import ProtectedLayout from './components/layout/ProtectedLayout';
 import { useTheme } from './contexts/ThemeContext';
 
 // Lazy load pages with error handling
@@ -40,17 +40,23 @@ const AppContent: React.FC = () => {
           bgcolor: 'background.default',
         }}
       >
-        <MainLayout>
-          <Suspense fallback={<LoadingState isLoading={true} children={null} />}>
-            <Routes>
-              <Route path="/" element={<Navigate to="/today" replace />} />
-              <Route path="/today" element={<Today />} />
-              <Route path="/completed" element={<Completed />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </Suspense>
-        </MainLayout>
+        <Suspense fallback={<LoadingState isLoading={true} children={null} />}>
+          <Routes>
+            {/* Public routes (no app chrome) */}
+            <Route path="/login" element={<Login />} />
+
+            {/* Protected routes (render app chrome and require auth) */}
+            <Route element={<ProtectedLayout />}>
+              <Route index element={<Navigate to="today" replace />} />
+              <Route path="today" element={<Today />} />
+              <Route path="completed" element={<Completed />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/today" replace />} />
+          </Routes>
+        </Suspense>
       </Box>
     </MuiThemeProvider>
   );
