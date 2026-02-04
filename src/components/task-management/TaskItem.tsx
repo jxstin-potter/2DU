@@ -8,7 +8,6 @@ import {
   Box,
   Chip,
   Tooltip,
-  Popover,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -18,14 +17,12 @@ import {
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
   CheckCircleOutline as CheckCircleOutlineIcon,
 } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { Task, Tag, Category } from '../../types';
+import { Task, Tag } from '../../types';
 import { useTheme, alpha } from '@mui/material/styles';
 import { format, isBefore, startOfDay } from 'date-fns';
 import InlineTaskEditor from './InlineTaskEditor';
+import TaskDueDatePopover from './TaskDueDatePopover';
+import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
 
 interface TaskItemProps {
   task: Task;
@@ -33,8 +30,6 @@ interface TaskItemProps {
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onUpdate?: (taskId: string, updates: Partial<Task>) => Promise<void>;
-  tags: Tag[];
-  categories: Category[];
   isActionInProgress?: boolean;
 }
 
@@ -44,11 +39,10 @@ const TaskItem: React.FC<TaskItemProps> = ({
   onDelete,
   onEdit,
   onUpdate,
-  tags,
-  categories,
   isActionInProgress = false,
 }) => {
   const theme = useTheme();
+  const { tags, categories } = useTaskMetadata();
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null);
   const [tempDate, setTempDate] = useState<Date | null>(null);
   const [tempTime, setTempTime] = useState<Date | null>(null);
@@ -265,7 +259,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
               setIsInlineEditing(false);
             }}
             onCancel={() => setIsInlineEditing(false)}
-            categories={categories}
             defaultCategoryId={task.categoryId}
             autoFocus
           />
@@ -403,88 +396,16 @@ const TaskItem: React.FC<TaskItemProps> = ({
       )}
       
       {onUpdate && (
-        <Popover
-          open={Boolean(datePickerAnchor)}
+        <TaskDueDatePopover
           anchorEl={datePickerAnchor}
+          tempDate={tempDate}
+          tempTime={tempTime}
+          hasExistingDueDate={Boolean(task.dueDate)}
           onClose={handleDatePickerClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'left',
-          }}
-          PaperProps={{
-            sx: {
-              mt: 1,
-              p: 2,
-              minWidth: 280,
-              backgroundColor: theme.palette.background.paper,
-              boxShadow: theme.palette.mode === 'dark' 
-                ? '0 8px 24px rgba(0, 0, 0, 0.4)'
-                : '0 8px 24px rgba(0, 0, 0, 0.15)',
-            },
-          }}
-        >
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <DatePicker
-                label="Date"
-                value={tempDate}
-                onChange={handleDateChange}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    fullWidth: true,
-                    sx: {
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? alpha(theme.palette.common.white, 0.05)
-                          : alpha(theme.palette.common.black, 0.02),
-                      },
-                    },
-                  },
-                }}
-              />
-              <TimePicker
-                label="Time"
-                value={tempTime}
-                onChange={handleTimeChange}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    fullWidth: true,
-                    sx: {
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? alpha(theme.palette.common.white, 0.05)
-                          : alpha(theme.palette.common.black, 0.02),
-                      },
-                    },
-                  },
-                }}
-              />
-              {task.dueDate && (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 1 }}>
-                  <Typography
-                    onClick={handleRemoveDate}
-                    sx={{
-                      cursor: 'pointer',
-                      color: 'error.main',
-                      fontSize: '0.875rem',
-                      '&:hover': {
-                        textDecoration: 'underline',
-                      },
-                    }}
-                  >
-                    Remove date
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </LocalizationProvider>
-        </Popover>
+          onDateChange={handleDateChange}
+          onTimeChange={handleTimeChange}
+          onRemove={handleRemoveDate}
+        />
       )}
     </ListItem>
   );

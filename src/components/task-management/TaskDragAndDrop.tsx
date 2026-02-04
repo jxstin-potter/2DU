@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import { Task, Tag, Category } from '../../types';
+import { Task } from '../../types';
 import { computeNewOrder } from '../../utils/taskHelpers';
 import TaskList from './TaskList';
 
@@ -8,12 +8,7 @@ export interface TaskDragAndDropProps {
   tasks: Task[];
   onReorder?: (reorderedTasks: Task[]) => void;
   isLoading?: boolean;
-  tags?: Tag[];
-  categories?: Category[];
 }
-
-const emptyTags: Tag[] = [];
-const emptyCategories: Category[] = [];
 
 /**
  * Wrapper that provides DragDropContext + TaskList in Manual (draggable) mode.
@@ -24,8 +19,6 @@ const TaskDragAndDrop: React.FC<TaskDragAndDropProps> = ({
   tasks,
   onReorder,
   isLoading = false,
-  tags = emptyTags,
-  categories = emptyCategories,
 }) => {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
 
@@ -68,8 +61,6 @@ const TaskDragAndDrop: React.FC<TaskDragAndDropProps> = ({
         sortBy="manual"
         onSortChange={() => {}}
         draggable
-        tags={tags}
-        categories={categories}
         onTaskAction={{
           toggle: noop,
           delete: noop,

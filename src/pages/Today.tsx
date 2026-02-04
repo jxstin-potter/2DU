@@ -3,22 +3,18 @@ import { Container, Box, useTheme, Snackbar, Button, IconButton } from '@mui/mat
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToTasks } from '../services/tasksService';
-import { taskDocumentToTask } from '../utils/taskHelpers';
-import { Task, Category, Tag } from '../types';
+import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore';
+import { Task } from '../types';
 import TodayView from '../components/task-management/TodayView';
 import TaskModal from '../components/modals/TaskModal';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
-import { taskToTaskDocument } from '../utils/taskHelpers';
-import { DEFAULT_TAGS } from '../constants/defaultTags';
 
 const Today: React.FC = () => {
   const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
   const { isOpen: isTaskModalOpen, openModal: openTaskModal, closeModal: closeTaskModal } = useTaskModal();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
   const [loading, setLoading] = useState(true);
   const [_error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -74,34 +70,6 @@ const Today: React.FC = () => {
       }
     );
 
-    // Load categories and tags
-    const loadCategoriesAndTags = async () => {
-      try {
-        const { collection, getDocs } = await import('firebase/firestore');
-        const { db } = await import('../firebase');
-        
-        const categoriesSnapshot = await getDocs(collection(db, 'categories'));
-        const loadedCategories = categoriesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Category[];
-        setCategories(loadedCategories);
-
-        const tagsSnapshot = await getDocs(collection(db, 'tags'));
-        if (!tagsSnapshot.empty) {
-          const loadedTags = tagsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as Tag[];
-          setTags(loadedTags);
-        }
-      } catch (error) {
-        console.error('Failed to load categories/tags:', error);
-      }
-    };
-
-    loadCategoriesAndTags();
-
     return () => {
       unsubscribe();
     };
@@ -118,9 +86,7 @@ const Today: React.FC = () => {
       if (!task) return;
 
       const completed = !task.completed;
-      const taskDoc = taskToTaskDocument({ completed });
-      const { Timestamp } = await import('firebase/firestore');
-      taskDoc.updatedAt = Timestamp.now();
+      const taskDoc = taskPatchToTaskDocument({ completed });
       
       await updateTask(taskId, taskDoc, user.id);
       if (completed) {
@@ -166,8 +132,7 @@ const Today: React.FC = () => {
     }
 
     try {
-      const taskDoc = taskToTaskDocument(updates);
-      taskDoc.updatedAt = (await import('firebase/firestore')).Timestamp.now();
+      const taskDoc = taskPatchToTaskDocument(updates);
       
       await updateTask(taskId, taskDoc, user.id);
     } catch (error) {
@@ -184,7 +149,7 @@ const Today: React.FC = () => {
         throw new Error('Please log in to create tasks');
       }
       
-      const taskDoc = taskToTaskDocument({
+      const taskDoc = taskPatchToTaskDocument({
         ...taskData,
         userId: user.id,
         completed: false,
@@ -253,8 +218,6 @@ const Today: React.FC = () => {
               },
             }}
             onCreateTask={handleCreateTask}
-            tags={tags}
-            categories={categories}
           />
         </Box>
 

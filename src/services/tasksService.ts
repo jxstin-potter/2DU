@@ -679,7 +679,7 @@ export const updateTask = async (
     
     await updateDoc(taskRef, cleanedData);
   } catch (error) {
-    console.error('Error updating task:', error);
+    logServiceError(error as Error, 'tasksService', 'Failed to update task', { taskId, userId, taskData });
     throw new Error('Failed to update task');
   }
 };

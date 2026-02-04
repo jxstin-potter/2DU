@@ -7,6 +7,18 @@ jest.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'u1' }, loading: false }),
 }));
 
+// Avoid pulling in real Firebase via task metadata hooks during unit tests.
+jest.mock('../../contexts/TaskMetadataContext', () => ({
+  TaskMetadataProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useTaskMetadata: () => ({
+    categories: [],
+    tags: [],
+    loading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
 jest.mock('../../services/tasksService', () => ({
   subscribeToTasks: jest.fn(),
   createTaskFromData: jest.fn(),

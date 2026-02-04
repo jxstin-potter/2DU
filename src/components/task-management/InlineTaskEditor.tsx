@@ -4,24 +4,22 @@ import {
   Button,
   useTheme,
   alpha,
-  IconButton,
-  Chip,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
 } from '@mui/material';
 import {
-  Today as TodayIcon,
-  Flag as FlagIcon,
-  NotificationsNone as RemindersIcon,
-  MoreVert as MoreVertIcon,
   Inbox as InboxIcon,
-  KeyboardArrowDown as KeyboardArrowDownIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Task, Category } from '../../types';
-import { isToday, startOfDay } from 'date-fns';
+import { startOfDay } from 'date-fns';
+import InlineTaskEditorQuickActions from './inline-task-editor/InlineTaskEditorQuickActions';
+import InlineTaskEditorFooter from './inline-task-editor/InlineTaskEditorFooter';
+import InlineTaskEditorCategoryMenu from './inline-task-editor/InlineTaskEditorCategoryMenu';
+import InlineTaskEditorMoreMenu from './inline-task-editor/InlineTaskEditorMoreMenu';
+import { TaskPriority } from './inline-task-editor/inlineTaskEditorPriority';
+import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
+import { logger } from '../../utils/logger';
+
+const inlineEditorLogger = logger.component('InlineTaskEditor');
 
 interface InlineTaskEditorProps {
   onSubmit: (taskData: Partial<Task>) => Promise<void>;
@@ -37,14 +35,16 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   onCancel,
   initialTask,
   autoFocus = true,
-  categories = [],
+  categories: categoriesProp,
   defaultCategoryId,
 }) => {
   const theme = useTheme();
+  const { categories: metadataCategories } = useTaskMetadata();
+  const categories = categoriesProp ?? metadataCategories;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>('');
+  const [priority, setPriority] = useState<TaskPriority | ''>('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(defaultCategoryId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
@@ -207,7 +207,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
         }
       }
     } catch (error) {
-      console.error('Failed to submit task:', error);
+      inlineEditorLogger.error('Failed to submit task', { error });
     } finally {
       setIsSubmitting(false);
     }
@@ -229,44 +229,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
     [handleSubmit, onCancel]
   );
 
-  const handleSetToday = () => {
-    if (dueDate && isToday(dueDate)) {
-      setDueDate(null);
-    } else {
-      setDueDate(startOfDay(new Date()));
-    }
-  };
-
-  const handleSetPriority = (newPriority: 'low' | 'medium' | 'high') => {
-    if (priority === newPriority) {
-      setPriority('');
-    } else {
-      setPriority(newPriority);
-    }
-  };
-
-  const handleRemoveDate = () => {
-    setDueDate(null);
-  };
-
-  const handleRemovePriority = () => {
-    setPriority('');
-  };
-
-  const priorityColors = {
-    low: '#4caf50',
-    medium: '#ff9800',
-    high: '#f44336',
-  };
-
-  const priorityLabels = {
-    low: 'Low',
-    medium: 'Medium',
-    high: 'High',
-  };
-
   const selectedCategory = categories.find(c => c.id === selectedCategoryId);
-  const isTodaySelected = dueDate && isToday(dueDate);
 
   return (
     <Box
@@ -378,335 +341,40 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
             }}
           />
 
-          {/* Quick actions bar */}
-          {(showQuickActions || dueDate || priority) && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.75,
-                flexWrap: 'wrap',
-                mt: 0.5,
-              }}
-            >
-              {/* Today button/tag */}
-              {isTodaySelected ? (
-                <Chip
-                  icon={<TodayIcon sx={{ fontSize: '0.875rem !important', color: '#4caf50 !important' }} />}
-                  label="Today"
-                  size="small"
-                  onDelete={handleRemoveDate}
-                  sx={{
-                    height: '28px',
-                    fontSize: '0.8125rem',
-                    backgroundColor: '#4caf50',
-                    color: 'white',
-                    fontWeight: 500,
-                    '& .MuiChip-icon': {
-                      color: 'white !important',
-                    },
-                    '& .MuiChip-deleteIcon': {
-                      fontSize: '1rem',
-                      color: 'white',
-                      '&:hover': {
-                        color: 'rgba(255,255,255,0.8)',
-                      },
-                    },
-                  }}
-                />
-              ) : (
-                <Button
-                  size="small"
-                  startIcon={<TodayIcon sx={{ fontSize: '0.875rem' }} />}
-                  onClick={handleSetToday}
-                  sx={{
-                    textTransform: 'none',
-                    fontSize: '0.8125rem',
-                    color: theme.palette.text.secondary,
-                    minWidth: 'auto',
-                    px: 1.25,
-                    py: 0.5,
-                    height: '28px',
-                    borderRadius: '6px',
-                    border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                    backgroundColor: 'transparent',
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                      borderColor: alpha(theme.palette.divider, 0.8),
-                    },
-                  }}
-                >
-                  Today
-                </Button>
-              )}
-
-              {/* Priority button */}
-              <Button
-                size="small"
-                startIcon={<FlagIcon sx={{ fontSize: '0.875rem' }} />}
-                onClick={() => {
-                  // Cycle through priorities or open menu
-                  if (!priority) {
-                    handleSetPriority('medium');
-                  } else if (priority === 'medium') {
-                    handleSetPriority('high');
-                  } else if (priority === 'high') {
-                    handleSetPriority('low');
-                  } else {
-                    handleSetPriority('medium');
-                  }
-                }}
-                sx={{
-                  textTransform: 'none',
-                  fontSize: '0.8125rem',
-                  color: priority ? priorityColors[priority] : theme.palette.text.secondary,
-                  minWidth: 'auto',
-                  px: 1.25,
-                  py: 0.5,
-                  height: '28px',
-                  borderRadius: '6px',
-                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                  backgroundColor: 'transparent',
-                  '& .MuiButton-startIcon': {
-                    color: priority ? priorityColors[priority] : theme.palette.text.secondary,
-                  },
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                    borderColor: alpha(theme.palette.divider, 0.8),
-                  },
-                }}
-              >
-                Priority
-              </Button>
-
-              {/* Selected priority chip */}
-              {priority && (
-                <Chip
-                  icon={<FlagIcon sx={{ fontSize: '0.875rem !important', color: `${priorityColors[priority]} !important` }} />}
-                  label={priorityLabels[priority]}
-                  size="small"
-                  onDelete={handleRemovePriority}
-                  sx={{
-                    height: '28px',
-                    fontSize: '0.8125rem',
-                    backgroundColor: alpha(priorityColors[priority], 0.15),
-                    color: priorityColors[priority],
-                    fontWeight: 500,
-                    '& .MuiChip-deleteIcon': {
-                      fontSize: '1rem',
-                      color: priorityColors[priority],
-                    },
-                  }}
-                />
-              )}
-
-              {/* Create-mode only controls */}
-              {!initialTask && (
-                <>
-                  {/* Reminders button */}
-                  <Button
-                    size="small"
-                    startIcon={<RemindersIcon sx={{ fontSize: '0.875rem' }} />}
-                    sx={{
-                      textTransform: 'none',
-                      fontSize: '0.8125rem',
-                      color: theme.palette.text.secondary,
-                      minWidth: 'auto',
-                      px: 1.25,
-                      py: 0.5,
-                      height: '28px',
-                      borderRadius: '6px',
-                      border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                      backgroundColor: 'transparent',
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                        borderColor: alpha(theme.palette.divider, 0.8),
-                      },
-                    }}
-                  >
-                    Reminders
-                  </Button>
-
-                  {/* More options button */}
-                  <IconButton
-                    size="small"
-                    onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
-                    sx={{
-                      width: '28px',
-                      height: '28px',
-                      color: theme.palette.text.secondary,
-                      border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                      borderRadius: '6px',
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                      },
-                    }}
-                  >
-                    <MoreVertIcon sx={{ fontSize: '1rem' }} />
-                  </IconButton>
-                </>
-              )}
-            </Box>
-          )}
+          <InlineTaskEditorQuickActions
+            initialTask={Boolean(initialTask)}
+            show={showQuickActions}
+            dueDate={dueDate}
+            priority={priority}
+            onDueDateChange={(d) => setDueDate(d)}
+            onPriorityChange={(p) => setPriority(p)}
+            onMoreMenuOpen={(el) => setMoreMenuAnchor(el)}
+          />
 
           {/* Project/Category selector */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              mt: 0.5,
-              cursor: 'pointer',
-              '&:hover': {
-                opacity: 0.8,
-              },
-            }}
-            onClick={(e) => setCategoryMenuAnchor(e.currentTarget)}
-          >
-            <InboxIcon sx={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
-            <Box
-              component="span"
-              sx={{
-                fontSize: '0.8125rem',
-                color: theme.palette.text.secondary,
-                fontWeight: 500,
-              }}
-            >
-              {selectedCategory?.name || 'Inbox'}
-            </Box>
-            <KeyboardArrowDownIcon sx={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
-          </Box>
+          <InlineTaskEditorCategoryMenu
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            selectedCategoryName={selectedCategory?.name}
+            anchorEl={categoryMenuAnchor}
+            onOpen={(el) => setCategoryMenuAnchor(el)}
+            onClose={() => setCategoryMenuAnchor(null)}
+            onSelect={(id) => setSelectedCategoryId(id)}
+          />
 
-          {/* Footer actions (Todoist-like) */}
-          {!!initialTask && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                gap: 1,
-                mt: 1.25,
-                pt: 1,
-                borderTop: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-              }}
-            >
-              <Button
-                type="button"
-                variant="text"
-                color="inherit"
-                size="small"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onCancel();
-                }}
-                disabled={isSubmitting}
-                sx={{
-                  textTransform: 'none',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  height: '28px',
-                  borderRadius: '6px',
-                  px: 1.5,
-                  minWidth: '68px',
-                  color: theme.palette.text.secondary,
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                  },
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                disableElevation
-                size="small"
-                onClick={(e) => e.stopPropagation()}
-                disabled={isSubmitting || title.trim() === ''}
-                sx={{
-                  textTransform: 'none',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  height: '28px',
-                  borderRadius: '6px',
-                  px: 2,
-                  minWidth: '68px',
-                  backgroundColor: theme.palette.primary.main,
-                  color: theme.palette.primary.contrastText,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                  '&.Mui-disabled': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.35),
-                    color: alpha(theme.palette.primary.contrastText, 0.75),
-                  },
-                }}
-              >
-                Save
-              </Button>
-            </Box>
-          )}
+          <InlineTaskEditorFooter
+            show={Boolean(initialTask)}
+            isSubmitting={isSubmitting}
+            isSaveDisabled={title.trim() === ''}
+            onCancel={onCancel}
+          />
         </Box>
       </Box>
 
-      {/* Category menu */}
-      <Menu
-        anchorEl={categoryMenuAnchor}
-        open={Boolean(categoryMenuAnchor)}
-        onClose={() => setCategoryMenuAnchor(null)}
-        PaperProps={{
-          sx: {
-            minWidth: 200,
-            mt: 1,
-          },
-        }}
-      >
-        <MenuItem
-          onClick={() => {
-            setSelectedCategoryId(undefined);
-            setCategoryMenuAnchor(null);
-          }}
-          selected={!selectedCategoryId}
-        >
-          <ListItemIcon>
-            <InboxIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Inbox</ListItemText>
-        </MenuItem>
-        {categories.map((category) => (
-          <MenuItem
-            key={category.id}
-            onClick={() => {
-              setSelectedCategoryId(category.id);
-              setCategoryMenuAnchor(null);
-            }}
-            selected={selectedCategoryId === category.id}
-          >
-            <ListItemText>{category.name}</ListItemText>
-          </MenuItem>
-        ))}
-      </Menu>
-
-      {/* More options menu */}
-      <Menu
+      <InlineTaskEditorMoreMenu
         anchorEl={moreMenuAnchor}
-        open={Boolean(moreMenuAnchor)}
         onClose={() => setMoreMenuAnchor(null)}
-        PaperProps={{
-          sx: {
-            minWidth: 180,
-            mt: 1,
-          },
-        }}
-      >
-        <MenuItem onClick={() => setMoreMenuAnchor(null)}>
-          <ListItemText>Add subtask</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => setMoreMenuAnchor(null)}>
-          <ListItemText>Add comment</ListItemText>
-        </MenuItem>
-      </Menu>
+      />
       </Box>
     </Box>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import RequireAuth from '../auth/RequireAuth';
 import MainLayout from './MainLayout';
+import { TaskMetadataProvider } from '../../contexts/TaskMetadataContext';
 
 /**
  * Layout wrapper for authenticated sections of the app.
@@ -11,9 +12,11 @@ import MainLayout from './MainLayout';
 const ProtectedLayout: React.FC = () => {
   return (
     <RequireAuth>
-      <MainLayout>
-        <Outlet />
-      </MainLayout>
+      <TaskMetadataProvider>
+        <MainLayout>
+          <Outlet />
+        </MainLayout>
+      </TaskMetadataProvider>
     </RequireAuth>
   );
 };

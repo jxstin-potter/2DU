@@ -12,7 +12,7 @@ interface ErrorContext {
   action?: string;
   userId?: string;
   taskId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**

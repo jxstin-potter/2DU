@@ -1,4 +1,5 @@
 import React from 'react';
+import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { TaskModalProvider } from '../../contexts/TaskModalContext';

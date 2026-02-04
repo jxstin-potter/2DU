@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Box, Typography, useTheme } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToTasks } from '../services/tasksService';
-import { taskDocumentToTask } from '../utils/taskHelpers';
+import { taskDocumentToTask } from '../types/firestore';
 import { Task } from '../types';
 import CompletedTaskItem from '../components/task-management/CompletedTaskItem';
 import { format, isToday, isYesterday, startOfDay } from 'date-fns';
@@ -31,20 +31,7 @@ const Completed: React.FC = () => {
       { completionStatus: 'all', sortBy: 'creationDate', sortOrder: 'desc' },
       (result) => {
         try {
-          const convertedTasks = result.tasks.map((taskDoc: any) => {
-            try {
-              return taskDocumentToTask(taskDoc);
-            } catch (taskError) {
-              return {
-                id: taskDoc.id || '',
-                title: taskDoc.title || 'Untitled Task',
-                completed: taskDoc.completed ?? false,
-                userId: taskDoc.userId || '',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              } as Task;
-            }
-          });
+          const convertedTasks = result.tasks.map((taskDoc: any) => taskDocumentToTask(taskDoc));
           
           // Filter to only completed tasks and sort by updatedAt (completion time)
           const completedTasks = convertedTasks
