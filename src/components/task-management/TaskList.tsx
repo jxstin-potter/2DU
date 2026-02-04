@@ -17,7 +17,7 @@ import {
 import { Droppable, Draggable } from 'react-beautiful-dnd';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import { motion } from 'framer-motion';
-import { Task, Tag, Category } from '../../types';
+import { Task } from '../../types';
 import TaskItem from './TaskItem';
 import InlineTaskEditor from './InlineTaskEditor';
 import { useTaskModal } from '../../contexts/TaskModalContext';
@@ -39,8 +39,6 @@ interface TaskListProps {
   sortBy?: SortOption;
   onSortChange?: (sortBy: SortOption) => void;
   draggable?: boolean;
-  tags: Tag[];
-  categories: Category[];
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
@@ -57,8 +55,6 @@ const TaskList: React.FC<TaskListProps> = ({
   sortBy: sortByProp = 'dueDate',
   onSortChange,
   draggable = false,
-  tags,
-  categories,
   onLoadMore,
   hasMore = false,
   isLoadingMore = false,
@@ -161,8 +157,6 @@ const TaskList: React.FC<TaskListProps> = ({
               onDelete={() => handleTaskAction('delete', task.id)}
               onEdit={() => handleTaskAction('edit', task)}
               onUpdate={onTaskAction.update}
-              tags={tags}
-              categories={categories}
               isActionInProgress={actionInProgress !== null}
             />
           </div>
@@ -175,8 +169,6 @@ const TaskList: React.FC<TaskListProps> = ({
         onDelete={() => handleTaskAction('delete', task.id)}
         onEdit={() => handleTaskAction('edit', task)}
         onUpdate={onTaskAction.update}
-        tags={tags}
-        categories={categories}
         isActionInProgress={actionInProgress !== null}
       />
     );
@@ -197,8 +189,6 @@ const TaskList: React.FC<TaskListProps> = ({
     );
   }, [
     displayTasks,
-    tags,
-    categories,
     actionInProgress,
     draggable,
     handleTaskAction,
@@ -307,7 +297,6 @@ const TaskList: React.FC<TaskListProps> = ({
           <InlineTaskEditor
             onSubmit={handleCreateTask}
             onCancel={handleCancelEditor}
-            categories={categories}
             defaultCategoryId={defaultCategoryId}
           />
         </Box>

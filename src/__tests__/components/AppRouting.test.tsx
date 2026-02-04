@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from './test-utils';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import ProtectedLayout from '../../components/layout/ProtectedLayout';
 
@@ -13,6 +13,18 @@ jest.mock('../../contexts/AuthContext', () => ({
     loginWithApple: jest.fn(),
     logout: jest.fn(),
     updateUserProfile: jest.fn(),
+  }),
+}));
+
+// Avoid pulling in real Firebase via task metadata hooks during unit tests.
+jest.mock('../../contexts/TaskMetadataContext', () => ({
+  TaskMetadataProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useTaskMetadata: () => ({
+    categories: [],
+    tags: [],
+    loading: false,
+    error: null,
+    refresh: jest.fn(),
   }),
 }));
 

@@ -10,7 +10,7 @@ import {
   TaskFilterParams
 } from '../services/tasksService';
 import { TaskDocument, TaskQueryResult } from '../types/firestore';
-import { Timestamp } from 'firebase/firestore';
+import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore';
 import { logger } from '../utils/logger';
 import { logHookError } from '../utils/errorLogging';
 
@@ -22,89 +22,6 @@ type TaskError = {
   message: string;
   code: 'AUTH_REQUIRED' | 'INVALID_DATA' | 'NETWORK_ERROR' | 'PROCESSING_ERROR' | 'UNKNOWN_ERROR';
   details?: any;
-};
-
-// Helper function to convert Firestore task to app task
-const convertFirestoreTaskToAppTask = (task: TaskDocument & { id: string }): Task => {
-  const timestampLikeToDate = (value: any): Date => {
-    if (!value) return new Date();
-    if (value instanceof Date) return value;
-    if (typeof value.toDate === 'function') return value.toDate();
-    return new Date();
-  };
-
-  const appTask: Task = {
-    ...task,
-    createdAt: timestampLikeToDate(task.createdAt),
-    updatedAt: timestampLikeToDate(task.updatedAt),
-    dueDate: task.dueDate ? timestampLikeToDate(task.dueDate) : undefined,
-    lastSharedAt: task.lastSharedAt ? timestampLikeToDate(task.lastSharedAt) : undefined,
-    subtasks: task.subtasks?.map(subtask => ({
-      ...subtask,
-      createdAt: timestampLikeToDate(subtask.createdAt),
-      updatedAt: timestampLikeToDate(subtask.updatedAt)
-    })),
-    comments: task.comments?.map(comment => ({
-      ...comment,
-      createdAt: timestampLikeToDate(comment.createdAt),
-      updatedAt: timestampLikeToDate(comment.updatedAt)
-    })),
-    attachments: task.attachments?.map(attachment => ({
-      ...attachment,
-      uploadedAt: timestampLikeToDate(attachment.uploadedAt)
-    }))
-  };
-  return appTask;
-};
-
-// Helper function to convert app task to Firestore task
-const convertAppTaskToFirestoreTask = (task: Partial<Task>): Partial<TaskDocument> => {
-  const firestoreTask: Partial<TaskDocument> = {};
-  
-  // Copy all non-date fields
-  Object.entries(task).forEach(([key, value]) => {
-    if (key !== 'createdAt' && key !== 'updatedAt' && key !== 'dueDate' && 
-        key !== 'lastSharedAt' && key !== 'subtasks' && key !== 'comments' &&
-        key !== 'attachments') {
-      (firestoreTask as any)[key] = value;
-    }
-  });
-
-  // Handle date fields
-  if (task.dueDate) {
-    firestoreTask.dueDate = Timestamp.fromDate(task.dueDate);
-  }
-  if (task.lastSharedAt) {
-    firestoreTask.lastSharedAt = Timestamp.fromDate(task.lastSharedAt);
-  }
-
-  // Handle subtasks
-  if (task.subtasks) {
-    firestoreTask.subtasks = task.subtasks.map(subtask => ({
-      ...subtask,
-      createdAt: Timestamp.fromDate(subtask.createdAt),
-      updatedAt: Timestamp.fromDate(subtask.updatedAt)
-    }));
-  }
-
-  // Handle comments
-  if (task.comments) {
-    firestoreTask.comments = task.comments.map(comment => ({
-      ...comment,
-      createdAt: Timestamp.fromDate(comment.createdAt),
-      updatedAt: Timestamp.fromDate(comment.updatedAt)
-    }));
-  }
-
-  // Handle attachments
-  if (task.attachments) {
-    firestoreTask.attachments = task.attachments.map(attachment => ({
-      ...attachment,
-      uploadedAt: Timestamp.fromDate(attachment.uploadedAt)
-    }));
-  }
-
-  return firestoreTask;
 };
 
 export const useTasks = () => {
@@ -159,7 +76,7 @@ export const useTasks = () => {
 
       const result = await loadMoreTasks(user.id, filterParams, lastVisible);
       
-      const newTasks = result.tasks.map(convertFirestoreTaskToAppTask);
+      const newTasks = result.tasks.map((t) => taskDocumentToTask(t));
 
       setTasks((prev) => {
         const next = [...prev, ...newTasks];
@@ -214,7 +131,7 @@ export const useTasks = () => {
         filterParams,
         (result: TaskQueryResult) => {
           try {
-            const processedTasks = result.tasks.map(convertFirestoreTaskToAppTask);
+            const processedTasks = result.tasks.map((t) => taskDocumentToTask(t));
 
             setTasks(processedTasks);
             setLastVisible(result.lastVisible);
@@ -389,7 +306,8 @@ export const useTasks = () => {
 
     try {
       clearError();
-      const firestoreTask = convertAppTaskToFirestoreTask(task);
+      const { id: _id, ...patch } = task;
+      const firestoreTask = taskPatchToTaskDocument(patch);
       await updateTask(task.id, firestoreTask, user.id);
       tasksHookLogger.info('Task updated successfully', {
         userId: user.id,

@@ -14,14 +14,15 @@ import {
   ChevronRight as ChevronRightIcon,
   ExpandMore as ExpandMoreIcon,
   CheckCircle as CheckCircleIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { format, isBefore, startOfDay } from 'date-fns';
-import { Task, Tag, Category } from '../../types';
+import { Task } from '../../types';
 import TaskItem from './TaskItem';
 import InlineTaskEditor from './InlineTaskEditor';
 import { useTaskModal } from '../../contexts/TaskModalContext';
+import TodayAddTaskButton from './TodayAddTaskButton';
+import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
 
 interface TodayViewProps {
   tasks: Task[];
@@ -33,8 +34,6 @@ interface TodayViewProps {
     edit: (task: Task) => void;
   };
   onCreateTask?: (taskData: Partial<Task>) => Promise<void>;
-  tags: Tag[];
-  categories: Category[];
   defaultCategoryId?: string;
 }
 
@@ -43,11 +42,10 @@ const TodayView: React.FC<TodayViewProps> = ({
   justAddedTaskId = null,
   onTaskAction,
   onCreateTask,
-  tags,
-  categories,
   defaultCategoryId,
 }) => {
   const theme = useTheme();
+  const { categories } = useTaskMetadata();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const appBarOffset = isMobile ? 56 : 64;
   const { closeModal: closeTaskModal } = useTaskModal();
@@ -414,8 +412,6 @@ const TodayView: React.FC<TodayViewProps> = ({
                     onDelete={onTaskAction.delete}
                     onEdit={onTaskAction.edit}
                     onUpdate={onTaskAction.update}
-                    tags={tags}
-                    categories={categories}
                   />
                 );
                 return isJustAdded ? (
@@ -461,8 +457,6 @@ const TodayView: React.FC<TodayViewProps> = ({
                   onDelete={onTaskAction.delete}
                   onEdit={onTaskAction.edit}
                   onUpdate={onTaskAction.update}
-                  tags={tags}
-                  categories={categories}
                 />
               );
               return isJustAdded ? (
@@ -484,57 +478,12 @@ const TodayView: React.FC<TodayViewProps> = ({
                 <InlineTaskEditor
                   onSubmit={handleCreateTask}
                   onCancel={handleCancelEditor}
-                  categories={categories}
                   defaultCategoryId={defaultCategoryId}
                 />
               </Box>
             ) : (
               <Box sx={{ mt: theme.spacing(0.5), width: '100%' }}>
-                <Button
-                  fullWidth
-                  disableRipple
-                  startIcon={
-                    <Box
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        backgroundColor: 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'text.secondary',
-                        transition: 'background-color 0.2s ease, color 0.2s ease',
-                      }}
-                    >
-                      <AddIcon sx={{ fontSize: '1rem', color: 'inherit' }} />
-                    </Box>
-                  }
-                  onClick={() => setShowInlineEditor(true)}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    minHeight: 36,
-                    py: 0,
-                    px: 2,
-                    color: 'text.secondary',
-                    borderRadius: 1,
-                    transition: 'color 0.2s ease, background-color 0.2s ease',
-                    '& .MuiButton-startIcon > *': {
-                      transition: 'background-color 0.2s ease, color 0.2s ease',
-                    },
-                    '&:hover': {
-                      color: 'primary.main',
-                      backgroundColor: 'transparent',
-                    },
-                    '&:hover .MuiButton-startIcon > *': {
-                      backgroundColor: 'primary.main',
-                      color: 'primary.contrastText',
-                    },
-                  }}
-                >
-                  Add task
-                </Button>
+                <TodayAddTaskButton onClick={() => setShowInlineEditor(true)} />
               </Box>
             )}
             {todayCompleted.length > 0 && (
@@ -579,8 +528,6 @@ const TodayView: React.FC<TodayViewProps> = ({
                           onDelete={onTaskAction.delete}
                           onEdit={onTaskAction.edit}
                           onUpdate={onTaskAction.update}
-                          tags={tags}
-                          categories={categories}
                         />
                       );
                       return isJustAdded ? (
@@ -612,7 +559,6 @@ const TodayView: React.FC<TodayViewProps> = ({
               <InlineTaskEditor
                 onSubmit={handleCreateTask}
                 onCancel={handleCancelEditor}
-                categories={categories}
                 defaultCategoryId={defaultCategoryId}
               />
             ) : (
@@ -625,51 +571,7 @@ const TodayView: React.FC<TodayViewProps> = ({
                   No tasks for today
                 </Typography>
                 <Box sx={{ width: '100%' }}>
-                  <Button
-                    fullWidth
-                    disableRipple
-                    startIcon={
-                      <Box
-                        sx={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: '50%',
-                          backgroundColor: 'transparent',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'text.secondary',
-                          transition: 'background-color 0.2s ease, color 0.2s ease',
-                        }}
-                      >
-                        <AddIcon sx={{ fontSize: '1rem', color: 'inherit' }} />
-                      </Box>
-                    }
-                    onClick={() => setShowInlineEditor(true)}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textTransform: 'none',
-                      minHeight: 36,
-                      py: 0,
-                      px: 2,
-                      color: 'text.secondary',
-                      borderRadius: 1,
-                      transition: 'color 0.2s ease, background-color 0.2s ease',
-                      '& .MuiButton-startIcon > *': {
-                        transition: 'background-color 0.2s ease, color 0.2s ease',
-                      },
-                      '&:hover': {
-                        color: 'primary.main',
-                        backgroundColor: 'transparent',
-                      },
-                      '&:hover .MuiButton-startIcon > *': {
-                        backgroundColor: 'primary.main',
-                        color: 'primary.contrastText',
-                      },
-                    }}
-                  >
-                    Add task
-                  </Button>
+                  <TodayAddTaskButton onClick={() => setShowInlineEditor(true)} />
                 </Box>
               </>
             )}

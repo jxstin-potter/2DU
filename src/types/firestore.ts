@@ -93,37 +93,59 @@ export const dateToTimestamp = (date: Date | null | undefined): Timestamp | null
   return Timestamp.fromDate(date);
 };
 
-const timestampLikeToDate = (value: Timestamp | FieldValue | null | undefined): Date => {
+/**
+ * Coerce common Firestore timestamp-like values into a Date.
+ * We accept Timestamps, JS Dates, and objects with a `toDate()` method.
+ */
+export const timestampLikeToDate = (value: Timestamp | FieldValue | Date | null | undefined): Date => {
   if (!value) return new Date();
+  if (value instanceof Date) return value;
   const maybeTimestamp = value as unknown as { toDate?: () => Date };
   return typeof maybeTimestamp.toDate === 'function' ? maybeTimestamp.toDate() : new Date();
 };
 
+type TaskDocumentInput = Partial<TaskDocument> & { id?: string };
+
 /**
  * Convert TaskDocument to Task
  */
-export const taskDocumentToTask = (doc: TaskDocument): Task => {
+export const taskDocumentToTask = (doc: TaskDocumentInput): Task => {
   return {
-    ...doc,
     id: doc.id ?? '',
-    createdAt: timestampLikeToDate(doc.createdAt),
-    updatedAt: timestampLikeToDate(doc.updatedAt),
-    dueDate: timestampToDate(doc.dueDate),
+    title: doc.title ?? '',
+    description: doc.description,
+    completed: doc.completed ?? false,
+    userId: doc.userId ?? '',
+    createdAt: timestampLikeToDate(doc.createdAt as any),
+    updatedAt: timestampLikeToDate(doc.updatedAt as any),
+    dueDate: doc.dueDate ? timestampToDate(doc.dueDate as any) : null,
+    tags: doc.tags ?? [],
+    order: doc.order ?? 0,
+    notes: doc.notes,
+    categoryId: doc.categoryId,
+    category: doc.category,
+    status: doc.status,
+    priority: doc.priority,
+    sharedWith: doc.sharedWith,
+    isShared: doc.isShared,
+    estimatedTime: doc.estimatedTime,
+    actualTime: doc.actualTime,
+    assignedTo: doc.assignedTo,
     subtasks: doc.subtasks?.map(subtask => ({
       ...subtask,
-      createdAt: subtask.createdAt.toDate(),
-      updatedAt: subtask.updatedAt.toDate(),
+      createdAt: timestampLikeToDate(subtask.createdAt as any),
+      updatedAt: timestampLikeToDate(subtask.updatedAt as any),
     })),
     comments: doc.comments?.map(comment => ({
       ...comment,
-      createdAt: comment.createdAt.toDate(),
-      updatedAt: comment.updatedAt.toDate(),
+      createdAt: timestampLikeToDate(comment.createdAt as any),
+      updatedAt: timestampLikeToDate(comment.updatedAt as any),
     })),
     attachments: doc.attachments?.map(attachment => ({
       ...attachment,
-      uploadedAt: attachment.uploadedAt.toDate(),
+      uploadedAt: timestampLikeToDate(attachment.uploadedAt as any),
     })),
-    lastSharedAt: timestampToDate(doc.lastSharedAt),
+    lastSharedAt: doc.lastSharedAt ? timestampToDate(doc.lastSharedAt as any) : null,
   };
 };
 
@@ -156,6 +178,60 @@ export const taskToTaskDocument = (task: Task): Omit<TaskDocument, 'id'> => {
     })),
     lastSharedAt: dateToTimestamp(task.lastSharedAt),
   };
+};
+
+/**
+ * Convert a *partial* Task update into a Firestore TaskDocument patch.
+ * This is the canonical way to build update payloads for `updateTask(...)`.
+ */
+export const taskPatchToTaskDocument = (patch: Partial<Task>): Partial<TaskDocument> => {
+  const doc: Partial<TaskDocument> = {};
+
+  if (patch.title !== undefined) doc.title = patch.title;
+  if (patch.description !== undefined) doc.description = patch.description || undefined;
+  if (patch.completed !== undefined) doc.completed = patch.completed;
+  if (patch.userId !== undefined) doc.userId = patch.userId;
+  if (patch.tags !== undefined) doc.tags = patch.tags;
+  if (patch.order !== undefined) doc.order = patch.order;
+  if (patch.notes !== undefined) doc.notes = patch.notes;
+  if (patch.categoryId !== undefined) doc.categoryId = patch.categoryId;
+  if (patch.category !== undefined) doc.category = patch.category;
+  if (patch.status !== undefined) doc.status = patch.status;
+  if (patch.priority !== undefined) doc.priority = patch.priority;
+  if (patch.sharedWith !== undefined) doc.sharedWith = patch.sharedWith as any;
+  if (patch.isShared !== undefined) doc.isShared = patch.isShared;
+  if (patch.estimatedTime !== undefined) doc.estimatedTime = patch.estimatedTime;
+  if (patch.actualTime !== undefined) doc.actualTime = patch.actualTime;
+  if (patch.assignedTo !== undefined) doc.assignedTo = patch.assignedTo;
+
+  if (patch.dueDate !== undefined) {
+    doc.dueDate = patch.dueDate ? Timestamp.fromDate(patch.dueDate) : null;
+  }
+  if (patch.lastSharedAt !== undefined) {
+    doc.lastSharedAt = patch.lastSharedAt ? Timestamp.fromDate(patch.lastSharedAt) : undefined;
+  }
+  if (patch.subtasks !== undefined) {
+    doc.subtasks = patch.subtasks?.map(subtask => ({
+      ...subtask,
+      createdAt: Timestamp.fromDate(subtask.createdAt),
+      updatedAt: Timestamp.fromDate(subtask.updatedAt),
+    }));
+  }
+  if (patch.comments !== undefined) {
+    doc.comments = patch.comments?.map(comment => ({
+      ...comment,
+      createdAt: Timestamp.fromDate(comment.createdAt),
+      updatedAt: Timestamp.fromDate(comment.updatedAt),
+    }));
+  }
+  if (patch.attachments !== undefined) {
+    doc.attachments = patch.attachments?.map(attachment => ({
+      ...attachment,
+      uploadedAt: Timestamp.fromDate(attachment.uploadedAt),
+    }));
+  }
+
+  return Object.fromEntries(Object.entries(doc).filter(([, value]) => value !== undefined)) as Partial<TaskDocument>;
 };
 
 /**

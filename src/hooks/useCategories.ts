@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '../firebase';
 import { Category } from '../types';
+import { createCategory, getCategories, patchCategory, removeCategory } from '../services/categoriesService';
+import { logHookError } from '../utils/errorLogging';
 
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -15,17 +15,10 @@ export const useCategories = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const categoriesCollection = collection(db, 'categories');
-      const categoriesQuery = query(categoriesCollection, orderBy('order'));
-      const snapshot = await getDocs(categoriesQuery);
-      const loadedCategories = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Category));
-      setCategories(loadedCategories);
+      setCategories(await getCategories());
     } catch (err) {
       setError('Failed to load categories');
-      console.error('Error loading categories:', err);
+      logHookError(err instanceof Error ? err : new Error('Failed to load categories'), 'useCategories', 'Failed to load categories');
     } finally {
       setLoading(false);
     }
@@ -33,43 +26,39 @@ export const useCategories = () => {
 
   const addCategory = async (category: Omit<Category, 'id'>) => {
     try {
-      const categoriesCollection = collection(db, 'categories');
-      const docRef = await addDoc(categoriesCollection, {
+      const newCategory = await createCategory({
         ...category,
-        order: categories.length
+        order: categories.length,
       });
-      const newCategory = { ...category, id: docRef.id };
-      setCategories(prev => [...prev, newCategory]);
+      setCategories((prev) => [...prev, newCategory]);
       return newCategory;
     } catch (err) {
       setError('Failed to add category');
-      console.error('Error adding category:', err);
+      logHookError(err instanceof Error ? err : new Error('Failed to add category'), 'useCategories', 'Failed to add category');
       throw err;
     }
   };
 
   const updateCategory = async (id: string, updates: Partial<Category>) => {
     try {
-      const categoryRef = doc(db, 'categories', id);
-      await updateDoc(categoryRef, updates);
+      await patchCategory(id, updates);
       setCategories(prev => 
         prev.map(cat => cat.id === id ? { ...cat, ...updates } : cat)
       );
     } catch (err) {
       setError('Failed to update category');
-      console.error('Error updating category:', err);
+      logHookError(err instanceof Error ? err : new Error('Failed to update category'), 'useCategories', 'Failed to update category', { categoryId: id, updates });
       throw err;
     }
   };
 
   const deleteCategory = async (id: string) => {
     try {
-      const categoryRef = doc(db, 'categories', id);
-      await deleteDoc(categoryRef);
+      await removeCategory(id);
       setCategories(prev => prev.filter(cat => cat.id !== id));
     } catch (err) {
       setError('Failed to delete category');
-      console.error('Error deleting category:', err);
+      logHookError(err instanceof Error ? err : new Error('Failed to delete category'), 'useCategories', 'Failed to delete category', { categoryId: id });
       throw err;
     }
   };

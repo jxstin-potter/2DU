@@ -14,11 +14,11 @@ interface LogContext {
   action?: string;
   userId?: string;
   taskId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Main logging function
-const log = (level: LogLevel, message: string, context: LogContext = {}, data?: any) => {
+const log = (level: LogLevel, message: string, context: LogContext = {}, data?: unknown) => {
   const timestamp = new Date().toISOString();
   const contextString = Object.entries(context)
     .filter(([_, value]) => value !== undefined)
@@ -45,51 +45,51 @@ const log = (level: LogLevel, message: string, context: LogContext = {}, data?: 
 
 // Helper functions for different logging levels
 export const logger = {
-  debug: (message: string, context: LogContext = {}, data?: any) => 
+  debug: (message: string, context: LogContext = {}, data?: unknown) => 
     log(LogLevel.DEBUG, message, context, data),
   
-  info: (message: string, context: LogContext = {}, data?: any) => 
+  info: (message: string, context: LogContext = {}, data?: unknown) => 
     log(LogLevel.INFO, message, context, data),
   
-  warn: (message: string, context: LogContext = {}, data?: any) => 
+  warn: (message: string, context: LogContext = {}, data?: unknown) => 
     log(LogLevel.WARN, message, context, data),
   
-  error: (message: string, context: LogContext = {}, data?: any) => 
+  error: (message: string, context: LogContext = {}, data?: unknown) => 
     log(LogLevel.ERROR, message, context, data),
 
   // Component-specific loggers
   component: (componentName: string) => ({
-    debug: (message: string, data?: any) => 
+    debug: (message: string, data?: unknown) => 
       logger.debug(message, { component: componentName }, data),
-    info: (message: string, data?: any) => 
+    info: (message: string, data?: unknown) => 
       logger.info(message, { component: componentName }, data),
-    warn: (message: string, data?: any) => 
+    warn: (message: string, data?: unknown) => 
       logger.warn(message, { component: componentName }, data),
-    error: (message: string, data?: any) => 
+    error: (message: string, data?: unknown) => 
       logger.error(message, { component: componentName }, data),
   }),
 
   // Service-specific loggers
   service: (serviceName: string) => ({
-    debug: (message: string, data?: any) => 
+    debug: (message: string, data?: unknown) => 
       logger.debug(message, { service: serviceName }, data),
-    info: (message: string, data?: any) => 
+    info: (message: string, data?: unknown) => 
       logger.info(message, { service: serviceName }, data),
-    warn: (message: string, data?: any) => 
+    warn: (message: string, data?: unknown) => 
       logger.warn(message, { service: serviceName }, data),
-    error: (message: string, data?: any) => 
+    error: (message: string, data?: unknown) => 
       logger.error(message, { service: serviceName }, data),
   }),
 
   // Hook-specific loggers
   hook: (hookName: string) => ({
-    debug: (message: string, data?: any) => 
+    debug: (message: string, data?: unknown) => 
       logger.debug(message, { hook: hookName }, data),
-    info: (message: string, data?: any) => 
+    info: (message: string, data?: unknown) => 
       logger.info(message, { hook: hookName }, data),
-    warn: (message: string, data?: any) => 
+    warn: (message: string, data?: unknown) => 
       logger.warn(message, { hook: hookName }, data),
-    error: (message: string, data?: any) => 
+    error: (message: string, data?: unknown) => 
       logger.error(message, { hook: hookName }, data),
   }),
 }; 

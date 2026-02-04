@@ -1,6 +1,8 @@
 // Accessibility utility functions - Streamlined version
 // Only keeping functions that are actually used in the application
 
+import React from 'react';
+
 /**
  * Creates an accessible label for an element
  */
@@ -31,19 +33,27 @@ export const createAccessibleDescription = (id: string, description: string) => 
 export const createAccessibleButton = (
   id: string,
   label: string,
-  onClick: (e: React.MouseEvent) => void,
+  onActivate: () => void,
   description?: string
 ) => {
-  const props: any = {
+  const props: {
+    id: string;
+    role: 'button';
+    tabIndex: number;
+    'aria-label': string;
+    'aria-describedby'?: string;
+    onClick: React.MouseEventHandler;
+    onKeyDown: React.KeyboardEventHandler;
+  } = {
     id,
-    onClick,
+    onClick: () => onActivate(),
     role: 'button',
     'aria-label': label,
     tabIndex: 0,
-    onKeyDown: (e: React.KeyboardEvent) => {
+    onKeyDown: (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        onClick(e as unknown as React.MouseEvent);
+        onActivate();
       }
     },
   };
@@ -51,7 +61,6 @@ export const createAccessibleButton = (
   if (description) {
     const descriptionProps = createAccessibleDescription(id, description);
     props['aria-describedby'] = descriptionProps.description.id;
-    props.descriptionProps = descriptionProps;
   }
 
   return props;
@@ -64,22 +73,29 @@ export const createAccessibleCheckbox = (
   id: string,
   label: string,
   checked: boolean,
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+  onToggle: () => void,
   description?: string
 ) => {
-  const props: any = {
+  void onToggle; // handled by the consuming component's onChange
+
+  const props: {
+    id: string;
+    inputProps: {
+      'aria-checked': boolean;
+      'aria-label': string;
+      'aria-describedby'?: string;
+    };
+  } = {
     id,
-    type: 'checkbox',
-    checked,
-    onChange,
-    'aria-checked': checked,
-    'aria-label': label,
+    inputProps: {
+      'aria-checked': checked,
+      'aria-label': label,
+    },
   };
 
   if (description) {
     const descriptionProps = createAccessibleDescription(id, description);
-    props['aria-describedby'] = descriptionProps.description.id;
-    props.descriptionProps = descriptionProps;
+    props.inputProps['aria-describedby'] = descriptionProps.description.id;
   }
 
   return props;
@@ -96,7 +112,13 @@ export const createAccessibleSelect = (
   options: Array<{ value: string; label: string }>,
   description?: string
 ) => {
-  const props: any = {
+  const props: {
+    id: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    'aria-label': string;
+    'aria-describedby'?: string;
+  } = {
     id,
     value,
     onChange,
@@ -106,7 +128,6 @@ export const createAccessibleSelect = (
   if (description) {
     const descriptionProps = createAccessibleDescription(id, description);
     props['aria-describedby'] = descriptionProps.description.id;
-    props.descriptionProps = descriptionProps;
   }
 
   return {

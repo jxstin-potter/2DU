@@ -1,6 +1,6 @@
 import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from './test-utils';
 import { MemoryRouter } from 'react-router-dom';
 import AuthForm from '../../components/forms/AuthForm';
 

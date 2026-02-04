@@ -10,11 +10,6 @@ export type WebSocketEventType =
   | 'TAG_DELETED'
   | 'CONNECTION_STATUS';
 
-export interface WebSocketEvent {
-  type: WebSocketEventType;
-  data: any;
-}
-
 export interface TaskCreatedEvent {
   type: 'TASK_CREATED';
   data: Task;
@@ -50,7 +45,7 @@ export interface ConnectionStatusEvent {
   data: boolean;
 }
 
-export type WebSocketEventData = 
+export type WebSocketEvent = 
   | TaskCreatedEvent
   | TaskUpdatedEvent
   | TaskDeletedEvent
@@ -58,3 +53,5 @@ export type WebSocketEventData =
   | TagUpdatedEvent
   | TagDeletedEvent
   | ConnectionStatusEvent; 
+
+export type WebSocketEventData = WebSocketEvent['data'];

@@ -8,11 +8,14 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 import { subscribeToTasks, createTaskFromData, updateTask, deleteTask, updateTaskOrder } from '../../services/tasksService';
-import { taskDocumentToTask, taskToTaskDocument, computeNewOrder } from '../../utils/taskHelpers';
+import { taskDocumentToTask, taskPatchToTaskDocument } from '../../types/firestore';
+import { computeNewOrder } from '../../utils/taskHelpers';
 import TaskModal from '../modals/TaskModal';
-import { Task, Category, Tag } from '../../types';
+import { Task } from '../../types';
 import TaskList from './TaskList';
-import { DEFAULT_TAGS } from '../../constants/defaultTags';
+import { logger } from '../../utils/logger';
+
+const taskManagerLogger = logger.component('TaskManager');
 
 export type SortMode = 'manual' | 'dueDate' | 'title' | 'createdAt';
 
@@ -20,8 +23,6 @@ const TaskManager: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { isOpen: isTaskModalOpen, openModal: openTaskModal, closeModal: closeTaskModal } = useTaskModal();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>(DEFAULT_TAGS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -81,34 +82,6 @@ const TaskManager: React.FC = () => {
       }
     );
 
-    // Load categories and tags (one-time load)
-    const loadCategoriesAndTags = async () => {
-      try {
-        const { collection, getDocs } = await import('firebase/firestore');
-        const { db } = await import('../../firebase');
-        
-        const categoriesSnapshot = await getDocs(collection(db, 'categories'));
-        const loadedCategories = categoriesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Category[];
-        setCategories(loadedCategories);
-
-        const tagsSnapshot = await getDocs(collection(db, 'tags'));
-        if (!tagsSnapshot.empty) {
-          const loadedTags = tagsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as Tag[];
-          setTags(loadedTags);
-        }
-      } catch (error) {
-        console.error('Failed to load categories/tags:', error);
-      }
-    };
-
-    loadCategoriesAndTags();
-
     return () => {
       unsubscribe();
     };
@@ -128,8 +101,7 @@ const TaskManager: React.FC = () => {
 
     try {
       // Convert Task updates to TaskDocument format
-      const taskDoc = taskToTaskDocument(updates);
-      taskDoc.updatedAt = (await import('firebase/firestore')).Timestamp.now();
+      const taskDoc = taskPatchToTaskDocument(updates);
       
       await updateTask(taskId, taskDoc, user.id);
       // Tasks will automatically update via the real-time subscription
@@ -163,9 +135,7 @@ const TaskManager: React.FC = () => {
       if (!task) return;
 
       const completed = !task.completed;
-      const taskDoc = taskToTaskDocument({ completed });
-      const { Timestamp } = await import('firebase/firestore');
-      taskDoc.updatedAt = Timestamp.now();
+      const taskDoc = taskPatchToTaskDocument({ completed });
       
       await updateTask(taskId, taskDoc, user.id);
       // Tasks will automatically update via the real-time subscription
@@ -214,7 +184,7 @@ const TaskManager: React.FC = () => {
       }
       
       const maxOrder = tasks.length === 0 ? 0 : Math.max(...tasks.map((t) => t.order ?? 0), 0);
-      const taskDoc = taskToTaskDocument({
+      const taskDoc = taskPatchToTaskDocument({
         ...taskData,
         userId: user.id,
         completed: false,
@@ -233,7 +203,7 @@ const TaskManager: React.FC = () => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create task';
       setError(errorMessage);
-      console.error('Failed to create task:', error);
+      taskManagerLogger.error('Failed to create task', { error });
       // Re-throw the error so the caller can handle it
       throw error;
     }
@@ -267,8 +237,6 @@ const TaskManager: React.FC = () => {
             edit: async (task: Task) => { handleTaskSelect(task); },
           }}
           onCreateTask={handleCreateTask}
-          tags={tags}
-          categories={categories}
         />
       </DragDropContext>
 
