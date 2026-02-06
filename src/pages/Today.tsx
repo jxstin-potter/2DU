@@ -9,6 +9,7 @@ import TodayView from '../components/task-management/TodayView';
 import TaskModal from '../components/modals/TaskModal';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
+import { startOfDay } from 'date-fns';
 
 const Today: React.FC = () => {
   const theme = useTheme();
@@ -148,9 +149,13 @@ const Today: React.FC = () => {
       if (!user?.id) {
         throw new Error('Please log in to create tasks');
       }
+
+      // Today view rule: tasks created here are due today unless the user explicitly set another date.
+      const dueDate = taskData.dueDate ?? startOfDay(new Date());
       
       const taskDoc = taskPatchToTaskDocument({
         ...taskData,
+        dueDate,
         userId: user.id,
         completed: false,
         order: tasks.length,

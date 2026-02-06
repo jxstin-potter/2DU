@@ -103,17 +103,17 @@ const TodayView: React.FC<TodayViewProps> = ({
     let incompleteCount = 0;
 
     tasks.forEach(task => {
-      if (task.dueDate) {
-        const taskDate = startOfDay(new Date(task.dueDate));
+      // Today view should only show tasks with explicit due dates:
+      // - overdue (incomplete only)
+      // - due today (incomplete + completed today section)
+      if (!task.dueDate) return;
 
-        if (isBefore(taskDate, todayDate)) {
-          overdue.push(task);
-          if (!task.completed) incompleteCount++;
-        } else if (taskDate.getTime() === todayDate.getTime()) {
-          today.push(task);
-          if (!task.completed) incompleteCount++;
-        }
-      } else {
+      const taskDate = startOfDay(new Date(task.dueDate));
+
+      if (isBefore(taskDate, todayDate)) {
+        overdue.push(task);
+        if (!task.completed) incompleteCount++;
+      } else if (taskDate.getTime() === todayDate.getTime()) {
         today.push(task);
         if (!task.completed) incompleteCount++;
       }

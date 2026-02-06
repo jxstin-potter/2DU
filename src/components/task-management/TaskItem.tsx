@@ -51,7 +51,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const { tags, categories } = useTaskMetadata();
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null);
   const [tempDate, setTempDate] = useState<Date | null>(null);
-  const [tempTime, setTempTime] = useState<Date | null>(null);
   const [isInlineEditing, setIsInlineEditing] = useState(false);
   const dateDisplayRef = useRef<HTMLDivElement>(null);
   const category = useMemo(() => {
@@ -73,13 +72,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const formattedDate = useMemo(() => {
     if (!task.dueDate) return '';
     const date = new Date(task.dueDate);
-    // Check if the date has a specific time (not midnight/start of day)
-    const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0;
-    if (hasTime) {
-      // Include time: "MMM d yyyy h:mm a" (e.g., "Jan 28 2026 3:00 PM")
-      return format(date, 'MMM d yyyy h:mm a');
-    }
-    // Date only: "MMM d yyyy" (e.g., "Jan 28 2026")
+    // Project uses date-only due dates.
     return format(date, 'MMM d yyyy');
   }, [task.dueDate]);
 
@@ -130,10 +123,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
     if (task.dueDate) {
       const date = new Date(task.dueDate);
       setTempDate(date);
-      setTempTime(date);
     } else {
       setTempDate(new Date());
-      setTempTime(new Date());
     }
   }, [onUpdate, task.dueDate]);
 
@@ -144,43 +135,14 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const handleDateChange = useCallback((newDate: Date | null) => {
     if (!newDate) return;
     setTempDate(newDate);
-    
-    // If time is already set, combine them immediately
-    if (tempTime && onUpdate) {
-      const finalDate = new Date(newDate);
-      finalDate.setHours(tempTime.getHours());
-      finalDate.setMinutes(tempTime.getMinutes());
-      finalDate.setSeconds(0);
-      finalDate.setMilliseconds(0);
-      onUpdate(task.id, { dueDate: finalDate });
-      setDatePickerAnchor(null);
-    }
-  }, [onUpdate, task.id, tempTime]);
 
-  const handleTimeChange = useCallback((newTime: Date | null) => {
-    if (!newTime) return;
-    setTempTime(newTime);
-    
-    // Combine with current date
-    let finalDate: Date;
-    if (tempDate) {
-      finalDate = new Date(tempDate);
-    } else if (task.dueDate) {
-      finalDate = new Date(task.dueDate);
-    } else {
-      finalDate = new Date();
-    }
-    
-    finalDate.setHours(newTime.getHours());
-    finalDate.setMinutes(newTime.getMinutes());
-    finalDate.setSeconds(0);
-    finalDate.setMilliseconds(0);
-    
+    // Normalize to start-of-day (date-only) and save immediately.
     if (onUpdate) {
+      const finalDate = startOfDay(new Date(newDate));
       onUpdate(task.id, { dueDate: finalDate });
       setDatePickerAnchor(null);
     }
-  }, [onUpdate, task.id, task.dueDate, tempDate]);
+  }, [onUpdate, task.id]);
 
   const handleRemoveDate = useCallback(async () => {
     if (!onUpdate) return;
@@ -425,11 +387,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
         <TaskDueDatePopover
           anchorEl={datePickerAnchor}
           tempDate={tempDate}
-          tempTime={tempTime}
           hasExistingDueDate={Boolean(task.dueDate)}
           onClose={handleDatePickerClose}
           onDateChange={handleDateChange}
-          onTimeChange={handleTimeChange}
           onRemove={handleRemoveDate}
         />
       )}

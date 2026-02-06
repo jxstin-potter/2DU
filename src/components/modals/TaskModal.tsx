@@ -27,6 +27,10 @@ interface TaskModalProps {
   onSubmit: (taskData: Partial<Task>) => Promise<void>;
   initialTask?: Task | null;
   loading?: boolean;
+  /**
+   * Default due date for create-mode only. If omitted, create-mode starts with no due date.
+   */
+  defaultDueDate?: Date | null;
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({
@@ -35,6 +39,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   onSubmit,
   initialTask,
   loading = false,
+  defaultDueDate = null,
 }) => {
   const theme = useTheme();
   const [title, setTitle] = useState('');
@@ -53,9 +58,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setPriority(initialTask.priority || '');
     } else {
       resetForm();
-      setDueDate(new Date());
+      setDueDate(defaultDueDate);
     }
-  }, [initialTask, open]);
+  }, [initialTask, open, defaultDueDate]);
 
   // Auto-focus the title input when modal opens (backup mechanism)
   useEffect(() => {

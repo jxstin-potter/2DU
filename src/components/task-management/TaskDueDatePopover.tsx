@@ -2,29 +2,24 @@ import React from 'react';
 import { Box, Popover, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 interface TaskDueDatePopoverProps {
   anchorEl: HTMLElement | null;
   tempDate: Date | null;
-  tempTime: Date | null;
   hasExistingDueDate: boolean;
   onClose: () => void;
   onDateChange: (date: Date | null) => void;
-  onTimeChange: (time: Date | null) => void;
   onRemove: () => void;
 }
 
 const TaskDueDatePopover: React.FC<TaskDueDatePopoverProps> = ({
   anchorEl,
   tempDate,
-  tempTime,
   hasExistingDueDate,
   onClose,
   onDateChange,
-  onTimeChange,
   onRemove,
 }) => {
   const theme = useTheme();
@@ -61,25 +56,6 @@ const TaskDueDatePopover: React.FC<TaskDueDatePopoverProps> = ({
             label="Date"
             value={tempDate}
             onChange={onDateChange}
-            slotProps={{
-              textField: {
-                size: 'small',
-                fullWidth: true,
-                sx: {
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor:
-                      theme.palette.mode === 'dark'
-                        ? alpha(theme.palette.common.white, 0.05)
-                        : alpha(theme.palette.common.black, 0.02),
-                  },
-                },
-              },
-            }}
-          />
-          <TimePicker
-            label="Time"
-            value={tempTime}
-            onChange={onTimeChange}
             slotProps={{
               textField: {
                 size: 'small',
