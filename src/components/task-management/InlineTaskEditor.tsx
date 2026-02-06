@@ -10,7 +10,6 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Task, Category } from '../../types';
-import { startOfDay } from 'date-fns';
 import InlineTaskEditorQuickActions from './inline-task-editor/InlineTaskEditorQuickActions';
 import InlineTaskEditorFooter from './inline-task-editor/InlineTaskEditorFooter';
 import InlineTaskEditorCategoryMenu from './inline-task-editor/InlineTaskEditorCategoryMenu';
@@ -28,6 +27,11 @@ interface InlineTaskEditorProps {
   autoFocus?: boolean;
   categories?: Category[];
   defaultCategoryId?: string;
+  /**
+   * Default due date to apply for newly created tasks in this editor.
+   * If omitted, new tasks start with no due date.
+   */
+  defaultDueDate?: Date | null;
 }
 
 const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
@@ -37,6 +41,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   autoFocus = true,
   categories: categoriesProp,
   defaultCategoryId,
+  defaultDueDate = null,
 }) => {
   const theme = useTheme();
   const { categories: metadataCategories } = useTaskMetadata();
@@ -70,7 +75,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
         descriptionRef.current.textContent = initialTask.description || '';
       }
     } else {
-      setDueDate(startOfDay(new Date()));
+      setDueDate(defaultDueDate);
       setShowQuickActions(true);
       if (titleRef.current) {
         titleRef.current.textContent = '';
@@ -79,7 +84,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
         descriptionRef.current.textContent = '';
       }
     }
-  }, [initialTask, defaultCategoryId]);
+  }, [initialTask, defaultCategoryId, defaultDueDate]);
 
   // Auto-focus the title input when it opens
   useEffect(() => {
