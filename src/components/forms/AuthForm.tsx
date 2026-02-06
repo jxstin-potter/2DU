@@ -12,6 +12,10 @@ import {
   Checkbox,
   FormControlLabel,
   Link,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   styled,
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
@@ -63,13 +67,16 @@ type AuthRedirectState = {
 };
 
 const AuthForm: React.FC = () => {
-  const { login, signup, loginWithGoogle, loginWithApple } = useAuth();
+  const { login, signup, loginWithGoogle, loginWithApple, requestPasswordReset } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -87,7 +94,8 @@ const AuthForm: React.FC = () => {
   }, [location.state]);
 
   const validateForm = () => {
-    if (!formData.email || !formData.password) {
+    const email = formData.email.trim();
+    if (!email || !formData.password) {
       setError('Please fill in all required fields');
       return false;
     }
@@ -99,7 +107,7 @@ const AuthForm: React.FC = () => {
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
+    if (!emailRegex.test(email)) {
       setError('Please enter a valid email address');
       return false;
     }
@@ -116,6 +124,7 @@ const AuthForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
 
     if (!validateForm()) {
       return;
@@ -138,6 +147,7 @@ const AuthForm: React.FC = () => {
 
   const handleGoogle = async () => {
     setError(null);
+    setInfo(null);
     setIsLoading(true);
     try {
       const result = await loginWithGoogle(rememberMe);
@@ -153,6 +163,7 @@ const AuthForm: React.FC = () => {
 
   const handleApple = async () => {
     setError(null);
+    setInfo(null);
     setIsLoading(true);
     try {
       const result = await loginWithApple(rememberMe);
@@ -172,6 +183,36 @@ const AuthForm: React.FC = () => {
       [e.target.name]: e.target.value,
     }));
     setError(null); // Clear error when user types
+    setInfo(null);
+  };
+
+  const openReset = () => {
+    setError(null);
+    setInfo(null);
+    setResetEmail(formData.email.trim());
+    setResetOpen(true);
+  };
+
+  const submitReset = async () => {
+    setError(null);
+    setInfo(null);
+    const email = resetEmail.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await requestPasswordReset(email);
+      setResetOpen(false);
+      setInfo("If an account exists for that email, you'll receive a password reset link shortly. If you usually sign in with Google, sign in with Google and add a password in Settings.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send password reset email');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -246,6 +287,7 @@ const AuthForm: React.FC = () => {
         <Divider sx={{ color: 'text.secondary' }}>OR</Divider>
 
         {error && <Alert severity="error">{error}</Alert>}
+        {info && <Alert severity="success">{info}</Alert>}
 
         <Box component="form" onSubmit={handleSubmit} autoComplete="on">
           <Stack spacing={1.5}>
@@ -303,9 +345,10 @@ const AuthForm: React.FC = () => {
               <Link
                 component="button"
                 type="button"
-                onClick={() => setError('Password reset is not implemented yet.')}
+                onClick={openReset}
                 underline="hover"
                 sx={{ fontSize: '0.875rem' }}
+                disabled={!isLogin || isLoading}
               >
                 Forgot password?
               </Link>
@@ -354,6 +397,40 @@ const AuthForm: React.FC = () => {
           )}
         </Typography>
       </Stack>
+
+      <Dialog
+        open={resetOpen}
+        onClose={() => setResetOpen(false)}
+        aria-labelledby="reset-password-title"
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle id="reset-password-title">Reset password</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            Enter your email and we&apos;ll send you a reset link.
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Email"
+            type="email"
+            value={resetEmail}
+            onChange={(e) => setResetEmail(e.target.value)}
+            disabled={isLoading}
+            autoComplete="email"
+            inputProps={{ autoCapitalize: 'none', spellCheck: 'false' }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setResetOpen(false)} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={submitReset} disabled={isLoading}>
+            {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Send reset link'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

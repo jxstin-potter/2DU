@@ -6,10 +6,11 @@ const MAX_RECENT_VIEWS = 8;
 export interface RecentView {
   path: string;
   labelKey: string;
-  icon: 'today' | 'completed' | 'settings';
+  icon: 'inbox' | 'today' | 'completed' | 'settings';
 }
 
 const PATH_CONFIG: Record<string, { labelKey: string; icon: RecentView['icon'] }> = {
+  '/inbox': { labelKey: 'sidebar.inbox', icon: 'inbox' },
   '/today': { labelKey: 'sidebar.today', icon: 'today' },
   '/completed': { labelKey: 'sidebar.completed', icon: 'completed' },
   '/settings': { labelKey: 'sidebar.settings', icon: 'settings' },

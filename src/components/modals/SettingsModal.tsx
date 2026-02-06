@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogActions,
+  DialogTitle,
   IconButton,
   Typography,
   Box,
@@ -76,13 +78,20 @@ type SettingsTab = 'account' | 'general';
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, addPassword, authProviders, hasPasswordProvider } = useAuth();
   const { mode, toggleColorMode } = useCustomTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [name, setName] = useState(user?.name || '');
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordInfo, setPasswordInfo] = useState<string | null>(null);
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   React.useEffect(() => {
     setName(user?.name || '');
@@ -144,7 +153,49 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   };
 
   const handleAddPassword = () => {
-    // TODO: Implement password addition
+    setPasswordError(null);
+    setPasswordInfo(null);
+    setPassword('');
+    setPasswordConfirm('');
+    setPasswordOpen(true);
+  };
+
+  const handleSavePassword = async () => {
+    setPasswordError(null);
+    setPasswordInfo(null);
+
+    if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      await addPassword(password);
+      setPasswordOpen(false);
+      setPasswordInfo(hasPasswordProvider ? 'Password updated.' : 'Password added. You can now sign in with email & password.');
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Failed to add password.');
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
+  const providerLabel = (providerId: string) => {
+    switch (providerId) {
+      case 'google.com':
+        return 'Google';
+      case 'apple.com':
+        return 'Apple';
+      case 'password':
+        return 'Email / Password';
+      default:
+        return providerId;
+    }
   };
 
   const handleManagePlan = () => {
@@ -443,6 +494,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     Password
                   </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
+                    {hasPasswordProvider
+                      ? 'Password is set for your account.'
+                      : 'No password yet. Add one to sign in without Google.'}
+                  </Typography>
+                  {passwordInfo && (
+                    <Typography variant="caption" color="success.main" sx={{ display: 'block', mb: 1 }}>
+                      {passwordInfo}
+                    </Typography>
+                  )}
                   <Button
                     variant="outlined"
                     size="small"
@@ -457,7 +518,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                       },
                     }}
                   >
-                    Add password
+                    {hasPasswordProvider ? 'Change password' : 'Add password'}
                   </Button>
                 </Box>
 
@@ -492,9 +553,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     Connected accounts
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    No connected accounts
-                  </Typography>
+                  {authProviders.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      No connected accounts
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {authProviders.map((p) => (
+                        <Box
+                          key={p}
+                          sx={{
+                            px: 1.25,
+                            py: 0.5,
+                            borderRadius: 999,
+                            border: `1px solid ${theme.palette.divider}`,
+                            fontSize: '0.8125rem',
+                            color: 'text.secondary',
+                          }}
+                        >
+                          {providerLabel(p)}
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
               </Box>
             )}
@@ -551,6 +632,55 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
           </Box>
         </Box>
       </DialogContent>
+
+      <Dialog
+        open={passwordOpen}
+        onClose={() => setPasswordOpen(false)}
+        aria-labelledby="add-password-title"
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle id="add-password-title">{hasPasswordProvider ? 'Change password' : 'Add password'}</DialogTitle>
+        <DialogContent sx={{ pt: 1.25 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {hasPasswordProvider
+              ? 'Enter a new password for your account.'
+              : 'Add a password so you can sign in with email & password next time.'}
+          </Typography>
+          <TextField
+            fullWidth
+            label="New password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={passwordSaving}
+            autoComplete="new-password"
+            sx={{ mb: 1.25 }}
+          />
+          <TextField
+            fullWidth
+            label="Confirm password"
+            type="password"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            disabled={passwordSaving}
+            autoComplete="new-password"
+          />
+          {passwordError && (
+            <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1 }}>
+              {passwordError}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setPasswordOpen(false)} disabled={passwordSaving}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleSavePassword} disabled={passwordSaving}>
+            {passwordSaving ? 'Saving…' : hasPasswordProvider ? 'Update password' : 'Add password'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 };

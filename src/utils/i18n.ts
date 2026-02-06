@@ -82,6 +82,7 @@ const translations: Translations = {
     'settings.theme.toggle': 'Toggle Theme',
     
     // Sidebar
+    'sidebar.inbox': 'Inbox',
     'sidebar.today': 'Today',
     'sidebar.upcoming': 'Upcoming',
     'sidebar.calendar': 'Calendar',
@@ -214,6 +215,7 @@ const translations: Translations = {
     'app.close': 'Cerrar',
     
     // Sidebar
+    'sidebar.inbox': 'Bandeja de entrada',
     'sidebar.today': 'Hoy',
     'sidebar.upcoming': 'Próximos',
     'sidebar.calendar': 'Calendario',

@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
+  linkWithCredential,
+  EmailAuthProvider,
+  updatePassword,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
@@ -13,10 +16,42 @@ import {
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, enablePersistence } from '../firebase';
 import { User } from '../types';
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+const mapAuthError = (error: unknown, fallback: string) => {
+  // Firebase errors typically have a `code` like: auth/wrong-password
+  const code = (error as any)?.code as string | undefined;
+  switch (code) {
+    case 'auth/invalid-email':
+      return new Error('Please enter a valid email address.');
+    case 'auth/user-disabled':
+      return new Error('This account has been disabled.');
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return new Error('Invalid email or password.');
+    case 'auth/too-many-requests':
+      return new Error('Too many attempts. Please try again later.');
+    case 'auth/network-request-failed':
+      return new Error('Network error. Check your connection and try again.');
+    case 'auth/operation-not-allowed':
+      return new Error('Email/password sign-in is not enabled for this project.');
+    case 'auth/account-exists-with-different-credential':
+      return new Error('This email is linked to a different sign-in method (e.g. Google). Use that method or reset your password if applicable.');
+    case 'auth/requires-recent-login':
+      return new Error('For security, please sign in again and retry this action.');
+    case 'auth/weak-password':
+      return new Error('Password is too weak. Use at least 6 characters.');
+    default:
+      return error instanceof Error ? error : new Error(fallback);
+  }
+};
 
 // Updates that can be applied to the user profile in Firestore
 export type UserProfileUpdate = Partial<Pick<User, 'name' | 'profilePicture'>>;
@@ -31,6 +66,10 @@ interface AuthContextType {
   loginWithApple: (rememberMe?: boolean) => Promise<'success' | 'cancelled' | 'redirect'>;
   logout: () => Promise<void>;
   updateUserProfile: (updates: UserProfileUpdate) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  addPassword: (newPassword: string) => Promise<void>;
+  authProviders: string[];
+  hasPasswordProvider: boolean;
 }
 
 // Create the context with a default value
@@ -43,6 +82,10 @@ const AuthContext = createContext<AuthContextType>({
   loginWithApple: async () => 'cancelled',
   logout: async () => {},
   updateUserProfile: async () => {},
+  requestPasswordReset: async () => {},
+  addPassword: async () => {},
+  authProviders: [],
+  hasPasswordProvider: false,
 });
 
 // Custom hook to use the auth context
@@ -64,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (existing.exists()) return;
 
     const userData: Omit<User, 'id'> = {
-      email: (authUser.email || '').toLowerCase(),
+      email: normalizeEmail(authUser.email || ''),
       name: authUser.displayName || '',
       profilePicture: authUser.photoURL || undefined,
       preferences: {
@@ -194,7 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authUnsubscribe();
       }
     };
-  }, []);
+  }, [ensureUserDocument]);
 
   const login = useCallback(async (email: string, password: string, rememberMe: boolean = true) => {
     try {
@@ -202,9 +245,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await applyAuthPersistence(rememberMe);
       
       // Handle the authentication (simplified - no network manipulation)
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, normalizeEmail(email), password);
     } catch (error) {
-      throw new Error('Invalid email or password');
+      throw mapAuthError(error, 'Failed to sign in. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -216,12 +259,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await applyAuthPersistence(rememberMe);
       
       // Create user in Firebase Auth (simplified - no network manipulation)
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const normalizedEmail = normalizeEmail(email);
+      const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
       const authUser = userCredential.user;
       
       // Create user document in Firestore
       const userData: Omit<User, 'id'> = {
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         name: name.trim(),
         preferences: {
           theme: 'dark',
@@ -233,14 +277,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       await setDoc(doc(db, 'users', authUser.uid), userData);
     } catch (error) {
-      if (error instanceof Error && error.message.includes('already in use')) {
-        throw new Error('Email already exists');
-      }
-      throw new Error('Failed to create account');
+      throw mapAuthError(error, 'Failed to create account.');
     } finally {
       setIsLoading(false);
     }
   }, [applyAuthPersistence]);
+
+  const requestPasswordReset = useCallback(async (email: string) => {
+    try {
+      setIsLoading(true);
+      await sendPasswordResetEmail(auth, normalizeEmail(email));
+    } catch (error) {
+      const code = (error as any)?.code as string | undefined;
+      // Avoid account enumeration: treat "user not found" as success.
+      if (code === 'auth/user-not-found') return;
+      throw mapAuthError(error, 'Failed to send password reset email.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const authProviders = useMemo(() => {
+    const providers = (firebaseUser?.providerData || [])
+      .map(p => p?.providerId)
+      .filter((p): p is string => Boolean(p));
+    return Array.from(new Set(providers));
+  }, [firebaseUser?.providerData]);
+
+  const hasPasswordProvider = authProviders.includes('password');
+
+  const addPassword = useCallback(async (newPassword: string) => {
+    const current = auth.currentUser;
+    if (!current) throw new Error('You must be signed in to add a password.');
+    const email = current.email ? normalizeEmail(current.email) : '';
+    if (!email) throw new Error('No email found for your account.');
+
+    try {
+      setIsLoading(true);
+      if (current.providerData?.some(p => p.providerId === 'password')) {
+        // Account already has a password -> treat as change password.
+        await updatePassword(current, newPassword);
+        return;
+      }
+
+      const credential = EmailAuthProvider.credential(email, newPassword);
+      await linkWithCredential(current, credential);
+    } catch (error) {
+      throw mapAuthError(error, 'Failed to add password.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const loginWithGoogle = useCallback(async (rememberMe: boolean = true): Promise<'success' | 'cancelled' | 'redirect'> => {
     try {
@@ -333,7 +420,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loginWithApple,
     logout,
     updateUserProfile,
-  }), [user, isLoading, login, signup, loginWithGoogle, loginWithApple, logout, updateUserProfile]);
+    requestPasswordReset,
+    addPassword,
+    authProviders,
+    hasPasswordProvider,
+  }), [
+    user,
+    isLoading,
+    login,
+    signup,
+    loginWithGoogle,
+    loginWithApple,
+    logout,
+    updateUserProfile,
+    requestPasswordReset,
+    addPassword,
+    authProviders,
+    hasPasswordProvider,
+  ]);
 
   if (!isAuthReady) {
     return <div>Initializing authentication...</div>;

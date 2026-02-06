@@ -31,6 +31,11 @@ interface TaskItemProps {
   onEdit: (task: Task) => void;
   onUpdate?: (taskId: string, updates: Partial<Task>) => Promise<void>;
   isActionInProgress?: boolean;
+  /**
+   * When enabled, the completion circle outline is colored based on task priority.
+   * Used to replicate Todoist's priority rings in specific views (e.g. Inbox).
+   */
+  showPriorityRing?: boolean;
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({
@@ -40,6 +45,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   onEdit,
   onUpdate,
   isActionInProgress = false,
+  showPriorityRing = false,
 }) => {
   const theme = useTheme();
   const { tags, categories } = useTaskMetadata();
@@ -76,6 +82,21 @@ const TaskItem: React.FC<TaskItemProps> = ({
     // Date only: "MMM d yyyy" (e.g., "Jan 28 2026")
     return format(date, 'MMM d yyyy');
   }, [task.dueDate]);
+
+  const priorityRingColor = useMemo(() => {
+    if (!showPriorityRing || task.completed) return undefined;
+    // Priority color mapping (simple + consistent with existing semantics)
+    switch (task.priority) {
+      case 'high':
+        return theme.palette.error.main;      // red
+      case 'medium':
+        return theme.palette.warning.main;    // orange
+      case 'low':
+        return theme.palette.info.main;       // blue
+      default:
+        return undefined;
+    }
+  }, [showPriorityRing, task.completed, task.priority, theme.palette.error.main, theme.palette.warning.main, theme.palette.info.main]);
 
   const handleToggleComplete = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -231,7 +252,12 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 height: 17,
               }}
             >
-              <RadioButtonUncheckedIcon sx={{ fontSize: 17, color: 'action.active' }} />
+              <RadioButtonUncheckedIcon
+                sx={{
+                  fontSize: 17,
+                  color: priorityRingColor ?? 'action.active',
+                }}
+              />
               <CheckCircleOutlineIcon
                 className="check-hover"
                 sx={{

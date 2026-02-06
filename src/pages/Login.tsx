@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, Typography, Link } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Navigate, useLocation } from 'react-router-dom';
 import AuthForm from '../components/forms/AuthForm';
 import { useAuth } from '../contexts/AuthContext';
@@ -39,10 +40,11 @@ const Login: React.FC = () => {
         py: 3,
         overflow: 'hidden',
         bgcolor: 'background.default',
-        backgroundImage: theme =>
-          theme.palette.mode === 'dark'
-            ? 'radial-gradient(1200px circle at 20% 10%, rgba(212,175,55,0.14), transparent 40%), radial-gradient(900px circle at 90% 80%, rgba(212,175,55,0.08), transparent 40%)'
-            : 'radial-gradient(1200px circle at 20% 10%, rgba(212,175,55,0.14), transparent 40%), radial-gradient(900px circle at 90% 80%, rgba(212,175,55,0.08), transparent 40%)',
+        backgroundImage: theme => {
+          const glowStrong = alpha(theme.palette.primary.main, 0.14);
+          const glowSoft = alpha(theme.palette.primary.main, 0.08);
+          return `radial-gradient(1200px circle at 20% 10%, ${glowStrong}, transparent 40%), radial-gradient(900px circle at 90% 80%, ${glowSoft}, transparent 40%)`;
+        },
       }}
     >
       <Box sx={{ width: '100%', maxWidth: 420 }}>

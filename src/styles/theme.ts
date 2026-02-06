@@ -1,4 +1,10 @@
-import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { alpha, createTheme, ThemeOptions } from '@mui/material/styles';
+
+// Brand palette (single source of truth)
+const brandGold = '#B8860B'; // darker gold (darkgoldenrod)
+const brandGoldHover = '#A97C0A';
+const brandGoldActive = '#8F6508';
+const brandGoldLight = '#D0AD33';
 
 // Define color palette
 const colors = {
@@ -7,15 +13,15 @@ const colors = {
     black: '#0B0B0B',
     blackElevated: '#121212',
     blackElevated2: '#171717',
-    gold: '#D4AF37',
-    goldHover: '#C7A633',
-    goldActive: '#B9962E',
+    gold: brandGold,
+    goldHover: brandGoldHover,
+    goldActive: brandGoldActive,
   },
   // Theme tokens kept for existing style helpers
   primary: {
-    main: '#D4AF37',
-    light: '#E2C55C',
-    dark: '#B9962E',
+    main: brandGold,
+    light: brandGoldLight,
+    dark: brandGoldActive,
     contrastText: '#0B0B0B',
   },
   secondary: {
@@ -62,9 +68,9 @@ const colors = {
   },
   info: {
     // Keep info aligned with brand accent (gold) to avoid random blues.
-    main: '#D4AF37',
-    light: '#E2C55C',
-    dark: '#B9962E',
+    main: brandGold,
+    light: brandGoldLight,
+    dark: brandGoldActive,
   },
 };
 
@@ -476,17 +482,17 @@ const _components = {
 };
 
 // Export theme based on mode
-export const getTheme = (mode: 'light' | 'dark') => {
-  // App-wide decision: always use dark mode (mode param kept for compatibility).
-  const _mode: 'dark' = 'dark';
+export const getTheme = (_requestedMode: 'light' | 'dark') => {
+  // App-wide decision: always use dark mode (param kept for compatibility).
+  const mode = 'dark' as const;
 
   const baseTheme: ThemeOptions = {
     palette: {
-      mode: _mode,
+      mode,
       primary: {
         main: colors.brand.gold,
         dark: colors.brand.goldActive,
-        light: '#E2C55C',
+        light: colors.primary.light,
         contrastText: '#0B0B0B',
       },
       secondary: {
@@ -503,9 +509,9 @@ export const getTheme = (mode: 'light' | 'dark') => {
       },
       divider: 'rgba(245, 245, 245, 0.12)',
       action: {
-        hover: 'rgba(212, 175, 55, 0.08)',
-        selected: 'rgba(212, 175, 55, 0.12)',
-        focus: 'rgba(212, 175, 55, 0.14)',
+        hover: alpha(colors.brand.gold, 0.08),
+        selected: alpha(colors.brand.gold, 0.12),
+        focus: alpha(colors.brand.gold, 0.14),
         disabled: 'rgba(245, 245, 245, 0.28)',
         disabledBackground: 'rgba(245, 245, 245, 0.08)',
       },
@@ -569,8 +575,8 @@ export const getTheme = (mode: 'light' | 'dark') => {
             borderColor: 'rgba(245,245,245,0.18)',
             color: '#F5F5F5',
             '&:hover': {
-              borderColor: 'rgba(212,175,55,0.55)',
-              backgroundColor: 'rgba(212,175,55,0.06)',
+              borderColor: alpha(colors.brand.gold, 0.55),
+              backgroundColor: alpha(colors.brand.gold, 0.06),
             },
           },
         },
