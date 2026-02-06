@@ -17,11 +17,12 @@ const TodayAddTaskButton: React.FC<TodayAddTaskButtonProps> = ({ onClick }) => {
             width: 24,
             height: 24,
             borderRadius: '50%',
+            // Keep the "+" highlighted at all times (no filled circle).
             backgroundColor: 'transparent',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'text.secondary',
+            color: 'primary.main',
             transition: 'background-color 0.2s ease, color 0.2s ease',
           }}
         >
@@ -46,8 +47,8 @@ const TodayAddTaskButton: React.FC<TodayAddTaskButtonProps> = ({ onClick }) => {
           backgroundColor: 'transparent',
         },
         '&:hover .MuiButton-startIcon > *': {
-          backgroundColor: 'primary.main',
-          color: 'primary.contrastText',
+          backgroundColor: 'transparent',
+          color: 'primary.dark',
         },
       }}
     >

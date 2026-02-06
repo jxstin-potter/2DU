@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import {
   Inbox as InboxIcon,
+  Today as TodayIcon,
   Event as EventIcon,
   LocalOffer as TagIcon,
   CheckCircle as CompletedIcon,
@@ -111,7 +112,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const iconSpacing = 0.75;
 
   const mainMenuItems = [
-    { text: t('sidebar.today'), icon: <InboxIcon />, path: "/today" },
+    { text: t('sidebar.inbox'), icon: <InboxIcon />, path: "/inbox" },
+    { text: t('sidebar.today'), icon: <TodayIcon />, path: "/today" },
     { text: t('sidebar.upcoming'), icon: <EventIcon />, path: "/upcoming" },
     { text: t('sidebar.tags'), icon: <TagIcon />, path: "/tags" },
     { text: t('sidebar.completed'), icon: <CompletedIcon />, path: "/completed" },

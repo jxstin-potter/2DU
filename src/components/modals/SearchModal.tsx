@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
+import InboxRoundedIcon from '@mui/icons-material/InboxRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import type { Theme } from '@mui/material/styles';
@@ -25,6 +26,7 @@ interface SearchModalProps {
 }
 
 const iconMap = {
+  inbox: InboxRoundedIcon,
   today: CalendarTodayRoundedIcon,
   completed: CheckCircleRoundedIcon,
   settings: SettingsRoundedIcon,
