@@ -13,7 +13,6 @@ import { Task, Category } from '../../types';
 import InlineTaskEditorQuickActions from './inline-task-editor/InlineTaskEditorQuickActions';
 import InlineTaskEditorFooter from './inline-task-editor/InlineTaskEditorFooter';
 import InlineTaskEditorCategoryMenu from './inline-task-editor/InlineTaskEditorCategoryMenu';
-import InlineTaskEditorMoreMenu from './inline-task-editor/InlineTaskEditorMoreMenu';
 import { TaskPriority } from './inline-task-editor/inlineTaskEditorPriority';
 import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
 import { logger } from '../../utils/logger';
@@ -54,7 +53,6 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [categoryMenuAnchor, setCategoryMenuAnchor] = useState<null | HTMLElement>(null);
-  const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -353,7 +351,6 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
             priority={priority}
             onDueDateChange={(d) => setDueDate(d)}
             onPriorityChange={(p) => setPriority(p)}
-            onMoreMenuOpen={(el) => setMoreMenuAnchor(el)}
           />
 
           {/* Project/Category selector */}
@@ -375,11 +372,6 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
           />
         </Box>
       </Box>
-
-      <InlineTaskEditorMoreMenu
-        anchorEl={moreMenuAnchor}
-        onClose={() => setMoreMenuAnchor(null)}
-      />
       </Box>
     </Box>
   );

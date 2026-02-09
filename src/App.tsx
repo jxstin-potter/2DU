@@ -24,6 +24,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Inbox = lazy(() => import('./pages/Inbox'));
 const Today = lazy(() => import('./pages/Today'));
 const Completed = lazy(() => import('./pages/Completed'));
+const Upcoming = lazy(() => import('./pages/Upcoming'));
 
 // Main app content
 const AppContent: React.FC = () => {
@@ -51,6 +52,7 @@ const AppContent: React.FC = () => {
               <Route index element={<Navigate to="inbox" replace />} />
               <Route path="inbox" element={<Inbox />} />
               <Route path="today" element={<Today />} />
+              <Route path="upcoming" element={<Upcoming />} />
               <Route path="completed" element={<Completed />} />
               <Route path="settings" element={<Settings />} />
             </Route>

@@ -1,11 +1,9 @@
 import React from 'react';
-import { Box, Button, Chip, IconButton } from '@mui/material';
+import { Box, Button, Chip } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import {
   Today as TodayIcon,
   Flag as FlagIcon,
-  NotificationsNone as RemindersIcon,
-  MoreVert as MoreVertIcon,
 } from '@mui/icons-material';
 import { isToday, startOfDay } from 'date-fns';
 import { TaskPriority, getPriorityChipStyles, getPriorityColor, priorityLabels } from './inlineTaskEditorPriority';
@@ -17,7 +15,6 @@ interface InlineTaskEditorQuickActionsProps {
   priority: TaskPriority | '';
   onDueDateChange: (date: Date | null) => void;
   onPriorityChange: (priority: TaskPriority | '') => void;
-  onMoreMenuOpen: (el: HTMLElement) => void;
 }
 
 const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> = ({
@@ -27,7 +24,6 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
   priority,
   onDueDateChange,
   onPriorityChange,
-  onMoreMenuOpen,
 }) => {
   const theme = useTheme();
 
@@ -164,51 +160,6 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
             ...getPriorityChipStyles(theme, priority),
           }}
         />
-      )}
-
-      {/* Create-mode only controls */}
-      {!initialTask && (
-        <>
-          <Button
-            size="small"
-            startIcon={<RemindersIcon sx={{ fontSize: '0.875rem' }} />}
-            sx={{
-              textTransform: 'none',
-              fontSize: '0.8125rem',
-              color: theme.palette.text.secondary,
-              minWidth: 'auto',
-              px: 1.25,
-              py: 0.5,
-              height: '28px',
-              borderRadius: '6px',
-              border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-              backgroundColor: 'transparent',
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.action.hover, 0.5),
-                borderColor: alpha(theme.palette.divider, 0.8),
-              },
-            }}
-          >
-            Reminders
-          </Button>
-
-          <IconButton
-            size="small"
-            onClick={(e) => onMoreMenuOpen(e.currentTarget)}
-            sx={{
-              width: '28px',
-              height: '28px',
-              color: theme.palette.text.secondary,
-              border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-              borderRadius: '6px',
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.action.hover, 0.5),
-              },
-            }}
-          >
-            <MoreVertIcon sx={{ fontSize: '1rem' }} />
-          </IconButton>
-        </>
       )}
     </Box>
   );
