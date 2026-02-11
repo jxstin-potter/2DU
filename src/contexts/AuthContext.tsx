@@ -21,6 +21,7 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, enablePersistence } from '../firebase';
 import { User } from '../types';
+import { logger } from '../utils/logger';
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -150,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      logger.error('Error fetching user data', { action: 'fetchUserData' }, error);
       throw error;
     }
   };

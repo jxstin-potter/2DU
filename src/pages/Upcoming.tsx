@@ -14,6 +14,7 @@ import { buildUpcomingSelections } from '../utils/upcomingSelectors';
 import { createTaskFromData, deleteTask, subscribeToTasks, updateTask } from '../services/tasksService';
 import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore';
 import type { Task } from '../types';
+import { logger } from '../utils/logger';
 
 const Upcoming: React.FC = () => {
   const theme = useTheme();
@@ -25,7 +26,7 @@ const Upcoming: React.FC = () => {
   const [_error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
+  const [_justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
   const [completedSnackbarOpen, setCompletedSnackbarOpen] = useState(false);
   const [completedTaskIdForUndo, setCompletedTaskIdForUndo] = useState<string | null>(null);
   const lastAppliedTaskCountRef = useRef<number>(0);
@@ -168,7 +169,7 @@ const Upcoming: React.FC = () => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create task';
       setError(errorMessage);
-      console.error('Failed to create task:', error);
+      logger.error('Failed to create task', { action: 'createTask' }, error);
       throw error;
     }
   }, [authLoading, closeTaskModal, tasks.length, user?.id]);

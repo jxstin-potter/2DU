@@ -10,6 +10,7 @@ import TaskModal from '../components/modals/TaskModal';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
 import { startOfDay } from 'date-fns';
+import { logger } from '../utils/logger';
 
 const Today: React.FC = () => {
   const theme = useTheme();
@@ -170,7 +171,7 @@ const Today: React.FC = () => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create task';
       setError(errorMessage);
-      console.error('Failed to create task:', error);
+      logger.error('Failed to create task', { action: 'createTask' }, error);
       throw error;
     }
   };

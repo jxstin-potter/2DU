@@ -18,7 +18,7 @@ interface InlineTaskEditorQuickActionsProps {
 }
 
 const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> = ({
-  initialTask,
+  initialTask: _initialTask,
   show,
   dueDate,
   priority,

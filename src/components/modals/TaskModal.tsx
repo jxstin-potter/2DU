@@ -20,6 +20,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Task } from '../../types';
 import HighlightedTimeInput from '../ui/HighlightedTimeInput';
+import TagPicker from '../task-management/TagPicker';
+import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
 
 interface TaskModalProps {
   open: boolean;
@@ -31,6 +33,8 @@ interface TaskModalProps {
    * Default due date for create-mode only. If omitted, create-mode starts with no due date.
    */
   defaultDueDate?: Date | null;
+  /** Tag IDs to pre-select when creating a task (e.g. from label page). */
+  defaultTagIds?: string[];
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({
@@ -40,12 +44,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
   initialTask,
   loading = false,
   defaultDueDate = null,
+  defaultTagIds = [],
 }) => {
   const theme = useTheme();
+  const { tags } = useTaskMetadata();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>('');
+  const [tagIds, setTagIds] = useState<string[]>(defaultTagIds);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const titleInputRef = useRef<HTMLDivElement>(null);
@@ -56,11 +63,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setDescription(initialTask.description || '');
       setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
       setPriority(initialTask.priority || '');
+      setTagIds(initialTask.tags ?? []);
     } else {
       resetForm();
       setDueDate(defaultDueDate);
+      setTagIds(defaultTagIds);
     }
-  }, [initialTask, open, defaultDueDate]);
+  // resetForm omitted to avoid effect loop when form state changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTask, open, defaultDueDate, defaultTagIds]);
 
   // Auto-focus the title input when modal opens (backup mechanism)
   useEffect(() => {
@@ -83,8 +94,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         (initialTask.dueDate != null && dueDate != null && new Date(initialTask.dueDate).getTime() === dueDate.getTime());
       return title !== initialTask.title || !descMatch || !dateMatch || (initialTask.priority || '') !== priority;
     }
-    return title.trim() !== '' || description.trim() !== '' || priority !== '';
-  }, [open, initialTask, title, description, dueDate, priority]);
+    return title.trim() !== '' || description.trim() !== '' || priority !== '' || tagIds.length > 0;
+  }, [open, initialTask, title, description, dueDate, priority, tagIds]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -102,6 +113,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     setDescription('');
     setDueDate(null);
     setPriority('');
+    setTagIds(defaultTagIds);
     setErrors({});
     setIsSubmitting(false);
   };
@@ -141,6 +153,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         description: description || undefined,
         dueDate: dueDate || undefined,
         priority: priority ? (priority as 'low' | 'medium' | 'high') : undefined,
+        tags: tagIds.length > 0 ? tagIds : undefined,
         status: 'todo',
         createdAt: initialTask?.createdAt || new Date(),
         updatedAt: new Date(),
@@ -172,9 +185,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
       PaperProps={{
         sx: {
           width: '550px',
-          height: '190px',
+          minHeight: '220px',
           maxWidth: '550px',
-          maxHeight: '190px',
+          maxHeight: '90vh',
           position: 'absolute',
           top: '50%',
           left: '50%',
@@ -341,6 +354,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </Select>
               </FormControl>
             </Box>
+
+            <TagPicker
+              tags={tags}
+              selectedTagIds={tagIds}
+              onChange={setTagIds}
+              placeholder="Type @ to add label"
+              size="small"
+              disabled={isSubmitting}
+            />
 
             <TextField
               label="Description"

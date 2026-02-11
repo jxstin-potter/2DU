@@ -18,7 +18,8 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "cypress run",
     "test:e2e:dev": "cypress open",
-    "test:ci": "jest --ci --coverage && cypress run"
+    "test:ci": "jest --ci --coverage && cypress run",
+    "deploy:rules": "npx firebase deploy --only firestore:rules"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",

@@ -16,6 +16,7 @@ import { useSearchModal } from '../../contexts/SearchModalContext';
 import KeyboardShortcutsHelp from '../modals/KeyboardShortcutsHelp';
 import SettingsModal from '../modals/SettingsModal';
 import SearchModal from '../modals/SearchModal';
+import { logger } from '../../utils/logger';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -53,7 +54,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error('Logout failed:', error);
+      logger.error('Logout failed', { action: 'logout' }, error);
     }
   }, [logout, navigate]);
 

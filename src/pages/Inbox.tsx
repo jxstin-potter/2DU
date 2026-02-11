@@ -8,6 +8,7 @@ import InboxView from '../components/task-management/InboxView';
 import { subscribeToTasks, createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
 import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore';
 import type { Task } from '../types';
+import { logger } from '../utils/logger';
 
 const Inbox: React.FC = () => {
   const theme = useTheme();
@@ -156,7 +157,7 @@ const Inbox: React.FC = () => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create task';
       setError(errorMessage);
-      console.error('Failed to create task:', error);
+      logger.error('Failed to create task', { action: 'createTask' }, error);
       throw error;
     }
   };

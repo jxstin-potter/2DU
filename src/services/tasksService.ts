@@ -293,7 +293,7 @@ export const getFilteredTasks = async (
     
     return tasks;
   } catch (error) {
-    console.error('Error fetching filtered tasks:', error);
+    logServiceError(error as Error, 'tasksService', 'Error fetching filtered tasks', { userId, filterParams });
     throw new Error('Failed to fetch tasks');
   }
 };
@@ -320,6 +320,20 @@ const setCachedTasks = (userId: string, filterParams: TaskFilterParams, tasks: T
     filterParams
   };
   localStorage.setItem(cacheKey, JSON.stringify(cache));
+};
+
+/**
+ * Invalidate task list cache for a user so the next subscription gets fresh data.
+ * Call after creating/updating/deleting tasks so returning to a list view shows the change.
+ */
+export const invalidateTasksCache = (userId: string): void => {
+  const prefix = `tasks_${userId}_`;
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith(prefix)) keysToRemove.push(key);
+  }
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
 };
 
 /** Sort tasks by manual order (order ?? Infinity so missing order goes to end), then createdAt as tie-break. */

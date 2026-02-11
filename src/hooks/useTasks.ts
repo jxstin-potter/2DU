@@ -9,7 +9,7 @@ import {
   loadMoreTasks,
   TaskFilterParams
 } from '../services/tasksService';
-import { TaskDocument, TaskQueryResult } from '../types/firestore';
+import { TaskQueryResult } from '../types/firestore';
 import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore';
 import { logger } from '../utils/logger';
 import { logHookError } from '../utils/errorLogging';

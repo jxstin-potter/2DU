@@ -189,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </ListItem>
     );
-  }, [location.pathname, navigate, theme.palette.mode, theme.palette.common.white]);
+  }, [location.pathname, navigate, theme.palette.mode, theme.palette.common.white, theme.palette.primary.main]);
 
   const drawerWidth = isCollapsed ? 64 : 240;
   

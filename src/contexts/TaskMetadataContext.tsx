@@ -8,7 +8,14 @@ interface TaskMetadataContextValue {
   tags: Tag[];
   loading: boolean;
   error: string | null;
+  /** Use when you only care about tags (e.g. Tags page) so categories failure doesn't show. */
+  tagsError: string | null;
+  /** Use when you only care about categories. */
+  categoriesError: string | null;
   refresh: () => void;
+  addTag: (tag: Omit<Tag, 'id'>) => Promise<Tag>;
+  deleteTag: (id: string) => Promise<void>;
+  refreshTags: () => void;
 }
 
 const TaskMetadataContext = createContext<TaskMetadataContextValue | undefined>(undefined);
@@ -20,7 +27,14 @@ export const TaskMetadataProvider: React.FC<{ children: React.ReactNode }> = ({ 
     error: categoriesError,
     refreshCategories,
   } = useCategories();
-  const { tags, loading: tagsLoading, error: tagsError, refreshTags } = useTags();
+  const {
+    tags,
+    loading: tagsLoading,
+    error: tagsError,
+    refreshTags,
+    addTag,
+    deleteTag,
+  } = useTags();
 
   const value = useMemo<TaskMetadataContextValue>(() => {
     const loading = categoriesLoading || tagsLoading;
@@ -30,12 +44,17 @@ export const TaskMetadataProvider: React.FC<{ children: React.ReactNode }> = ({ 
       tags,
       loading,
       error,
+      tagsError,
+      categoriesError,
       refresh: () => {
         refreshCategories();
         refreshTags();
       },
+      addTag,
+      deleteTag,
+      refreshTags,
     };
-  }, [categories, tags, categoriesLoading, tagsLoading, categoriesError, tagsError, refreshCategories, refreshTags]);
+  }, [categories, tags, categoriesLoading, tagsLoading, categoriesError, tagsError, refreshCategories, refreshTags, addTag, deleteTag]);
 
   return <TaskMetadataContext.Provider value={value}>{children}</TaskMetadataContext.Provider>;
 };

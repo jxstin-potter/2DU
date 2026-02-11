@@ -30,7 +30,7 @@ class WebSocketService {
 
   public initialize(): void {
     if (this.ws || this.isConnecting) {
-      console.warn('WebSocket connection already in progress or established');
+      logError(new Error('WebSocket connection already in progress or established'), 'WebSocket skipped', {}, 'warn');
       return;
     }
     

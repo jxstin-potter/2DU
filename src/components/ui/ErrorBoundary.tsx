@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button, Paper } from '@mui/material';
 import { t } from '../../utils/i18n';
+import { logComponentError } from '../../utils/errorLogging';
 
 interface Props {
   children: ReactNode;
@@ -27,13 +28,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error to console - in a real app, this would send to an error tracking service
-    console.error('Component Error:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-    });
+    logComponentError(error, 'ErrorBoundary', 'Component error', { componentStack: errorInfo.componentStack });
   }
 
   public render() {
