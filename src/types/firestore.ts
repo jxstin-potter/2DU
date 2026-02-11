@@ -67,6 +67,8 @@ export interface TaskQueryResult {
   tasks: TaskDocument[];
   lastVisible: DocumentSnapshot | null;
   hasMore: boolean;
+  /** True when this result is from the server (not local cache). Use to avoid showing empty state before server data loads. */
+  fromServer?: boolean;
 }
 
 export interface TaskCache {

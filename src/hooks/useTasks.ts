@@ -136,7 +136,7 @@ export const useTasks = () => {
             setTasks(processedTasks);
             setLastVisible(result.lastVisible);
             setHasMore(result.hasMore);
-            setLoading(false);
+            if (result.fromServer !== false) setLoading(false);
             clearError();
 
             tasksHookLogger.info('Received task updates', { 

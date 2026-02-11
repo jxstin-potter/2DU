@@ -69,7 +69,10 @@ const Upcoming: React.FC = () => {
           });
 
           setTasks(convertedTasks);
-          setLoading(false);
+          // Only clear loading when we have a server snapshot; avoids "No upcoming tasks" flash from cache/initial empty snapshot
+          if (result.fromServer !== false) {
+            setLoading(false);
+          }
           setError(null);
         } catch {
           setError('Failed to process tasks');

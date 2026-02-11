@@ -400,19 +400,20 @@ export const subscribeToTasks = (
   callback: (result: TaskQueryResult) => void
 ): (() => void) => {
   try {
-    // Check cache first
+    // Check cache first (do not clear loading; server snapshot will)
     const cachedTasks = getCachedTasks(userId, filterParams);
     if (cachedTasks) {
       callback({
         tasks: cachedTasks,
         lastVisible: null,
-        hasMore: false
+        hasMore: false,
+        fromServer: false
       });
     }
 
     const q = buildTaskQuery(userId, filterParams);
 
-    // Subscribe to query results
+    // Subscribe to query results; only treat as "loaded" when we have a server snapshot
     const unsubscribe = onSnapshot(q, 
       (querySnapshot) => {
         try {
@@ -426,10 +427,12 @@ export const subscribeToTasks = (
           // Update cache
           setCachedTasks(userId, filterParams, tasks);
 
+          const fromServer = !querySnapshot.metadata.fromCache;
           callback({
             tasks,
             lastVisible: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
-            hasMore: querySnapshot.docs.length === (filterParams.limit || 20)
+            hasMore: querySnapshot.docs.length === (filterParams.limit || 20),
+            fromServer
           });
         } catch (error) {
           tasksLogger.error('Error processing task data', { 
@@ -440,7 +443,8 @@ export const subscribeToTasks = (
           callback({
             tasks: [],
             lastVisible: null,
-            hasMore: false
+            hasMore: false,
+            fromServer: true
           });
         }
       },
@@ -454,11 +458,11 @@ export const subscribeToTasks = (
           filterParams, 
           error: error instanceof Error ? error.message : 'Unknown error' 
         });
-        // Call callback with empty result so loading state gets updated
         callback({
           tasks: [],
           lastVisible: null,
-          hasMore: false
+          hasMore: false,
+          fromServer: true
         });
       }
     );
@@ -480,11 +484,11 @@ export const subscribeToTasks = (
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
-    // Call callback with empty result so loading state gets updated
     callback({
       tasks: [],
       lastVisible: null,
-      hasMore: false
+      hasMore: false,
+      fromServer: true
     });
     return () => {};
   }
