@@ -311,6 +311,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           }}>
             <ListItem
               button
+              data-add-task-trigger
               onClick={openModal}
                 sx={{
                   minHeight: 32,

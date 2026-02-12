@@ -239,7 +239,7 @@ const Upcoming: React.FC = () => {
                     fontWeight: theme.typography.fontWeightBold,
                     fontSize: theme.typography.body1.fontSize,
                     mb: 1.5,
-                    color: selection.kind === 'overdue' ? 'error.main' : 'text.secondary',
+                    color: 'text.secondary',
                   }}
                 >
                   {selection.title}

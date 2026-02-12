@@ -1,12 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Typography,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-} from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import type { Task } from '../../types';
 import TaskItem from './TaskItem';
@@ -49,9 +47,14 @@ const InboxView: React.FC<InboxViewProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const appBarOffset = isMobile ? 56 : 64;
-  const { closeModal: closeTaskModal } = useTaskModal();
+  const { isOpen: isTaskModalOpen, closeModal: closeTaskModal } = useTaskModal();
 
   const [showInlineEditor, setShowInlineEditor] = useState(false);
+
+  // Close "Add task" inline form when task modal opens (e.g. Sidebar "Add task") to avoid freeze from having both open.
+  useEffect(() => {
+    if (isTaskModalOpen) setShowInlineEditor(false);
+  }, [isTaskModalOpen]);
 
   const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
     if (!onCreateTask) return;

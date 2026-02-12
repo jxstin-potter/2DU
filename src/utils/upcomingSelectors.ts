@@ -1,23 +1,14 @@
 import { addDays, endOfMonth, format, isBefore, isSameDay, startOfDay } from 'date-fns';
 import type { Task } from '../types';
 
-export type UpcomingSelection =
-  | {
-      key: 'overdue';
-      kind: 'overdue';
-      title: 'Overdue';
-      date: null;
-      anchorId: 'selection-overdue';
-      tasks: Task[];
-    }
-  | {
-      key: string; // YYYY-MM-DD
-      kind: 'day';
-      title: string;
-      date: Date;
-      anchorId: string;
-      tasks: Task[];
-    };
+export type UpcomingSelection = {
+  key: string; // YYYY-MM-DD
+  kind: 'day';
+  title: string;
+  date: Date;
+  anchorId: string;
+  tasks: Task[];
+};
 
 export type BuildUpcomingSelectionOptions = {
   /** Month used as a baseline for the visible range (defaults to "through end of month"). */
@@ -49,10 +40,10 @@ function isActiveTaskWithDueDate(task: Task): task is Task & { dueDate: Date } {
 /**
  * Build the "Upcoming" sections for a list of tasks.
  *
- * - Overdue section includes active tasks with due dates before today.
- * - Day sections include active tasks due on/after startDate, grouped by day.
+ * Day sections include active tasks due on/after startDate, grouped by day.
+ * Overdue tasks (due before startDate) are not shown in Upcoming.
  *
- * The returned list is ordered: [overdue?] then day sections ascending.
+ * The returned list is ordered by day ascending.
  */
 export function buildUpcomingSelections(
   tasks: Task[],
@@ -63,9 +54,7 @@ export function buildUpcomingSelections(
 
   const activeDueTasks = tasks.filter(isActiveTaskWithDueDate);
 
-  const overdueTasks = activeDueTasks
-    .filter((t) => isBefore(normalizeToDay(t.dueDate as Date), today))
-    .sort((a, b) => normalizeToDay(a.dueDate as Date).getTime() - normalizeToDay(b.dueDate as Date).getTime());
+  // Overdue section removed: only show tasks from startDate (today) onward.
 
   // Base range: start -> end of focused month
   let end = normalizeToDay(endOfMonth(options.focusedMonth));
@@ -87,17 +76,6 @@ export function buildUpcomingSelections(
   }
 
   const selections: UpcomingSelection[] = [];
-
-  if (overdueTasks.length > 0) {
-    selections.push({
-      key: 'overdue',
-      kind: 'overdue',
-      title: 'Overdue',
-      date: null,
-      anchorId: 'selection-overdue',
-      tasks: overdueTasks,
-    });
-  }
 
   // Day sections (ascending)
   for (let day = start; day.getTime() <= end.getTime(); day = addDays(day, 1)) {

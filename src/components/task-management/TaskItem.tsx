@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useRef } from 'react';
+import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import {
   ListItem,
   ListItemText,
@@ -23,6 +23,7 @@ import { format, isBefore, startOfDay } from 'date-fns';
 import InlineTaskEditor from './InlineTaskEditor';
 import TaskDueDatePopover from './TaskDueDatePopover';
 import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
+import { useTaskModal } from '../../contexts/TaskModalContext';
 
 interface TaskItemProps {
   task: Task;
@@ -49,10 +50,20 @@ const TaskItem: React.FC<TaskItemProps> = ({
 }) => {
   const theme = useTheme();
   const { tags, categories } = useTaskMetadata();
+  const { activeInlineTaskId, setActiveInlineTaskId } = useTaskModal();
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null);
   const [tempDate, setTempDate] = useState<Date | null>(null);
   const [isInlineEditing, setIsInlineEditing] = useState(false);
   const dateDisplayRef = useRef<HTMLDivElement>(null);
+
+  // Show inline editor only when we're the active one; openModal() clears activeInlineTaskId so we never render modal + editor in same frame.
+  const showInlineEditor = isInlineEditing && activeInlineTaskId === task.id;
+
+  // Sync local state when context clears active (e.g. modal opened) so we don't stay in "editing" after modal closes. Only update the task that was actually editing to avoid N setState calls.
+  useEffect(() => {
+    if (activeInlineTaskId !== task.id && isInlineEditing) setIsInlineEditing(false);
+  }, [activeInlineTaskId, task.id, isInlineEditing]);
+
   const category = useMemo(() => {
     const categoryId = task.categoryId ?? task.category;
     return categoryId ? categories.find(c => c.id === categoryId) : undefined;
@@ -102,9 +113,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
   }, [onDelete, task.id]);
 
   const handleOpenDetails = useCallback(() => {
-    if (isInlineEditing) return;
+    if (showInlineEditor) return;
     onEdit(task);
-  }, [onEdit, task, isInlineEditing]);
+  }, [onEdit, task, showInlineEditor]);
 
   const handleInlineEdit = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -113,8 +124,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
       handleOpenDetails();
       return;
     }
+    setActiveInlineTaskId(task.id);
     setIsInlineEditing(true);
-  }, [onUpdate, handleOpenDetails]);
+  }, [onUpdate, handleOpenDetails, setActiveInlineTaskId, task.id]);
 
   const handleDateClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
     if (!onUpdate) return;
@@ -152,22 +164,22 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
   return (
     <ListItem
-      onClick={isInlineEditing ? undefined : handleOpenDetails}
+      onClick={showInlineEditor ? undefined : handleOpenDetails}
       onKeyDown={(e) => {
-        if (isInlineEditing) return;
+        if (showInlineEditor) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           handleOpenDetails();
         }
       }}
-      role={isInlineEditing ? undefined : 'button'}
-      tabIndex={isInlineEditing ? -1 : 0}
+      role={showInlineEditor ? undefined : 'button'}
+      tabIndex={showInlineEditor ? -1 : 0}
       aria-label={`Open task: ${task.title}`}
       sx={{
         mb: 2,
         bgcolor: 'transparent',
         transition: 'opacity 0.2s ease',
-        cursor: isInlineEditing ? 'default' : 'pointer',
+        cursor: showInlineEditor ? 'default' : 'pointer',
         borderRadius: 1,
         '&:hover': {
           // Task rows are already visually distinct; avoid hover "highlight" background.
@@ -187,7 +199,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
         },
       }}
     >
-      {!isInlineEditing && (
+      {!showInlineEditor && (
         <IconButton
           edge="start"
           onClick={(e) => handleToggleComplete(e)}
@@ -238,15 +250,19 @@ const TaskItem: React.FC<TaskItemProps> = ({
           )}
         </IconButton>
       )}
-      {isInlineEditing && onUpdate ? (
+      {showInlineEditor && onUpdate ? (
         <Box sx={{ flex: 1 }} onClick={(e) => e.stopPropagation()}>
           <InlineTaskEditor
             initialTask={task}
             onSubmit={async (taskData) => {
               await onUpdate(task.id, taskData);
+              setActiveInlineTaskId(null);
               setIsInlineEditing(false);
             }}
-            onCancel={() => setIsInlineEditing(false)}
+            onCancel={() => {
+              setActiveInlineTaskId(null);
+              setIsInlineEditing(false);
+            }}
             defaultCategoryId={task.categoryId}
             autoFocus
           />
@@ -351,7 +367,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           }
         />
       )}
-      {!isInlineEditing && (
+      {!showInlineEditor && (
         <ListItemSecondaryAction>
           <Tooltip title="Edit">
             <span>

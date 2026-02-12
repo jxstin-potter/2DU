@@ -2,11 +2,39 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
+// Strip ANSI escape codes so Cursor/VS Code terminal on Windows doesn't glitch
+const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, '').replace(/\x1b\]8;;[^\x1b]*\x1b\\/g, '')
+
+const seenErrors = new WeakSet<Error>()
+const plainLogger = {
+  hasWarned: false,
+  info(msg: string) {
+    process.stdout.write(stripAnsi(msg) + '\n')
+  },
+  warn(msg: string) {
+    this.hasWarned = true
+    process.stdout.write(stripAnsi(msg) + '\n')
+  },
+  warnOnce(msg: string) {
+    this.warn(msg)
+  },
+  error(msg: string) {
+    process.stderr.write(stripAnsi(msg) + '\n')
+  },
+  clearScreen() {
+    // no-op: prevents terminal clear that glitches on Windows
+  },
+  hasErrorLogged(error: Error) {
+    return seenErrors.has(error)
+  },
+}
+
 // https://vitejs.dev/config/
+// Terminal (Cursor/VS Code on Windows): customLogger strips ANSI and no-ops clearScreen; do not set logLevel: 'warn' (can freeze).
 export default defineConfig({
-  plugins: [
-    react()
-  ],
+  clearScreen: false,
+  customLogger: plainLogger,
+  plugins: [react()],
   esbuild: {
     drop: ['console', 'debugger'],
   },
@@ -63,7 +91,7 @@ export default defineConfig({
   },
   server: {
     port: 4000,
-    strictPort: true,
+    strictPort: false, // Use next port if 4000 in use; avoids "port in use" errors when re-running dev
     hmr: {
       port: 4000
     }

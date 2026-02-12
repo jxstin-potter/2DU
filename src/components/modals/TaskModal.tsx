@@ -66,9 +66,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setDueDate(defaultDueDate);
       setTagIds(defaultTagIds);
     }
-  // resetForm omitted to avoid effect loop when form state changes
+  // Only re-run when open or edited task changes. defaultTagIds/defaultDueDate are read inside but not deps to avoid loop (defaultTagIds=[] is new ref every render).
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialTask, open, defaultDueDate, defaultTagIds]);
+  }, [initialTask, open]);
 
   // Auto-focus the title input when modal opens (backup mechanism)
   useEffect(() => {

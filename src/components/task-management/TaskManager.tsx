@@ -26,7 +26,6 @@ const TaskManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [selectedCategory, _setSelectedCategory] = useState<string | null>(null);
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('createdAt');
   const lastAppliedTaskCountRef = useRef<number>(0);
@@ -169,10 +168,7 @@ const TaskManager: React.FC = () => {
     }
   };
 
-  const filteredTasks = useMemo(() => {
-    if (!selectedCategory) return tasks;
-    return tasks.filter((task) => task.categoryId === selectedCategory);
-  }, [tasks, selectedCategory]);
+  const filteredTasks = tasks;
 
   const handleCreateTask = async (taskData: Partial<Task>) => {
     try {

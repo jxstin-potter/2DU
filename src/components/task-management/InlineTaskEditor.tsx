@@ -133,6 +133,7 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   const titleRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastSyncedTagIdsRef = useRef<string>('[]');
 
   const atFilterQuery = atMentionQuery.trim().toLowerCase();
   const atFilteredTags = useMemo(() => {
@@ -194,12 +195,16 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
     }
   }, [initialTask, defaultCategoryId, defaultDueDate, defaultTagIds, tags]);
 
-  // Sync selectedTagIds from DOM when tag spans are added/removed in the title div
+  // Sync selectedTagIds from DOM when tag spans are added/removed in the title div. Only setState when ids actually changed to avoid re-render on every keystroke.
   useEffect(() => {
     const el = titleRef.current;
     if (!el) return;
     const observer = new MutationObserver(() => {
-      setSelectedTagIds(getTagIdsFromTitleDiv(el));
+      const nextIds = getTagIdsFromTitleDiv(el);
+      const nextKey = JSON.stringify([...nextIds].sort());
+      if (nextKey === lastSyncedTagIdsRef.current) return;
+      lastSyncedTagIdsRef.current = nextKey;
+      setSelectedTagIds(nextIds);
     });
     observer.observe(el, { childList: true, subtree: true });
     return () => observer.disconnect();
@@ -225,15 +230,15 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node) &&
-        !isSubmitting &&
-        title.trim() === '' &&
-        description.trim() === ''
-      ) {
+      const target = event.target as Node;
+      if (!containerRef.current || containerRef.current.contains(target))
+        return;
+      // Don't close when click is on the Sidebar "Add task" trigger or inside the task modal (avoids closing modal / race with openModal).
+      const el = (event.target as HTMLElement);
+      if (el.closest?.('[data-add-task-trigger]') || el.closest?.('[role="dialog"]'))
+        return;
+      if (!isSubmitting && title.trim() === '' && description.trim() === '')
         onCancel();
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);

@@ -4,24 +4,37 @@ interface TaskModalContextType {
   isOpen: boolean;
   openModal: () => void;
   closeModal: () => void;
+  /** Task id currently in inline-edit mode; cleared when modal opens. */
+  activeInlineTaskId: string | null;
+  setActiveInlineTaskId: (id: string | null) => void;
 }
 
 const TaskModalContext = createContext<TaskModalContextType | undefined>(undefined);
 
 export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [state, setState] = useState({ isOpen: false, activeInlineTaskId: null as string | null });
 
   const openModal = useCallback(() => {
-    setIsOpen(true);
+    setState((prev) => ({ ...prev, isOpen: true, activeInlineTaskId: null }));
   }, []);
 
   const closeModal = useCallback(() => {
-    setIsOpen(false);
+    setState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  const setActiveInlineTaskId = useCallback((id: string | null) => {
+    setState((prev) => ({ ...prev, activeInlineTaskId: id }));
   }, []);
 
   const value = useMemo(
-    () => ({ isOpen, openModal, closeModal }),
-    [isOpen, openModal, closeModal]
+    () => ({
+      isOpen: state.isOpen,
+      openModal,
+      closeModal,
+      activeInlineTaskId: state.activeInlineTaskId,
+      setActiveInlineTaskId,
+    }),
+    [state.isOpen, state.activeInlineTaskId, openModal, closeModal, setActiveInlineTaskId]
   );
 
   return (
