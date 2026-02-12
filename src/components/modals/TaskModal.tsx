@@ -20,8 +20,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Task } from '../../types';
 import HighlightedTimeInput from '../ui/HighlightedTimeInput';
-import TagPicker from '../task-management/TagPicker';
-import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
 
 interface TaskModalProps {
   open: boolean;
@@ -47,7 +45,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
   defaultTagIds = [],
 }) => {
   const theme = useTheme();
-  const { tags } = useTaskMetadata();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
@@ -354,15 +351,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </Select>
               </FormControl>
             </Box>
-
-            <TagPicker
-              tags={tags}
-              selectedTagIds={tagIds}
-              onChange={setTagIds}
-              placeholder="Type @ to add label"
-              size="small"
-              disabled={isSubmitting}
-            />
 
             <TextField
               label="Description"

@@ -31,7 +31,7 @@ const TagPicker: React.FC<TagPickerProps> = ({
   tags,
   selectedTagIds,
   onChange,
-  placeholder = 'Type @ to add label',
+  placeholder = '',
   size = 'small',
   disabled = false,
 }) => {
