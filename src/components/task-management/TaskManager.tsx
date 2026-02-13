@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Box,
   CircularProgress,
@@ -29,6 +29,8 @@ const TaskManager: React.FC = () => {
   const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('createdAt');
   const lastAppliedTaskCountRef = useRef<number>(0);
+  const tasksRef = useRef<Task[]>([]);
+  tasksRef.current = tasks;
 
   const subscriptionSortBy = sortMode === 'manual' ? 'manual' : sortMode === 'dueDate' ? 'dueDate' : 'creationDate';
 
@@ -86,13 +88,12 @@ const TaskManager: React.FC = () => {
     };
   }, [user?.id, subscriptionSortBy]);
 
-  const handleTaskSelect = (task: Task) => {
+  const handleTaskSelect = useCallback((task: Task) => {
     setSelectedTask(task);
-    // For now, we'll just open the modal for editing too
     openTaskModal();
-  };
+  }, [openTaskModal]);
 
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
     if (!user?.id) {
       setError('Please log in to update tasks');
       return;
@@ -107,9 +108,9 @@ const TaskManager: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update task');
     }
-  };
+  }, [user?.id]);
 
-  const handleTaskDelete = async (taskId: string) => {
+  const handleTaskDelete = useCallback(async (taskId: string) => {
     if (!user?.id) {
       setError('Please log in to delete tasks');
       return;
@@ -121,16 +122,16 @@ const TaskManager: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete task');
     }
-  };
+  }, [user?.id]);
 
-  const handleTaskToggle = async (taskId: string) => {
+  const handleTaskToggle = useCallback(async (taskId: string) => {
     if (!user?.id) {
       setError('Please log in to toggle tasks');
       return;
     }
 
     try {
-      const task = tasks.find(t => t.id === taskId);
+      const task = tasksRef.current.find(t => t.id === taskId);
       if (!task) return;
 
       const completed = !task.completed;
@@ -141,14 +142,14 @@ const TaskManager: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to toggle task status');
     }
-  };
+  }, [user?.id]);
 
-  const handleDragEnd = async (result: DropResult) => {
+  const handleDragEnd = useCallback(async (result: DropResult) => {
     if (!result.destination || !user?.id || sortMode !== 'manual') return;
     const { source, destination } = result;
     if (source.index === destination.index) return;
 
-    const displayTasks = filteredTasks;
+    const displayTasks = tasksRef.current;
     const movedTask = displayTasks[source.index];
     if (!movedTask) return;
 
@@ -166,11 +167,11 @@ const TaskManager: React.FC = () => {
     } catch (error) {
       setError('Failed to update task order');
     }
-  };
+  }, [user?.id, sortMode]);
 
   const filteredTasks = tasks;
 
-  const handleCreateTask = async (taskData: Partial<Task>) => {
+  const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
     try {
       if (authLoading) {
         throw new Error('Please wait for authentication to complete');
@@ -179,7 +180,8 @@ const TaskManager: React.FC = () => {
         throw new Error('Please log in to create tasks');
       }
       
-      const maxOrder = tasks.length === 0 ? 0 : Math.max(...tasks.map((t) => t.order ?? 0), 0);
+      const currentTasks = tasksRef.current;
+      const maxOrder = currentTasks.length === 0 ? 0 : Math.max(...currentTasks.map((t) => t.order ?? 0), 0);
       const taskDoc = taskPatchToTaskDocument({
         ...taskData,
         userId: user.id,
@@ -203,7 +205,32 @@ const TaskManager: React.FC = () => {
       // Re-throw the error so the caller can handle it
       throw error;
     }
-  };
+  }, [authLoading, user?.id, closeTaskModal]);
+
+  const onTaskAction = useMemo(() => ({
+    toggle: handleTaskToggle,
+    delete: handleTaskDelete,
+    update: handleTaskUpdate,
+    edit: async (task: Task) => { handleTaskSelect(task); },
+  }), [handleTaskToggle, handleTaskDelete, handleTaskUpdate, handleTaskSelect]);
+
+  const handleModalClose = useCallback(() => {
+    closeTaskModal();
+    setSelectedTask(null);
+  }, [closeTaskModal]);
+
+  const handleModalSubmit = useMemo(() => {
+    if (selectedTask) {
+      return async (taskData: Partial<Task>) => {
+        if (selectedTask.id) {
+          await handleTaskUpdate(selectedTask.id, taskData);
+          closeTaskModal();
+          setSelectedTask(null);
+        }
+      };
+    }
+    return handleCreateTask;
+  }, [selectedTask, handleTaskUpdate, closeTaskModal, handleCreateTask]);
 
   if (loading) {
     return (
@@ -224,14 +251,7 @@ const TaskManager: React.FC = () => {
           sortBy={sortMode}
           onSortChange={setSortMode}
           draggable={sortMode === 'manual'}
-          onTaskAction={{
-            toggle: handleTaskToggle,
-            delete: handleTaskDelete,
-            update: async (taskId: string, updates: Partial<Task>) => {
-              await handleTaskUpdate(taskId, updates);
-            },
-            edit: async (task: Task) => { handleTaskSelect(task); },
-          }}
+          onTaskAction={onTaskAction}
           onCreateTask={handleCreateTask}
         />
       </DragDropContext>
@@ -239,20 +259,8 @@ const TaskManager: React.FC = () => {
       {/* Show TaskModal for both creating and editing tasks */}
       <TaskModal
         open={isTaskModalOpen}
-        onClose={() => {
-          closeTaskModal();
-          setSelectedTask(null);
-        }}
-        onSubmit={selectedTask ? 
-          async (taskData) => {
-            if (selectedTask.id) {
-              await handleTaskUpdate(selectedTask.id, taskData);
-              closeTaskModal();
-              setSelectedTask(null);
-            }
-          } : 
-          handleCreateTask
-        }
+        onClose={handleModalClose}
+        onSubmit={handleModalSubmit}
         initialTask={selectedTask}
         loading={loading}
       />

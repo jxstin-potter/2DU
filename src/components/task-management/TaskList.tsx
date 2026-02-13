@@ -46,6 +46,71 @@ interface TaskListProps {
   justAddedTaskId?: string | null;
 }
 
+type TaskActionDispatcher = (action: keyof TaskListProps['onTaskAction'], ...args: unknown[]) => Promise<void>;
+
+/** Memoized row component so TaskItem receives stable callbacks per task */
+const TaskRow = React.memo<{
+  task: Task;
+  index: number;
+  dispatchAction: TaskActionDispatcher;
+  onUpdate: (taskId: string, updates: Partial<Task>) => Promise<void>;
+  isActionInProgress: boolean;
+  isJustAdded: boolean;
+  draggable: boolean;
+}>(({ task, index, dispatchAction, onUpdate, isActionInProgress, isJustAdded, draggable }) => {
+  const onToggleComplete = useCallback(
+    () => dispatchAction('toggle', task.id),
+    [dispatchAction, task.id]
+  );
+  const onDelete = useCallback(
+    () => dispatchAction('delete', task.id),
+    [dispatchAction, task.id]
+  );
+  const onEdit = useCallback(
+    () => dispatchAction('edit', task),
+    [dispatchAction, task]
+  );
+  const content = (
+    <TaskItem
+      task={task}
+      onToggleComplete={onToggleComplete}
+      onDelete={onDelete}
+      onEdit={onEdit}
+      onUpdate={onUpdate}
+      isActionInProgress={isActionInProgress}
+    />
+  );
+  const wrapped = isJustAdded ? (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+    >
+      {content}
+    </motion.div>
+  ) : (
+    content
+  );
+  if (draggable) {
+    return (
+      <Draggable draggableId={task.id} index={index}>
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            data-testid={`task-${task.id}`}
+          >
+            {content}
+          </div>
+        )}
+      </Draggable>
+    );
+  }
+  return <div data-testid={`task-${task.id}`}>{wrapped}</div>;
+});
+TaskRow.displayName = 'TaskRow';
+
 const TaskList: React.FC<TaskListProps> = ({
   tasks,
   loading = false,
@@ -88,8 +153,10 @@ const TaskList: React.FC<TaskListProps> = ({
     closeTaskModal();
   }, [closeTaskModal]);
 
+  const actionInProgressRef = React.useRef<string | null>(null);
+  actionInProgressRef.current = actionInProgress;
   const handleTaskAction = useCallback(async (action: keyof TaskListProps['onTaskAction'], ...args: unknown[]) => {
-    if (actionInProgress) return;
+    if (actionInProgressRef.current) return;
     
     try {
       setActionInProgress(action);
@@ -102,7 +169,7 @@ const TaskList: React.FC<TaskListProps> = ({
     } finally {
       setActionInProgress(null);
     }
-  }, [actionInProgress, onTaskAction]);
+  }, [onTaskAction]);
 
   const handleSortClick = (event: React.MouseEvent<HTMLElement>) => {
     setSortAnchorEl(event.currentTarget);
@@ -141,58 +208,25 @@ const TaskList: React.FC<TaskListProps> = ({
   const Row = useCallback(({ index, style }: ListChildComponentProps) => {
     const task = displayTasks[index];
     if (!task) return null;
-    const isJustAdded = task.id === justAddedTaskId;
-    const content = draggable ? (
-      <Draggable draggableId={task.id} index={index}>
-        {(provided) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            data-testid={`task-${task.id}`}
-          >
-            <TaskItem
-              task={task}
-              onToggleComplete={() => handleTaskAction('toggle', task.id)}
-              onDelete={() => handleTaskAction('delete', task.id)}
-              onEdit={() => handleTaskAction('edit', task)}
-              onUpdate={onTaskAction.update}
-              isActionInProgress={actionInProgress !== null}
-            />
-          </div>
-        )}
-      </Draggable>
-    ) : (
-      <TaskItem
-        task={task}
-        onToggleComplete={() => handleTaskAction('toggle', task.id)}
-        onDelete={() => handleTaskAction('delete', task.id)}
-        onEdit={() => handleTaskAction('edit', task)}
-        onUpdate={onTaskAction.update}
-        isActionInProgress={actionInProgress !== null}
-      />
-    );
     return (
       <div style={style}>
-        {isJustAdded ? (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-          >
-            {content}
-          </motion.div>
-        ) : (
-          content
-        )}
+        <TaskRow
+          task={task}
+          index={index}
+          dispatchAction={handleTaskAction}
+          onUpdate={onTaskAction.update}
+          isActionInProgress={actionInProgress !== null}
+          isJustAdded={task.id === justAddedTaskId}
+          draggable={draggable}
+        />
       </div>
     );
   }, [
     displayTasks,
     actionInProgress,
     draggable,
-    handleTaskAction,
     justAddedTaskId,
+    handleTaskAction,
     onTaskAction.update,
   ]);
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Container, Snackbar, Button, IconButton, useTheme } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,6 +22,8 @@ const Inbox: React.FC = () => {
   const [completedSnackbarOpen, setCompletedSnackbarOpen] = useState(false);
   const [completedTaskIdForUndo, setCompletedTaskIdForUndo] = useState<string | null>(null);
   const lastAppliedTaskCountRef = useRef<number>(0);
+  const tasksRef = useRef<Task[]>([]);
+  tasksRef.current = tasks;
 
   useEffect(() => {
     if (!user?.id) {
@@ -80,7 +82,7 @@ const Inbox: React.FC = () => {
     }
 
     try {
-      const task = tasks.find(t => t.id === taskId);
+      const task = tasksRef.current.find(t => t.id === taskId);
       if (!task) return;
 
       const completed = !task.completed;
@@ -94,7 +96,7 @@ const Inbox: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to toggle task status');
     }
-  }, [tasks, user?.id]);
+  }, [user?.id]);
 
   const handleUndoComplete = useCallback(() => {
     if (!completedTaskIdForUndo) return;
@@ -109,7 +111,7 @@ const Inbox: React.FC = () => {
     setCompletedTaskIdForUndo(null);
   }, []);
 
-  const handleTaskDelete = async (taskId: string) => {
+  const handleTaskDelete = useCallback(async (taskId: string) => {
     if (!user?.id) {
       setError('Please log in to delete tasks');
       return;
@@ -120,9 +122,9 @@ const Inbox: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete task');
     }
-  };
+  }, [user?.id]);
 
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
     if (!user?.id) {
       setError('Please log in to update tasks');
       return;
@@ -134,9 +136,14 @@ const Inbox: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update task');
     }
-  };
+  }, [user?.id]);
 
-  const handleCreateTask = async (taskData: Partial<Task>) => {
+  const handleTaskEdit = useCallback((task: Task) => {
+    setSelectedTask(task);
+    openTaskModal();
+  }, [openTaskModal]);
+
+  const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
     try {
       if (authLoading) throw new Error('Please wait for authentication to complete');
       if (!user?.id) throw new Error('Please log in to create tasks');
@@ -145,7 +152,7 @@ const Inbox: React.FC = () => {
         ...taskData,
         userId: user.id,
         completed: false,
-        order: tasks.length,
+        order: tasksRef.current.length,
       });
 
       const newTaskId = await createTaskFromData(user.id, taskDoc);
@@ -160,7 +167,32 @@ const Inbox: React.FC = () => {
       logger.error('Failed to create task', { action: 'createTask' }, error);
       throw error;
     }
-  };
+  }, [authLoading, user?.id, closeTaskModal]);
+
+  const onTaskAction = useMemo(() => ({
+    toggle: handleTaskToggle,
+    delete: handleTaskDelete,
+    update: handleTaskUpdate,
+    edit: handleTaskEdit,
+  }), [handleTaskToggle, handleTaskDelete, handleTaskUpdate, handleTaskEdit]);
+
+  const handleModalClose = useCallback(() => {
+    closeTaskModal();
+    setSelectedTask(null);
+  }, [closeTaskModal]);
+
+  const handleModalSubmit = useMemo(() => {
+    if (selectedTask) {
+      return async (taskData: Partial<Task>) => {
+        if (selectedTask.id) {
+          await handleTaskUpdate(selectedTask.id, taskData);
+          closeTaskModal();
+          setSelectedTask(null);
+        }
+      };
+    }
+    return handleCreateTask;
+  }, [selectedTask, handleTaskUpdate, closeTaskModal, handleCreateTask]);
 
   return (
     <Box sx={{
@@ -188,35 +220,15 @@ const Inbox: React.FC = () => {
             tasks={tasks}
             loading={loading}
             justAddedTaskId={justAddedTaskId}
-            onTaskAction={{
-              toggle: handleTaskToggle,
-              delete: handleTaskDelete,
-              update: handleTaskUpdate,
-              edit: (task: Task) => {
-                setSelectedTask(task);
-                openTaskModal();
-              },
-            }}
+            onTaskAction={onTaskAction}
             onCreateTask={handleCreateTask}
           />
         </Box>
 
         <TaskModal
           open={isTaskModalOpen}
-          onClose={() => {
-            closeTaskModal();
-            setSelectedTask(null);
-          }}
-          onSubmit={selectedTask ?
-            async (taskData) => {
-              if (selectedTask.id) {
-                await handleTaskUpdate(selectedTask.id, taskData);
-                closeTaskModal();
-                setSelectedTask(null);
-              }
-            } :
-            handleCreateTask
-          }
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
           initialTask={selectedTask}
           loading={loading}
         />
