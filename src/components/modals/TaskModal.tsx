@@ -19,7 +19,14 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Task } from '../../types';
-import HighlightedTimeInput from '../ui/HighlightedTimeInput';
+import TaskNameInput from '../task-management/TaskNameInput';
+import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
+import {
+  getPlainTitleFromTitleDiv,
+  getTagIdsFromTitleDiv,
+  getPendingTagNamesFromTitleDiv,
+  TAG_COLORS,
+} from '../../utils/taskTitleMentions';
 
 interface TaskModalProps {
   open: boolean;
@@ -45,11 +52,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
   defaultTagIds = [],
 }) => {
   const theme = useTheme();
+  const { tags, addTag } = useTaskMetadata();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>('');
   const [tagIds, setTagIds] = useState<string[]>(defaultTagIds);
+  const [pendingTagNames, setPendingTagNames] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const titleInputRef = useRef<HTMLDivElement>(null);
@@ -61,10 +70,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
       setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
       setPriority(initialTask.priority || '');
       setTagIds(initialTask.tags ?? []);
+      setPendingTagNames([]);
     } else {
       resetForm();
       setDueDate(defaultDueDate);
       setTagIds(defaultTagIds);
+      setPendingTagNames([]);
     }
   // Only re-run when open or edited task changes. defaultTagIds/defaultDueDate are read inside but not deps to avoid loop (defaultTagIds=[] is new ref every render).
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,10 +100,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
       const descMatch = (initialTask.description || '') === description;
       const dateMatch = (initialTask.dueDate == null && dueDate == null) ||
         (initialTask.dueDate != null && dueDate != null && new Date(initialTask.dueDate).getTime() === dueDate.getTime());
-      return title !== initialTask.title || !descMatch || !dateMatch || (initialTask.priority || '') !== priority;
+      return title !== initialTask.title || !descMatch || !dateMatch || (initialTask.priority || '') !== priority ||
+        (initialTask.tags?.length ?? 0) !== tagIds.length || (initialTask.tags ?? []).some((id) => !tagIds.includes(id));
     }
-    return title.trim() !== '' || description.trim() !== '' || priority !== '' || tagIds.length > 0;
-  }, [open, initialTask, title, description, dueDate, priority, tagIds]);
+    return title.trim() !== '' || description.trim() !== '' || priority !== '' || tagIds.length > 0 || pendingTagNames.length > 0;
+  }, [open, initialTask, title, description, dueDate, priority, tagIds, pendingTagNames]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -111,6 +123,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     setDueDate(null);
     setPriority('');
     setTagIds(defaultTagIds);
+    setPendingTagNames([]);
     setErrors({});
     setIsSubmitting(false);
   };
@@ -127,30 +140,35 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Ensure we have the latest title from contentEditable
-    const currentTitle = titleInputRef.current?.textContent || title;
+    const plainTitle = getPlainTitleFromTitleDiv(titleInputRef.current) || title;
+    setTitle(plainTitle);
 
-    // Update title state if it differs from contentEditable
-    if (currentTitle !== title) {
-      setTitle(currentTitle);
-    }
-    
-    // Wait a tick for state to update, then validate
     await new Promise(resolve => setTimeout(resolve, 0));
-    
+
     if (!validateForm() || isSubmitting) {
       return;
     }
 
     try {
       setIsSubmitting(true);
-      const finalTitle = titleInputRef.current?.textContent || title;
+      const resolvedTagIds = getTagIdsFromTitleDiv(titleInputRef.current);
+      const resolvedPending = getPendingTagNamesFromTitleDiv(titleInputRef.current);
+      const newTagIds: string[] = [];
+      for (let i = 0; i < resolvedPending.length; i++) {
+        const name = resolvedPending[i];
+        const color = TAG_COLORS[(tags.length + i) % TAG_COLORS.length];
+        const newTag = await addTag({ name, color });
+        newTagIds.push(newTag.id);
+      }
+      const allTagIds = [...resolvedTagIds, ...newTagIds];
+      const finalTitle = getPlainTitleFromTitleDiv(titleInputRef.current)?.trim() || title.trim();
+
       const taskData: Partial<Task> = {
-        title: finalTitle.trim(),
+        title: finalTitle,
         description: description || undefined,
         dueDate: dueDate || undefined,
         priority: priority ? (priority as 'low' | 'medium' | 'high') : undefined,
-        tags: tagIds.length > 0 ? tagIds : undefined,
+        tags: allTagIds.length > 0 ? allTagIds : undefined,
         status: 'todo',
         createdAt: initialTask?.createdAt || new Date(),
         updatedAt: new Date(),
@@ -232,25 +250,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </Alert>
             )}
             <Box sx={{ display: 'flex', gap: 1.5 }}>
-              <HighlightedTimeInput
+              <TaskNameInput
+                key={initialTask?.id ?? 'new'}
                 inputRef={titleInputRef}
-                autoFocus
-                label="Task name"
                 value={title}
-                onChange={(inputValue) => {
-                  setTitle(inputValue);
-                }}
+                onChange={setTitle}
+                onTagIdsChange={setTagIds}
+                onPendingNamesChange={setPendingTagNames}
                 onTimeParsed={(time) => {
-                  if (time) {
-                    setDueDate(time);
-                  } else {
-                    setDueDate(null);
-                  }
+                  if (time) setDueDate(time);
+                  else setDueDate(null);
                 }}
+                label="Task name"
                 error={!!errors.title}
                 helperText={errors.title}
                 required
                 disabled={isSubmitting}
+                autoFocus
+                initialTagIds={tagIds}
                 sx={{ flex: 1 }}
               />
 
