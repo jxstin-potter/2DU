@@ -8,14 +8,15 @@ export const priorityLabels: Record<TaskPriority, string> = {
   high: 'High',
 };
 
+// Muted, studious palette: green = low/calm, amber = medium, muted red = high
 export const getPriorityColor = (priority: TaskPriority) => {
   switch (priority) {
     case 'low':
-      return '#4caf50';
+      return '#4A9B6D';
     case 'medium':
-      return '#ff9800';
+      return '#B8954A';
     case 'high':
-      return '#f44336';
+      return '#B85C5C';
   }
 };
 

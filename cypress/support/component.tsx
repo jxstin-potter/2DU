@@ -16,7 +16,7 @@ declare global {
 const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#4a90e2' },
+    primary: { main: '#5B7A9E' },
   },
 });
 

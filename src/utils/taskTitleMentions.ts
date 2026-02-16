@@ -5,7 +5,7 @@ export const TAG_MENTION_DATA_ATTR = 'data-tag-id';
 export const TAG_PENDING_NAME_ATTR = 'data-tag-pending-name';
 
 /** Default colors for newly created tags (same as Tags page) */
-export const TAG_COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#f44336', '#9c27b0', '#009688'];
+export const TAG_COLORS = ['#4A9B6D', '#5B7A9E', '#B8954A', '#A67B8A', '#7B6B9E', '#5A8A8A'];
 
 /** Light yellow background for inline tag mentions */
 export const tagMentionStyle: CSSProperties = {

@@ -25,7 +25,7 @@ import { useTaskModal } from '../contexts/TaskModalContext';
 import TaskModal from '../components/modals/TaskModal';
 import { motion } from 'framer-motion';
 
-const TAG_COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#f44336', '#9c27b0', '#009688'];
+const TAG_COLORS = ['#4A9B6D', '#5B7A9E', '#B8954A', '#A67B8A', '#7B6B9E', '#5A8A8A'];
 
 const Tags: React.FC = () => {
   const theme = useTheme();

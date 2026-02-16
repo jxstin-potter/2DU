@@ -1,76 +1,76 @@
 import { alpha, createTheme, ThemeOptions } from '@mui/material/styles';
 
-// Brand palette (single source of truth)
-const brandGold = '#B8860B'; // darker gold (darkgoldenrod)
-const brandGoldHover = '#A97C0A';
-const brandGoldActive = '#8F6508';
-const brandGoldLight = '#D0AD33';
+// Studious, calming palette (color theory: blues = trust/focus/calm; muted tones = reduced strain)
+// Primary: slate blue — associated with focus, productivity, and calm; used in many productivity/education UIs
+const primaryMain = '#5B7A9E';
+const primaryHover = '#6A8AA8';
+const primaryActive = '#4A6582';
+const primaryLight = '#7B9BB8';
 
 // Define color palette
 const colors = {
-  // Brand colors (black + classic gold)
+  // Brand: dark blue-grays (softer than pure black; less harsh for long reading)
   brand: {
-    black: '#0B0B0B',
-    blackElevated: '#121212',
-    blackElevated2: '#171717',
-    gold: brandGold,
-    goldHover: brandGoldHover,
-    goldActive: brandGoldActive,
+    black: '#0F1419',
+    blackElevated: '#161D26',
+    blackElevated2: '#1C2530',
+    gold: primaryMain,
+    goldHover: primaryHover,
+    goldActive: primaryActive,
   },
-  // Theme tokens kept for existing style helpers
+  // Theme tokens (primary = slate blue for studious/calm)
   primary: {
-    main: brandGold,
-    light: brandGoldLight,
-    dark: brandGoldActive,
-    contrastText: '#0B0B0B',
+    main: primaryMain,
+    light: primaryLight,
+    dark: primaryActive,
+    contrastText: '#F5F5F5',
   },
   secondary: {
-    main: '#E5E7EB',
-    light: '#F3F4F6',
-    dark: '#D1D5DB',
-    contrastText: '#0B0B0B',
+    main: '#8B9AAF',
+    light: '#A8B8C9',
+    dark: '#6B7D94',
+    contrastText: '#0F1419',
   },
-  // Accent colors
+  // Accent colors (muted for calm; still distinguishable)
   accent: {
-    purple: '#8b5cf6',
-    orange: '#f97316',
-    pink: '#ec4899',
-    teal: '#14b8a6',
+    purple: '#7B6B9E',
+    orange: '#B8956A',
+    pink: '#A67B8A',
+    teal: '#5A8A8A',
   },
-  // Neutral colors
+  // Neutral colors (cool gray / slate for professional feel)
   neutral: {
-    50: '#f9fafb',
-    100: '#f3f4f6',
-    200: '#e5e7eb',
-    300: '#d1d5db',
-    400: '#9ca3af',
-    500: '#6b7280',
-    600: '#4b5563',
-    700: '#374151',
-    800: '#1f2937',
-    900: '#111827',
+    50: '#F4F6F8',
+    100: '#E8ECF0',
+    200: '#D1D9E2',
+    300: '#B0BCC9',
+    400: '#8A99A8',
+    500: '#6B7A8A',
+    600: '#4F5D6B',
+    700: '#3A4552',
+    800: '#252E38',
+    900: '#151C24',
   },
-  // Semantic colors
+  // Semantic colors (muted so they don’t break the calm mood)
   success: {
-    main: '#10b981',
-    light: '#34d399',
-    dark: '#059669',
+    main: '#4A9B6D',
+    light: '#6BB88A',
+    dark: '#3A7A55',
   },
   warning: {
-    main: '#f59e0b',
-    light: '#fbbf24',
-    dark: '#d97706',
+    main: '#B8954A',
+    light: '#D4B56A',
+    dark: '#947538',
   },
   error: {
-    main: '#ef4444',
-    light: '#f87171',
-    dark: '#dc2626',
+    main: '#B85C5C',
+    light: '#D47B7B',
+    dark: '#944848',
   },
   info: {
-    // Keep info aligned with brand accent (gold) to avoid random blues.
-    main: brandGold,
-    light: brandGoldLight,
-    dark: brandGoldActive,
+    main: primaryMain,
+    light: primaryLight,
+    dark: primaryActive,
   },
 };
 
@@ -242,9 +242,9 @@ export const keyframes = {
     100% { opacity: 1; transform: scale(1); }
   `,
   checkboxPulse: `
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(74, 155, 109, 0.35); }
+    70% { box-shadow: 0 0 0 10px rgba(74, 155, 109, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 155, 109, 0); }
   `,
   fadeIn: `
     from { opacity: 0; }
@@ -265,7 +265,7 @@ export const keyframes = {
   `,
   statusChange: `
     0% { background-color: transparent; }
-    50% { background-color: rgba(16, 185, 129, 0.1); }
+    50% { background-color: rgba(74, 155, 109, 0.12); }
     100% { background-color: transparent; }
   `,
 };
@@ -490,14 +490,14 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
     palette: {
       mode,
       primary: {
-        main: colors.brand.gold,
+        main: colors.primary.main,
         dark: colors.brand.goldActive,
         light: colors.primary.light,
-        contrastText: '#0B0B0B',
+        contrastText: colors.primary.contrastText,
       },
       secondary: {
-        main: '#E5E7EB',
-        contrastText: '#0B0B0B',
+        main: colors.secondary.main,
+        contrastText: colors.secondary.contrastText,
       },
       background: {
         default: colors.brand.black,
@@ -508,10 +508,25 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         secondary: 'rgba(245, 245, 245, 0.72)',
       },
       divider: 'rgba(245, 245, 245, 0.12)',
+      error: {
+        main: colors.error.main,
+        light: colors.error.light,
+        dark: colors.error.dark,
+      },
+      success: {
+        main: colors.success.main,
+        light: colors.success.light,
+        dark: colors.success.dark,
+      },
+      warning: {
+        main: colors.warning.main,
+        light: colors.warning.light,
+        dark: colors.warning.dark,
+      },
       action: {
-        hover: alpha(colors.brand.gold, 0.08),
-        selected: alpha(colors.brand.gold, 0.12),
-        focus: alpha(colors.brand.gold, 0.14),
+        hover: alpha(colors.primary.main, 0.08),
+        selected: alpha(colors.primary.main, 0.12),
+        focus: alpha(colors.primary.main, 0.14),
         disabled: 'rgba(245, 245, 245, 0.28)',
         disabledBackground: 'rgba(245, 245, 245, 0.08)',
       },
@@ -551,7 +566,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
               backgroundColor: 'rgba(245,245,245,0.28)',
             },
             '&::-webkit-scrollbar-thumb:hover, & *::-webkit-scrollbar-thumb:hover': {
-              backgroundColor: 'rgba(245,245,245,0.24)',
+              backgroundColor: 'rgba(245,245,245,0.22)',
             },
             '&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner': {
               backgroundColor: colors.brand.black,
@@ -561,30 +576,30 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
       },
       MuiButton: {
         styleOverrides: {
-          contained: {
-            backgroundColor: colors.brand.gold,
-            color: '#0B0B0B',
-            '&:hover': {
-              backgroundColor: colors.brand.goldHover,
-            },
-            '&:active': {
-              backgroundColor: colors.brand.goldActive,
-            },
-          },
-          outlined: {
-            borderColor: 'rgba(245,245,245,0.18)',
-            color: '#F5F5F5',
-            '&:hover': {
-              borderColor: alpha(colors.brand.gold, 0.55),
-              backgroundColor: alpha(colors.brand.gold, 0.06),
-            },
-          },
+      contained: {
+        backgroundColor: colors.brand.gold,
+        color: colors.primary.contrastText,
+        '&:hover': {
+          backgroundColor: colors.brand.goldHover,
+        },
+        '&:active': {
+          backgroundColor: colors.brand.goldActive,
+        },
+      },
+      outlined: {
+        borderColor: 'rgba(245,245,245,0.18)',
+        color: '#F5F5F5',
+        '&:hover': {
+          borderColor: alpha(colors.brand.gold, 0.5),
+          backgroundColor: alpha(colors.brand.gold, 0.08),
+        },
+      },
         },
       },
       MuiLink: {
         styleOverrides: {
           root: {
-            color: colors.brand.gold,
+            color: colors.primary.main,
             '&:hover': { color: colors.brand.goldHover },
           },
         },
@@ -593,7 +608,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         styleOverrides: {
           root: {
             color: 'rgba(245,245,245,0.42)',
-            '&.Mui-checked': { color: colors.brand.gold },
+            '&.Mui-checked': { color: colors.primary.main },
           },
         },
       },
@@ -601,7 +616,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         styleOverrides: {
           root: {
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: colors.brand.gold,
+              borderColor: colors.primary.main,
             },
           },
           notchedOutline: {
@@ -619,7 +634,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
       MuiTabs: {
         styleOverrides: {
           indicator: {
-            backgroundColor: colors.brand.gold,
+            backgroundColor: colors.primary.main,
           },
         },
       },

@@ -40,9 +40,9 @@ body {
 }
 
 @keyframes checkbox-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(74, 155, 109, 0.35); }
+  70% { box-shadow: 0 0 0 10px rgba(74, 155, 109, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 155, 109, 0); }
 }
 
 @keyframes fadeIn {
@@ -84,7 +84,7 @@ body {
 
 @keyframes statusChange {
   0% { background-color: transparent; }
-  50% { background-color: rgba(16, 185, 129, 0.1); }
+  50% { background-color: rgba(74, 155, 109, 0.12); }
   100% { background-color: transparent; }
 }
 
@@ -151,7 +151,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid #2eaadc;
+  outline: 2px solid #5B7A9E;
   outline-offset: 2px;
 }
 
