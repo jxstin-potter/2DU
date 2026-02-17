@@ -8,6 +8,7 @@ import {
 } from '@mui/icons-material';
 import { isToday, startOfDay } from 'date-fns';
 import { TaskPriority, getPriorityChipStyles, getPriorityColor, priorityLabels } from './inlineTaskEditorPriority';
+import InlineTaskEditorDatePopover from './InlineTaskEditorDatePopover';
 
 const PRIORITY_OPTIONS: { value: TaskPriority | ''; label: string }[] = [
   { value: '', label: 'None' },
@@ -37,13 +38,14 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
 
   const isTodaySelected = Boolean(dueDate && isToday(dueDate));
 
-  const handleSetToday = () => {
-    if (isTodaySelected) {
-      onDueDateChange(null);
-    } else {
-      onDueDateChange(startOfDay(new Date()));
-    }
+  const [datePopoverAnchor, setDatePopoverAnchor] = useState<null | HTMLElement>(null);
+
+  const handleDateTriggerClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    setDatePopoverAnchor(event.currentTarget);
   };
+
+  const handleDatePopoverClose = () => setDatePopoverAnchor(null);
 
   const [priorityAnchorEl, setPriorityAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -71,19 +73,24 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
         mt: 0.5,
       }}
     >
-      {/* Today button/tag */}
+      {/* Today button/tag - opens date picker modal */}
       {isTodaySelected ? (
         <Chip
           icon={<TodayIcon sx={{ fontSize: '0.875rem !important', color: '#4caf50 !important' }} />}
           label="Today"
           size="small"
-          onDelete={() => onDueDateChange(null)}
+          onClick={handleDateTriggerClick}
+          onDelete={(e) => {
+            e.stopPropagation();
+            onDueDateChange(null);
+          }}
           sx={{
             height: '28px',
             fontSize: '0.8125rem',
             backgroundColor: '#4caf50',
             color: 'white',
             fontWeight: 500,
+            cursor: 'pointer',
             '& .MuiChip-icon': {
               color: 'white !important',
             },
@@ -101,7 +108,7 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
           type="button"
           size="small"
           startIcon={<TodayIcon sx={{ fontSize: '0.875rem' }} />}
-          onClick={handleSetToday}
+          onClick={handleDateTriggerClick}
           sx={{
             textTransform: 'none',
             fontSize: '0.8125rem',
@@ -122,6 +129,14 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
           Today
         </Button>
       )}
+      <InlineTaskEditorDatePopover
+        anchorEl={datePopoverAnchor}
+        value={dueDate}
+        onClose={handleDatePopoverClose}
+        onChange={(d) => {
+          onDueDateChange(d);
+        }}
+      />
 
       {/* Priority dropdown */}
       <Button
