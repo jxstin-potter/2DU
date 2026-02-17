@@ -90,6 +90,7 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
         />
       ) : (
         <Button
+          type="button"
           size="small"
           startIcon={<TodayIcon sx={{ fontSize: '0.875rem' }} />}
           onClick={handleSetToday}
@@ -116,6 +117,7 @@ const InlineTaskEditorQuickActions: React.FC<InlineTaskEditorQuickActionsProps> 
 
       {/* Priority button */}
       <Button
+        type="button"
         size="small"
         startIcon={<FlagIcon sx={{ fontSize: '0.875rem' }} />}
         onClick={handleCyclePriority}

@@ -60,12 +60,14 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   const descriptionRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastSyncedInitialTaskIdRef = useRef<string | null>(null);
+  const createModeDefaultsAppliedRef = useRef(false);
 
   // Initialize form from initialTask if editing. Only overwrite state when the task we're editing actually changes (by id).
   useEffect(() => {
     const initialTaskId = initialTask?.id ?? null;
     const alreadySyncedThisTask = lastSyncedInitialTaskIdRef.current === initialTaskId;
     if (initialTask) {
+      createModeDefaultsAppliedRef.current = false;
       if (!alreadySyncedThisTask) {
         lastSyncedInitialTaskIdRef.current = initialTask.id;
         setTitle(initialTask.title);
@@ -81,8 +83,11 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
       }
     } else {
       lastSyncedInitialTaskIdRef.current = null;
-      setDueDate(defaultDueDate);
-      setSelectedTagIds(defaultTagIds);
+      if (!createModeDefaultsAppliedRef.current) {
+        createModeDefaultsAppliedRef.current = true;
+        setDueDate(defaultDueDate);
+        setSelectedTagIds(defaultTagIds);
+      }
       setShowQuickActions(true);
       if (descriptionRef.current) {
         descriptionRef.current.textContent = '';
@@ -274,8 +279,10 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
             }}
             onTagIdsChange={setSelectedTagIds}
             onTimeParsed={(time) => {
+              // Only set due date when we parsed a time from title. Do not clear when title has no time,
+              // so the Today button (or date picker) choice is not overwritten by async time parse.
               if (time && !initialTask) setDueDate(time);
-              else if (!time && !initialTask) setDueDate(null);
+              else if (!time && !initialTask && !title.trim()) setDueDate(null);
             }}
             placeholder="Task name"
             variant="inline"
