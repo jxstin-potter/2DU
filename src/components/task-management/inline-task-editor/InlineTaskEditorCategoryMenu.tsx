@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { Inbox as InboxIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@mui/icons-material';
+import { FolderOutlined as FolderIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@mui/icons-material';
 import { Category } from '../../../types';
 
 interface InlineTaskEditorCategoryMenuProps {
@@ -40,7 +40,7 @@ const InlineTaskEditorCategoryMenu: React.FC<InlineTaskEditorCategoryMenuProps> 
         }}
         onClick={(e) => onOpen(e.currentTarget)}
       >
-        <InboxIcon sx={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
+        <FolderIcon sx={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
         <Box
           component="span"
           sx={{
@@ -49,7 +49,7 @@ const InlineTaskEditorCategoryMenu: React.FC<InlineTaskEditorCategoryMenuProps> 
             fontWeight: 500,
           }}
         >
-          {selectedCategoryName || 'Inbox'}
+          {selectedCategoryName || 'No project'}
         </Box>
         <KeyboardArrowDownIcon sx={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
       </Box>
@@ -73,9 +73,9 @@ const InlineTaskEditorCategoryMenu: React.FC<InlineTaskEditorCategoryMenuProps> 
           selected={!selectedCategoryId}
         >
           <ListItemIcon>
-            <InboxIcon fontSize="small" />
+            <FolderIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Inbox</ListItemText>
+          <ListItemText>No project</ListItemText>
         </MenuItem>
         {categories.map((category) => (
           <MenuItem

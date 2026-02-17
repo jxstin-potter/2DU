@@ -105,7 +105,7 @@ const CompletedTaskItem: React.FC<CompletedTaskItemProps> = ({ task }) => {
             {task.title}
           </Typography>
 
-          {/* Project/Inbox Label */}
+          {/* Project label */}
           <Typography
             variant="body2"
             sx={{
@@ -113,7 +113,7 @@ const CompletedTaskItem: React.FC<CompletedTaskItemProps> = ({ task }) => {
               fontSize: '0.875rem',
             }}
           >
-            Inbox
+            No project
           </Typography>
 
           {/* Completion Time */}

@@ -21,7 +21,6 @@ import { useTheme } from './contexts/ThemeContext';
 // Lazy load pages with error handling
 const Login = lazy(() => import('./pages/Login'));
 const Settings = lazy(() => import('./pages/Settings'));
-const Inbox = lazy(() => import('./pages/Inbox'));
 const Today = lazy(() => import('./pages/Today'));
 const Completed = lazy(() => import('./pages/Completed'));
 const Upcoming = lazy(() => import('./pages/Upcoming'));
@@ -50,8 +49,8 @@ const AppContent: React.FC = () => {
 
             {/* Protected routes (render app chrome and require auth) */}
             <Route element={<ProtectedLayout />}>
-              <Route index element={<Navigate to="inbox" replace />} />
-              <Route path="inbox" element={<Inbox />} />
+              <Route index element={<Navigate to="today" replace />} />
+              <Route path="inbox" element={<Navigate to="/today" replace />} />
               <Route path="today" element={<Today />} />
               <Route path="upcoming" element={<Upcoming />} />
               <Route path="tags" element={<Tags />} />
@@ -61,7 +60,7 @@ const AppContent: React.FC = () => {
             </Route>
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/inbox" replace />} />
+            <Route path="*" element={<Navigate to="/today" replace />} />
           </Routes>
         </Suspense>
       </Box>

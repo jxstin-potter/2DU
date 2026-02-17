@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Task, Category } from '../../types';
 import InlineTaskEditorQuickActions from './inline-task-editor/InlineTaskEditorQuickActions';
 import InlineTaskEditorFooter from './inline-task-editor/InlineTaskEditorFooter';
-import InlineTaskEditorCategoryMenu from './inline-task-editor/InlineTaskEditorCategoryMenu';
 import { TaskPriority } from './inline-task-editor/inlineTaskEditorPriority';
 import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
 import { logger } from '../../utils/logger';
@@ -55,7 +54,6 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(defaultTagIds);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
-  const [categoryMenuAnchor, setCategoryMenuAnchor] = useState<null | HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -217,8 +215,6 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
     [handleSubmit, onCancel]
   );
 
-  const selectedCategory = categories.find(c => c.id === selectedCategoryId);
-
   return (
     <Box
       component={motion.div}
@@ -328,17 +324,6 @@ const InlineTaskEditor: React.FC<InlineTaskEditorProps> = ({
             priority={priority}
             onDueDateChange={(d) => setDueDate(d)}
             onPriorityChange={(p) => setPriority(p)}
-          />
-
-          {/* Project/Category selector */}
-          <InlineTaskEditorCategoryMenu
-            categories={categories}
-            selectedCategoryId={selectedCategoryId}
-            selectedCategoryName={selectedCategory?.name}
-            anchorEl={categoryMenuAnchor}
-            onOpen={(el) => setCategoryMenuAnchor(el)}
-            onClose={() => setCategoryMenuAnchor(null)}
-            onSelect={(id) => setSelectedCategoryId(id)}
           />
 
           <InlineTaskEditorFooter

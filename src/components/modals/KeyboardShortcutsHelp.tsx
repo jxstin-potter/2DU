@@ -64,7 +64,6 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
       title: 'Navigate',
       items: [
         { key: 'G then H or H', description: 'Go to home' },
-        { key: 'G then i', description: 'Go to Inbox' },
         { key: 'G then T', description: 'Go to Today' },
       ],
     },
