@@ -71,6 +71,8 @@ const TaskNameInput: React.FC<TaskNameInputProps> = ({
   const inputRef = externalRef || internalRef;
   const tagsRef = useRef(tags);
   tagsRef.current = tags;
+  /** Last value we sent via onChange. Used to avoid syncing value→DOM when the update came from our own input (prevents cursor jumping to end). Undefined = not yet emitted, so initial external value will sync. */
+  const lastEmittedValueRef = useRef<string | undefined>(undefined);
   const [isFocused, setIsFocused] = useState(false);
   const [atSuggestionOpen, setAtSuggestionOpen] = useState(false);
   const [atMentionQuery, setAtMentionQuery] = useState('');
@@ -118,6 +120,7 @@ const TaskNameInput: React.FC<TaskNameInputProps> = ({
       sel.removeAllRanges();
       sel.addRange(range);
       const plain = getPlainTitleFromTitleDiv(el);
+      lastEmittedValueRef.current = plain;
       onChange(plain);
       setAtSuggestionOpen(false);
       setAtMentionQuery('');
@@ -145,6 +148,7 @@ const TaskNameInput: React.FC<TaskNameInputProps> = ({
       sel.removeAllRanges();
       sel.addRange(range);
       const plain = getPlainTitleFromTitleDiv(el);
+      lastEmittedValueRef.current = plain;
       onChange(plain);
       setAtSuggestionOpen(false);
       setAtMentionQuery('');
@@ -158,6 +162,7 @@ const TaskNameInput: React.FC<TaskNameInputProps> = ({
     (e: React.FormEvent<HTMLDivElement>) => {
       const el = e.currentTarget;
       const text = getPlainTitleFromTitleDiv(el);
+      lastEmittedValueRef.current = text;
       onChange(text);
       syncTagState();
 
@@ -202,7 +207,11 @@ const TaskNameInput: React.FC<TaskNameInputProps> = ({
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
+    const lastEmitted = lastEmittedValueRef.current;
+    if (value === lastEmitted) return;
     const currentPlain = getPlainTitleFromTitleDiv(el);
+    // DOM has our latest emission but value prop is stale (parent hasn't committed yet). Don't overwrite - preserves cursor.
+    if (lastEmitted !== undefined && lastEmitted === currentPlain) return;
     const currentIds = getTagIdsFromTitleDiv(el);
     const idsMatch = currentIds.length === initialTagIds.length
       && initialTagIds.every((id) => currentIds.includes(id));
@@ -217,6 +226,7 @@ const TaskNameInput: React.FC<TaskNameInputProps> = ({
         el.appendChild(createTagMentionSpan(tag));
       }
     });
+    lastEmittedValueRef.current = value;
     syncTagState();
   }, [value, initialTagIds]);
 
@@ -295,6 +305,7 @@ const TaskNameInput: React.FC<TaskNameInputProps> = ({
         selection.addRange(range);
       }
       const newPlain = inputRef.current ? getPlainTitleFromTitleDiv(inputRef.current) : '';
+      lastEmittedValueRef.current = newPlain;
       onChange(newPlain);
       syncTagState();
     },
