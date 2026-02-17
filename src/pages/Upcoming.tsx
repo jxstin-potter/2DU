@@ -9,6 +9,7 @@ import { useTaskModal } from '../contexts/TaskModalContext';
 import EmptyState from '../components/ui/EmptyState';
 import TaskItem from '../components/task-management/TaskItem';
 import TaskModal from '../components/modals/TaskModal';
+import TaskDetailModal from '../components/modals/TaskDetailModal';
 
 import { buildUpcomingSelections } from '../utils/upcomingSelectors';
 import { createTaskFromData, deleteTask, subscribeToTasks, updateTask } from '../services/tasksService';
@@ -276,24 +277,29 @@ const Upcoming: React.FC = () => {
           )}
         </Box>
 
-        <TaskModal
-          open={isTaskModalOpen}
-          onClose={() => {
-            closeTaskModal();
-            setSelectedTask(null);
-          }}
-          onSubmit={selectedTask
-            ? async (taskData) => {
-                if (selectedTask.id) {
-                  await handleTaskUpdate(selectedTask.id, taskData);
-                  closeTaskModal();
-                  setSelectedTask(null);
-                }
-              }
-            : handleCreateTask}
-          initialTask={selectedTask}
-          loading={loading}
-        />
+        {selectedTask ? (
+          <TaskDetailModal
+            open={isTaskModalOpen}
+            onClose={() => {
+              closeTaskModal();
+              setSelectedTask(null);
+            }}
+            task={selectedTask}
+            onUpdate={handleTaskUpdate}
+            onToggleComplete={handleTaskToggle}
+          />
+        ) : (
+          <TaskModal
+            open={isTaskModalOpen}
+            onClose={() => {
+              closeTaskModal();
+              setSelectedTask(null);
+            }}
+            onSubmit={handleCreateTask}
+            initialTask={null}
+            loading={loading}
+          />
+        )}
 
         <Snackbar
           open={completedSnackbarOpen}

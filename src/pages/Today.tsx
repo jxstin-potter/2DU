@@ -7,6 +7,7 @@ import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore'
 import { Task } from '../types';
 import TodayView from '../components/task-management/TodayView';
 import TaskModal from '../components/modals/TaskModal';
+import TaskDetailModal from '../components/modals/TaskDetailModal';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
 import { startOfDay } from 'date-fns';
@@ -251,14 +252,23 @@ const Today: React.FC = () => {
           />
         </Box>
 
-        {/* Show TaskModal for both creating and editing tasks */}
-        <TaskModal
-          open={isTaskModalOpen}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          initialTask={selectedTask}
-          loading={loading}
-        />
+        {selectedTask ? (
+          <TaskDetailModal
+            open={isTaskModalOpen}
+            onClose={handleModalClose}
+            task={selectedTask}
+            onUpdate={handleTaskUpdate}
+            onToggleComplete={handleTaskToggle}
+          />
+        ) : (
+          <TaskModal
+            open={isTaskModalOpen}
+            onClose={handleModalClose}
+            onSubmit={handleModalSubmit}
+            initialTask={null}
+            loading={loading}
+          />
+        )}
 
         <Snackbar
           open={completedSnackbarOpen}

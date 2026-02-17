@@ -7,6 +7,7 @@ import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore'
 import { Task } from '../types';
 import InboxView from '../components/task-management/InboxView';
 import TaskModal from '../components/modals/TaskModal';
+import TaskDetailModal from '../components/modals/TaskDetailModal';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
 import { logger } from '../utils/logger';
@@ -224,13 +225,23 @@ const Inbox: React.FC = () => {
           />
         </Box>
 
-        <TaskModal
-          open={isTaskModalOpen}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          initialTask={selectedTask}
-          loading={loading}
-        />
+        {selectedTask ? (
+          <TaskDetailModal
+            open={isTaskModalOpen}
+            onClose={handleModalClose}
+            task={selectedTask}
+            onUpdate={handleTaskUpdate}
+            onToggleComplete={handleTaskToggle}
+          />
+        ) : (
+          <TaskModal
+            open={isTaskModalOpen}
+            onClose={handleModalClose}
+            onSubmit={handleCreateTask}
+            initialTask={null}
+            loading={loading}
+          />
+        )}
 
         <Snackbar
           open={completedSnackbarOpen}

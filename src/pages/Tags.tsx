@@ -24,6 +24,7 @@ import TaskItem from '../components/task-management/TaskItem';
 import InlineTaskEditor from '../components/task-management/InlineTaskEditor';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import TaskModal from '../components/modals/TaskModal';
+import TaskDetailModal from '../components/modals/TaskDetailModal';
 import { motion } from 'framer-motion';
 
 const Tags: React.FC = () => {
@@ -360,27 +361,30 @@ const Tags: React.FC = () => {
                   );
                 })}
 
-              <TaskModal
-                open={isTaskModalOpen}
-                onClose={() => {
-                  closeTaskModal();
-                  setSelectedTask(null);
-                }}
-                onSubmit={
-                  selectedTask
-                    ? async (data) => {
-                        if (selectedTask.id) {
-                          await handleTaskUpdate(selectedTask.id, data);
-                          closeTaskModal();
-                          setSelectedTask(null);
-                        }
-                      }
-                    : handleCreateTask
-                }
-                initialTask={selectedTask}
-                loading={tasksLoading}
-                defaultTagIds={selectedTask ? undefined : [tag.id]}
-              />
+              {selectedTask ? (
+                <TaskDetailModal
+                  open={isTaskModalOpen}
+                  onClose={() => {
+                    closeTaskModal();
+                    setSelectedTask(null);
+                  }}
+                  task={selectedTask}
+                  onUpdate={handleTaskUpdate}
+                  onToggleComplete={handleTaskToggle}
+                />
+              ) : (
+                <TaskModal
+                  open={isTaskModalOpen}
+                  onClose={() => {
+                    closeTaskModal();
+                    setSelectedTask(null);
+                  }}
+                  onSubmit={handleCreateTask}
+                  initialTask={null}
+                  loading={tasksLoading}
+                  defaultTagIds={[tag.id]}
+                />
+              )}
             </>
           ) : (
             <>

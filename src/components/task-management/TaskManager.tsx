@@ -11,6 +11,7 @@ import { subscribeToTasks, createTaskFromData, updateTask, deleteTask, updateTas
 import { taskDocumentToTask, taskPatchToTaskDocument } from '../../types/firestore';
 import { computeNewOrder } from '../../utils/taskHelpers';
 import TaskModal from '../modals/TaskModal';
+import TaskDetailModal from '../modals/TaskDetailModal';
 import { Task } from '../../types';
 import TaskList from './TaskList';
 import { logger } from '../../utils/logger';
@@ -256,14 +257,23 @@ const TaskManager: React.FC = () => {
         />
       </DragDropContext>
 
-      {/* Show TaskModal for both creating and editing tasks */}
-      <TaskModal
-        open={isTaskModalOpen}
-        onClose={handleModalClose}
-        onSubmit={handleModalSubmit}
-        initialTask={selectedTask}
-        loading={loading}
-      />
+      {selectedTask ? (
+        <TaskDetailModal
+          open={isTaskModalOpen}
+          onClose={handleModalClose}
+          task={selectedTask}
+          onUpdate={handleTaskUpdate}
+          onToggleComplete={handleTaskToggle}
+        />
+      ) : (
+        <TaskModal
+          open={isTaskModalOpen}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
+          initialTask={null}
+          loading={loading}
+        />
+      )}
     </Container>
   );
 };
