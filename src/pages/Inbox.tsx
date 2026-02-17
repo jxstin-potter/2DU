@@ -1,37 +1,31 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Button, Container, IconButton, List, Snackbar, Typography, useTheme } from '@mui/material';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Container, Box, useTheme, Snackbar, Button, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { startOfDay } from 'date-fns';
-
 import { useAuth } from '../contexts/AuthContext';
-import { useTaskModal } from '../contexts/TaskModalContext';
-
-import EmptyState from '../components/ui/EmptyState';
-import TaskItem from '../components/task-management/TaskItem';
-import TaskModal from '../components/modals/TaskModal';
-
-import { buildUpcomingSelections } from '../utils/upcomingSelectors';
-import { createTaskFromData, deleteTask, subscribeToTasks, updateTask } from '../services/tasksService';
+import { subscribeToTasks } from '../services/tasksService';
 import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore';
-import type { Task } from '../types';
+import { Task } from '../types';
+import InboxView from '../components/task-management/InboxView';
+import TaskModal from '../components/modals/TaskModal';
+import { useTaskModal } from '../contexts/TaskModalContext';
+import { createTaskFromData, updateTask, deleteTask } from '../services/tasksService';
 import { logger } from '../utils/logger';
 
-const Upcoming: React.FC = () => {
+const Inbox: React.FC = () => {
   const theme = useTheme();
   const { user, loading: authLoading } = useAuth();
   const { isOpen: isTaskModalOpen, openModal: openTaskModal, closeModal: closeTaskModal } = useTaskModal();
-
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [_error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
-  const [_justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
+  const [justAddedTaskId, setJustAddedTaskId] = useState<string | null>(null);
   const [completedSnackbarOpen, setCompletedSnackbarOpen] = useState(false);
   const [completedTaskIdForUndo, setCompletedTaskIdForUndo] = useState<string | null>(null);
   const lastAppliedTaskCountRef = useRef<number>(0);
+  const tasksRef = useRef<Task[]>([]);
+  tasksRef.current = tasks;
 
-  // Subscribe to tasks (keep query index-safe; do view filtering in-memory).
   useEffect(() => {
     if (!user?.id) {
       setTasks([]);
@@ -50,10 +44,8 @@ const Upcoming: React.FC = () => {
       (result) => {
         try {
           const count = result.tasks.length;
-          // Prevent a brief "empty flash" on some snapshots.
           if (count === 0 && lastAppliedTaskCountRef.current > 0) return;
           lastAppliedTaskCountRef.current = count;
-
           const convertedTasks = result.tasks.map((taskDoc: any) => {
             try {
               return taskDocumentToTask(taskDoc);
@@ -68,12 +60,8 @@ const Upcoming: React.FC = () => {
               } as Task;
             }
           });
-
           setTasks(convertedTasks);
-          // Only clear loading when we have a server snapshot; avoids "No upcoming tasks" flash from cache/initial empty snapshot
-          if (result.fromServer !== false) {
-            setLoading(false);
-          }
+          setLoading(false);
           setError(null);
         } catch {
           setError('Failed to process tasks');
@@ -90,15 +78,12 @@ const Upcoming: React.FC = () => {
       setError('Please log in to toggle tasks');
       return;
     }
-
     try {
-      const task = tasks.find((t) => t.id === taskId);
+      const task = tasksRef.current.find((t) => t.id === taskId);
       if (!task) return;
-
       const completed = !task.completed;
       const taskDoc = taskPatchToTaskDocument({ completed });
       await updateTask(taskId, taskDoc, user.id);
-
       if (completed) {
         setCompletedTaskIdForUndo(taskId);
         setCompletedSnackbarOpen(true);
@@ -106,7 +91,7 @@ const Upcoming: React.FC = () => {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to toggle task status');
     }
-  }, [tasks, user?.id]);
+  }, [user?.id]);
 
   const handleUndoComplete = useCallback(() => {
     if (!completedTaskIdForUndo) return;
@@ -122,11 +107,7 @@ const Upcoming: React.FC = () => {
   }, []);
 
   const handleTaskDelete = useCallback(async (taskId: string) => {
-    if (!user?.id) {
-      setError('Please log in to delete tasks');
-      return;
-    }
-
+    if (!user?.id) return;
     try {
       await deleteTask(taskId, user.id);
     } catch (error) {
@@ -135,11 +116,7 @@ const Upcoming: React.FC = () => {
   }, [user?.id]);
 
   const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    if (!user?.id) {
-      setError('Please log in to update tasks');
-      return;
-    }
-
+    if (!user?.id) return;
     try {
       const taskDoc = taskPatchToTaskDocument(updates);
       await updateTask(taskId, taskDoc, user.id);
@@ -147,6 +124,11 @@ const Upcoming: React.FC = () => {
       setError(error instanceof Error ? error.message : 'Failed to update task');
     }
   }, [user?.id]);
+
+  const handleTaskEdit = useCallback((task: Task) => {
+    setSelectedTask(task);
+    openTaskModal();
+  }, [openTaskModal]);
 
   const handleCreateTask = useCallback(async (taskData: Partial<Task>) => {
     try {
@@ -157,13 +139,12 @@ const Upcoming: React.FC = () => {
         ...taskData,
         userId: user.id,
         completed: false,
-        order: tasks.length,
+        order: tasksRef.current.length,
       });
 
       const newTaskId = await createTaskFromData(user.id, taskDoc);
       setJustAddedTaskId(newTaskId);
       setTimeout(() => setJustAddedTaskId(null), 600);
-
       setSelectedTask(null);
       closeTaskModal();
     } catch (error) {
@@ -172,20 +153,43 @@ const Upcoming: React.FC = () => {
       logger.error('Failed to create task', { action: 'createTask' }, error);
       throw error;
     }
-  }, [authLoading, closeTaskModal, tasks.length, user?.id]);
+  }, [authLoading, user?.id, closeTaskModal]);
 
-  const selections = useMemo(() => {
-    // Only show upcoming-related tasks: active + due date set.
-    const activeDue = tasks.filter((t) => !t.completed && t.dueDate != null);
-    return buildUpcomingSelections(activeDue, {
-      focusedMonth: new Date(),
-      // Upcoming view should start today (date-only).
-      startDate: startOfDay(new Date()),
-      includeEmptyDays: false,
-    });
-  }, [tasks]);
+  const onTaskAction = useMemo(
+    () => ({
+      toggle: handleTaskToggle,
+      delete: handleTaskDelete,
+      update: handleTaskUpdate,
+      edit: handleTaskEdit,
+    }),
+    [handleTaskToggle, handleTaskDelete, handleTaskUpdate, handleTaskEdit]
+  );
 
-  const hasAnyUpcomingContent = selections.some((s) => s.tasks.length > 0);
+  const handleModalClose = useCallback(() => {
+    closeTaskModal();
+    setSelectedTask(null);
+  }, [closeTaskModal]);
+
+  const handleModalSubmit = useMemo(() => {
+    if (selectedTask) {
+      return async (taskData: Partial<Task>) => {
+        if (selectedTask.id) {
+          await handleTaskUpdate(selectedTask.id, taskData);
+          closeTaskModal();
+          setSelectedTask(null);
+        }
+      };
+    }
+    return handleCreateTask;
+  }, [selectedTask, handleTaskUpdate, closeTaskModal, handleCreateTask]);
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px" />
+      </Container>
+    );
+  }
 
   return (
     <Box
@@ -211,86 +215,19 @@ const Upcoming: React.FC = () => {
         }}
       >
         <Box sx={{ width: '100%', maxWidth: theme.breakpoints.values.sm }}>
-          {/* Header */}
-          <Box sx={{ mb: 2 }}>
-            <Typography
-              variant="h5"
-              component="h1"
-              sx={{
-                fontWeight: theme.typography.fontWeightBold,
-                mb: 0.5,
-              }}
-            >
-              Upcoming
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Tasks with due dates, grouped by day.
-            </Typography>
-          </Box>
-
-          {!loading && !hasAnyUpcomingContent ? (
-            <EmptyState type="upcoming" onCreateTask={() => openTaskModal()} />
-          ) : (
-            selections.map((selection) => (
-              <Box key={selection.key} id={selection.anchorId} sx={{ mb: 3 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: theme.typography.fontWeightBold,
-                    fontSize: theme.typography.body1.fontSize,
-                    mb: 1.5,
-                    color: 'text.secondary',
-                  }}
-                >
-                  {selection.title}
-                </Typography>
-
-                {selection.tasks.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    No tasks
-                  </Typography>
-                ) : (
-                  <List
-                    sx={{
-                      py: 0,
-                    }}
-                  >
-                    {selection.tasks.map((task) => (
-                      <TaskItem
-                        key={task.id}
-                        task={task}
-                        onToggleComplete={() => handleTaskToggle(task.id)}
-                        onDelete={() => handleTaskDelete(task.id)}
-                        onEdit={() => {
-                          setSelectedTask(task);
-                          openTaskModal();
-                        }}
-                        onUpdate={handleTaskUpdate}
-                        isActionInProgress={false}
-                      />
-                    ))}
-                  </List>
-                )}
-              </Box>
-            ))
-          )}
+          <InboxView
+            tasks={tasks}
+            loading={loading}
+            justAddedTaskId={justAddedTaskId}
+            onTaskAction={onTaskAction}
+            onCreateTask={handleCreateTask}
+          />
         </Box>
 
         <TaskModal
           open={isTaskModalOpen}
-          onClose={() => {
-            closeTaskModal();
-            setSelectedTask(null);
-          }}
-          onSubmit={selectedTask
-            ? async (taskData) => {
-                if (selectedTask.id) {
-                  await handleTaskUpdate(selectedTask.id, taskData);
-                  closeTaskModal();
-                  setSelectedTask(null);
-                }
-              }
-            : handleCreateTask}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
           initialTask={selectedTask}
           loading={loading}
         />
@@ -306,12 +243,7 @@ const Upcoming: React.FC = () => {
               <Button color="inherit" size="small" onClick={handleUndoComplete}>
                 Undo
               </Button>
-              <IconButton
-                size="small"
-                aria-label="Close"
-                color="inherit"
-                onClick={() => handleCloseCompletedSnackbar()}
-              >
+              <IconButton size="small" aria-label="Close" color="inherit" onClick={() => handleCloseCompletedSnackbar()}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </>
@@ -323,5 +255,4 @@ const Upcoming: React.FC = () => {
   );
 };
 
-export default Upcoming;
-
+export default Inbox;

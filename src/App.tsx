@@ -25,6 +25,7 @@ const Today = lazy(() => import('./pages/Today'));
 const Completed = lazy(() => import('./pages/Completed'));
 const Upcoming = lazy(() => import('./pages/Upcoming'));
 const Tags = lazy(() => import('./pages/Tags'));
+const Inbox = lazy(() => import('./pages/Inbox'));
 
 // Main app content
 const AppContent: React.FC = () => {
@@ -50,7 +51,7 @@ const AppContent: React.FC = () => {
             {/* Protected routes (render app chrome and require auth) */}
             <Route element={<ProtectedLayout />}>
               <Route index element={<Navigate to="today" replace />} />
-              <Route path="inbox" element={<Navigate to="/today" replace />} />
+              <Route path="inbox" element={<Inbox />} />
               <Route path="today" element={<Today />} />
               <Route path="upcoming" element={<Upcoming />} />
               <Route path="tags" element={<Tags />} />
