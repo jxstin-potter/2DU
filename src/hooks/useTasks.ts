@@ -7,8 +7,8 @@ import {
   deleteTask, 
   subscribeToTasks,
   loadMoreTasks,
-  TaskFilterParams
 } from '../services/tasksService';
+import type { TaskFilterParams } from '../types/firestore';
 import { TaskQueryResult } from '../types/firestore';
 import { taskDocumentToTask, taskPatchToTaskDocument } from '../types/firestore';
 import { logger } from '../utils/logger';
@@ -39,9 +39,7 @@ export const useTasks = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { user } = useAuth();
-
-  // Memoize filterParams to prevent unnecessary re-subscriptions
-  const filterParams = useMemo(() => filterParamsState, [filterParamsState]);
+  const filterParams = filterParamsState;
 
   // Helper function to set error state with proper typing
   const setTaskError = (message: string, code: TaskError['code'], details?: any) => {

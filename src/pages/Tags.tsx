@@ -19,13 +19,12 @@ import type { Task } from '../types';
 import { Tag } from '../types';
 import TagList from '../components/TagList';
 import { tagNameToSlug } from '../utils/slug';
+import { TAG_COLORS } from '../utils/taskTitleMentions';
 import TaskItem from '../components/task-management/TaskItem';
 import InlineTaskEditor from '../components/task-management/InlineTaskEditor';
 import { useTaskModal } from '../contexts/TaskModalContext';
 import TaskModal from '../components/modals/TaskModal';
 import { motion } from 'framer-motion';
-
-const TAG_COLORS = ['#4A9B6D', '#5B7A9E', '#B8954A', '#A67B8A', '#7B6B9E', '#5A8A8A'];
 
 const Tags: React.FC = () => {
   const theme = useTheme();

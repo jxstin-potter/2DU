@@ -152,37 +152,6 @@ export const taskDocumentToTask = (doc: TaskDocumentInput): Task => {
 };
 
 /**
- * Convert Task to TaskDocument
- */
-export const taskToTaskDocument = (task: Task): Omit<TaskDocument, 'id'> => {
-  // `id` is part of the document path, not the stored data.
-  const { id: _id, ...taskData } = task;
-  return {
-    ...taskData,
-    // Persist only user ids/emails (strings) in Firestore.
-    sharedWith: taskData.sharedWith?.filter((entry): entry is string => typeof entry === 'string'),
-    createdAt: dateToTimestamp(task.createdAt) || Timestamp.now(),
-    updatedAt: dateToTimestamp(task.updatedAt) || Timestamp.now(),
-    dueDate: dateToTimestamp(task.dueDate),
-    subtasks: task.subtasks?.map(subtask => ({
-      ...subtask,
-      createdAt: dateToTimestamp(subtask.createdAt) || Timestamp.now(),
-      updatedAt: dateToTimestamp(subtask.updatedAt) || Timestamp.now(),
-    })),
-    comments: task.comments?.map(comment => ({
-      ...comment,
-      createdAt: dateToTimestamp(comment.createdAt) || Timestamp.now(),
-      updatedAt: dateToTimestamp(comment.updatedAt) || Timestamp.now(),
-    })),
-    attachments: task.attachments?.map(attachment => ({
-      ...attachment,
-      uploadedAt: dateToTimestamp(attachment.uploadedAt) || Timestamp.now(),
-    })),
-    lastSharedAt: dateToTimestamp(task.lastSharedAt),
-  };
-};
-
-/**
  * Convert a *partial* Task update into a Firestore TaskDocument patch.
  * This is the canonical way to build update payloads for `updateTask(...)`.
  */

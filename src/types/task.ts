@@ -51,34 +51,3 @@ export interface Attachment {
   size: number;
   uploadedAt: Date;
 }
-
-// For backward compatibility with existing code
-export interface FullTask extends Task {
-  subtasks: Subtask[];
-  reminder?: Date;
-  attachments?: Attachment[];
-  isShared?: boolean;
-  lastSharedAt?: Date;
-  estimatedTime?: number;
-  actualTime?: number;
-  assignedTo?: string;
-}
-
-export interface TimeEntry {
-  id: string;
-  taskId: string;
-  userId: string;
-  startTime: Date;
-  endTime?: Date;
-  duration?: number; // in minutes
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
-
-export interface TaskSortOptions {
-  field: keyof Task;
-  direction: 'asc' | 'desc';
-}

@@ -98,25 +98,3 @@ export function computeNewOrder(before?: Pick<Task, 'order'>, after?: Pick<Task,
   return 0;
 }
 
-/**
- * Check if tasks need rebalance (consecutive order gap below ORDER_EPSILON).
- * Call after computeNewOrder if you want to optionally rebalance.
- */
-export function needsRebalance(tasks: Pick<Task, 'id' | 'order'>[]): boolean {
-  const sorted = [...tasks].sort((a, b) => getOrder(a) - getOrder(b));
-  for (let i = 1; i < sorted.length; i++) {
-    if (getOrder(sorted[i]) - getOrder(sorted[i - 1]) < ORDER_EPSILON) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Produce sequential order values 0, 1, 2, ... from current order for batch update.
- * Preserves current relative order. Use with batchUpdateTasks for rebalance.
- */
-export function rebalanceOrderUpdates(tasks: Pick<Task, 'id' | 'order'>[]): Array<{ id: string; order: number }> {
-  const sorted = [...tasks].sort((a, b) => getOrder(a) - getOrder(b));
-  return sorted.map((task, index) => ({ id: task.id, order: index }));
-}

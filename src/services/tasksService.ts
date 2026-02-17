@@ -33,45 +33,25 @@ import { logServiceError } from "../utils/errorLogging";
 // Create a service-specific logger
 const tasksLogger = logger.service("tasksService");
 
-/**
- * Validate user ID is provided and is a non-empty string
- */
-const validateUserId = (userId: string): void => {
-  if (!userId) {
-    tasksLogger.error("User ID validation failed: ID is required");
-    throw new Error("User ID is required");
+const validateNonEmptyString = (value: string, fieldName: string): void => {
+  if (!value) {
+    tasksLogger.error(`${fieldName} validation failed: value is required`);
+    throw new Error(`${fieldName} is required`);
   }
-  if (typeof userId !== "string") {
-    tasksLogger.error("User ID validation failed: ID must be a string", {
-      userId,
+  if (typeof value !== "string") {
+    tasksLogger.error(`${fieldName} validation failed: must be a string`, {
+      [fieldName.toLowerCase()]: value,
     });
-    throw new Error("User ID must be a string");
+    throw new Error(`${fieldName} must be a string`);
   }
-  if (userId.trim() === "") {
-    tasksLogger.error("User ID validation failed: ID cannot be empty");
-    throw new Error("User ID cannot be empty");
+  if (value.trim() === "") {
+    tasksLogger.error(`${fieldName} validation failed: cannot be empty`);
+    throw new Error(`${fieldName} cannot be empty`);
   }
 };
 
-/**
- * Validate task ID is provided and is a non-empty string
- */
-const validateTaskId = (taskId: string): void => {
-  if (!taskId) {
-    tasksLogger.error("Task ID validation failed: ID is required");
-    throw new Error("Task ID is required");
-  }
-  if (typeof taskId !== "string") {
-    tasksLogger.error("Task ID validation failed: ID must be a string", {
-      taskId,
-    });
-    throw new Error("Task ID must be a string");
-  }
-  if (taskId.trim() === "") {
-    tasksLogger.error("Task ID validation failed: ID cannot be empty");
-    throw new Error("Task ID cannot be empty");
-  }
-};
+const validateUserId = (userId: string) => validateNonEmptyString(userId, "User ID");
+const validateTaskId = (taskId: string) => validateNonEmptyString(taskId, "Task ID");
 
 /**
  * Handle Firestore-specific errors
@@ -200,148 +180,6 @@ export const createTask = async (
     title: text,
     dueDate: dueDate ? Timestamp.fromDate(dueDate) : undefined,
   });
-};
-
-/**
- * Get all tasks for a specific user
- */
-export const getUserTasks = async (
-  userId: string,
-): Promise<(TaskDocument & { id: string })[]> => {
-  try {
-    validateUserId(userId);
-
-    tasksLogger.info("Fetching user tasks", { userId });
-
-    const q = query(
-      collection(db, COLLECTIONS.TASKS),
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc"),
-    );
-
-    const querySnapshot = await getDocs(q);
-    const tasks = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as TaskDocument),
-    }));
-
-    tasksLogger.info("Successfully fetched user tasks", {
-      userId,
-      taskCount: tasks.length,
-    });
-
-    return tasks;
-  } catch (error) {
-    logServiceError(
-      error as Error,
-      "tasksService",
-      "Failed to fetch user tasks",
-      { userId },
-    );
-    throw new Error("Failed to fetch tasks");
-  }
-};
-
-/**
- * Filter and sort parameters for tasks (re-export from types/firestore; extended here for local use)
- */
-export type { TaskFilterParams } from "../types/firestore";
-
-/**
- * Get filtered and sorted tasks for a specific user
- */
-export const getFilteredTasks = async (
-  userId: string,
-  filterParams: TaskFilterParams = {},
-): Promise<(TaskDocument & { id: string })[]> => {
-  try {
-    // Validate userId
-    validateUserId(userId);
-
-    // Start building query with user filter
-    let conditions: any[] = [where("userId", "==", userId)];
-
-    // Add completion status filter
-    if (filterParams.completionStatus === "active") {
-      conditions.push(where("completed", "==", false));
-    } else if (filterParams.completionStatus === "completed") {
-      conditions.push(where("completed", "==", true));
-    }
-
-    // Determine sort direction
-    const sortDirection = filterParams.sortOrder === "asc" ? "asc" : "desc";
-
-    // Create and execute the query (manual sort applied in-memory after fetch)
-    const orderField =
-      filterParams.sortBy === "dueDate" ? "dueDate" : "createdAt";
-    let q = query(
-      collection(db, COLLECTIONS.TASKS),
-      ...conditions,
-      orderBy(orderField, sortDirection),
-    );
-
-    const querySnapshot = await getDocs(q);
-
-    // Map documents to the expected return type
-    let tasks = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as TaskDocument),
-    }));
-
-    if (filterParams.sortBy === "manual") {
-      tasks = sortByManualOrder(tasks);
-    } else if (filterParams.sortBy === "dueDate") {
-      // Sort tasks with missing due dates to the end if descending, start if ascending
-      tasks.sort((a, b) => {
-        // If either task has no dueDate
-        if (!a.dueDate && !b.dueDate) return 0;
-        if (!a.dueDate) return sortDirection === "asc" ? -1 : 1;
-        if (!b.dueDate) return sortDirection === "asc" ? 1 : -1;
-
-        // Both have due dates, compare them
-        const dateA = a.dueDate.toDate().getTime();
-        const dateB = b.dueDate.toDate().getTime();
-
-        return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
-      });
-    }
-
-    // Apply view-specific filters after Firestore query
-    if (filterParams.view === "upcoming" || filterParams.filterFutureDates) {
-      const now = new Date();
-      // For upcoming view, filter to only include tasks with future due dates
-      tasks = tasks.filter((task) => {
-        if (!task.dueDate) return false;
-        const taskDate = task.dueDate.toDate();
-        return taskDate > now;
-      });
-    } else if (filterParams.view === "today") {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const tomorrow = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() + 1,
-      );
-
-      // For today view, only include tasks due today
-      tasks = tasks.filter((task) => {
-        if (!task.dueDate) return false;
-        const taskDate = task.dueDate.toDate();
-        return taskDate >= today && taskDate < tomorrow;
-      });
-    }
-
-    return tasks;
-  } catch (error) {
-    logServiceError(
-      error as Error,
-      "tasksService",
-      "Error fetching filtered tasks",
-      { userId, filterParams },
-    );
-    throw new Error("Failed to fetch tasks");
-  }
 };
 
 // Cache management
@@ -682,42 +520,6 @@ const verifyTaskOwnership = async (
       error: error instanceof Error ? error.message : "Unknown error",
     });
     throw error;
-  }
-};
-
-/**
- * Update a task's completion status
- */
-export const updateTaskStatus = async (
-  taskId: string,
-  isCompleted: boolean,
-  userId: string,
-): Promise<void> => {
-  try {
-    validateTaskId(taskId);
-    validateUserId(userId);
-
-    await verifyTaskOwnership(taskId, userId);
-
-    await updateDoc(doc(db, COLLECTIONS.TASKS, taskId), {
-      isCompleted,
-      updatedAt: serverTimestamp(),
-    });
-  } catch (error) {
-    if (error instanceof FirestoreError) {
-      handleFirestoreError(error, "updating task status", {
-        taskId,
-        userId,
-        isCompleted,
-      });
-    }
-    tasksLogger.error("Failed to update task status", {
-      taskId,
-      userId,
-      isCompleted,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-    throw new Error("Failed to update task status. Please try again.");
   }
 };
 
