@@ -9,7 +9,6 @@ import {
   useTheme,
   alpha,
   Checkbox,
-  Divider,
   Chip,
 } from '@mui/material';
 import {
@@ -17,10 +16,8 @@ import {
   Inbox as InboxIcon,
   Assignment as ProjectIcon,
   CalendarToday as DateIcon,
-  Flag as PriorityIcon,
   Label as LabelIcon,
   Add as AddIcon,
-  AttachFile as AttachIcon,
   MoreVert as MoreIcon,
   KeyboardArrowUp as UpIcon,
   KeyboardArrowDown as DownIcon,
@@ -40,8 +37,6 @@ interface TaskDetailModalProps {
   onToggleComplete: (taskId: string) => void;
 }
 
-const PRIORITY_LABELS: Record<string, string> = { high: 'P1', medium: 'P2', low: 'P3', '': 'P4' };
-
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   open,
   onClose,
@@ -55,7 +50,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || '');
   const [dueDate, setDueDate] = useState<Date | null>(task.dueDate ? new Date(task.dueDate) : null);
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | ''>(task.priority || '');
   const [isSaving, setIsSaving] = useState(false);
 
   const category = useMemo(() => {
@@ -74,7 +68,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       setTitle(task.title);
       setDescription(task.description || '');
       setDueDate(task.dueDate ? new Date(task.dueDate) : null);
-      setPriority(task.priority || '');
     }
   }, [open, task]);
 
@@ -89,9 +82,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     if ((dueDate?.getTime() ?? null) !== (task.dueDate ? new Date(task.dueDate).getTime() : null)) {
       updates.dueDate = dueDate || undefined;
     }
-    if ((priority || '') !== (task.priority || '')) {
-      updates.priority = priority ? (priority as 'low' | 'medium' | 'high') : undefined;
-    }
     if (Object.keys(updates).length === 0) return;
     try {
       setIsSaving(true);
@@ -99,7 +89,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     } finally {
       setIsSaving(false);
     }
-  }, [title, description, dueDate, priority, task, onUpdate]);
+  }, [title, description, dueDate, task, onUpdate]);
 
   return (
     <Dialog
@@ -224,63 +214,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               />
             </Box>
 
-            {/* Add sub-task placeholder */}
-            <Box
-              sx={{
-                px: 2,
-                pb: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                color: 'text.secondary',
-                fontSize: '0.875rem',
-                cursor: 'default',
-              }}
-            >
-              <AddIcon sx={{ fontSize: '1.125rem' }} />
-              Add sub-task
-            </Box>
-
-            <Divider />
-
-            {/* Comment section */}
-            <Box sx={{ flex: 1, p: 2, display: 'flex', flexDirection: 'column' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  borderRadius: 1,
-                  border: `1px solid ${theme.palette.divider}`,
-                  px: 1.5,
-                  py: 1,
-                  backgroundColor: alpha(theme.palette.text.primary, 0.02),
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    backgroundColor: theme.palette.primary.main,
-                    opacity: 0.5,
-                  }}
-                />
-                <TextField
-                  placeholder="Add a comment..."
-                  variant="standard"
-                  fullWidth
-                  size="small"
-                  InputProps={{
-                    disableUnderline: true,
-                    sx: { fontSize: '0.875rem' },
-                  }}
-                />
-                <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                  <AttachIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            </Box>
           </Box>
 
           {/* Right pane: metadata */}
@@ -332,39 +265,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               </LocalizationProvider>
             </Box>
 
-            {/* Priority */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <PriorityIcon sx={{ fontSize: '1.125rem', color: 'text.secondary' }} />
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 0.5,
-                  flexWrap: 'wrap',
-                }}
-              >
-                {(['high', 'medium', 'low', ''] as const).map((p) => (
-                  <Chip
-                    key={p || 'none'}
-                    label={PRIORITY_LABELS[p] ?? 'P4'}
-                    size="small"
-                    onClick={() => {
-                      setPriority(p);
-                      onUpdate(task.id, {
-                        priority: p ? (p as 'low' | 'medium' | 'high') : undefined,
-                        updatedAt: new Date(),
-                      });
-                    }}
-                    sx={{
-                      fontSize: '0.75rem',
-                      height: 24,
-                      bgcolor: priority === p ? alpha(theme.palette.primary.main, 0.15) : 'transparent',
-                      border: `1px solid ${priority === p ? theme.palette.primary.main : theme.palette.divider}`,
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-
             {/* Labels */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
               <LabelIcon sx={{ fontSize: '1.125rem', color: 'text.secondary' }} />
@@ -392,11 +292,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               </Box>
             </Box>
 
-            {/* Reminders placeholder */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-              <Typography variant="body2">Reminders</Typography>
-              <AddIcon sx={{ fontSize: '1rem' }} />
-            </Box>
           </Box>
         </Box>
       </DialogContent>
