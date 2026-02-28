@@ -318,8 +318,8 @@ const TodayView: React.FC<TodayViewProps> = ({
           sx: {
             mt: 0.5,
             borderRadius: 2,
-            minWidth: 280,
-            maxWidth: 420,
+            minWidth: { xs: 'calc(100vw - 32px)', sm: 280 },
+            maxWidth: { xs: 'calc(100vw - 32px)', sm: 420 },
             boxShadow: theme.shadows[6],
           },
         }}

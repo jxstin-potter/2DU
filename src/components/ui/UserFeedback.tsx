@@ -153,7 +153,7 @@ const FeedbackContainer: React.FC<FeedbackContainerProps> = ({ feedbacks, onClos
           <Alert
             severity={feedback.type}
             onClose={() => onClose(feedback.id)}
-            sx={{ width: '100%', minWidth: 300 }}
+            sx={{ width: '100%', minWidth: { xs: 'auto', sm: 300 } }}
             action={
               feedback.action && (
                 <Button color="inherit" size="small" onClick={feedback.action.onClick}>

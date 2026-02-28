@@ -111,8 +111,8 @@ const InlineTaskEditorDatePopover: React.FC<InlineTaskEditorDatePopoverProps> = 
         sx: {
           mt: 1,
           p: 0,
-          minWidth: 320,
-          maxWidth: 360,
+          minWidth: { xs: 'calc(100vw - 32px)', sm: 320 },
+          maxWidth: { xs: 'calc(100vw - 32px)', sm: 360 },
           borderRadius: 2,
           boxShadow:
             theme.palette.mode === 'dark'

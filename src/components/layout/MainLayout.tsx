@@ -24,6 +24,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const { mode } = useCustomTheme();
@@ -37,6 +38,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
     recordRecentView(location.pathname);
   }, [location.pathname, recordRecentView]);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    if (isMobile) setIsMobileDrawerOpen(false);
+  }, [location.pathname, isMobile]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -78,43 +84,37 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setIsSidebarCollapsed((prev) => !prev);
   }, []);
 
+  const handleMobileDrawerToggle = useCallback(() => {
+    setIsMobileDrawerOpen((prev) => !prev);
+  }, []);
+
+  const handleMobileDrawerClose = useCallback(() => {
+    setIsMobileDrawerOpen(false);
+  }, []);
+
   const toggleDarkMode = useCustomTheme().toggleColorMode;
 
-  // Memoize sidebar width to prevent recalculation on every render
   const sidebarWidth = useMemo(() => isSidebarCollapsed ? 64 : 240, [isSidebarCollapsed]);
   
-  // Memoize main content styles to prevent layout thrashing
   const mainContentStyles = useMemo(() => ({
     flexGrow: 1,
-    width: { 
-      xs: '100%',
-      sm: `calc(100% - ${sidebarWidth}px)` 
-    },
-    ml: { 
-      xs: 0,
-      sm: `${sidebarWidth}px` 
-    },
+    width: isMobile ? '100%' : `calc(100% - ${sidebarWidth}px)`,
+    ml: isMobile ? 0 : `${sidebarWidth}px`,
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-  }), [sidebarWidth, theme]);
+  }), [sidebarWidth, isMobile, theme]);
 
   const appBarStyles = useMemo(() => ({
-    width: { 
-      xs: '100%',
-      sm: `calc(100% - ${sidebarWidth}px)` 
-    },
-    ml: { 
-      xs: 0,
-      sm: `${sidebarWidth}px` 
-    },
+    width: isMobile ? '100%' : `calc(100% - ${sidebarWidth}px)`,
+    ml: isMobile ? 0 : `${sidebarWidth}px`,
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
     backgroundColor: theme.palette.background.default,
-  }), [sidebarWidth, theme]);
+  }), [sidebarWidth, isMobile, theme]);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
@@ -128,6 +128,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         userName={user?.name}
         onOpenShortcutsHelp={handleOpenShortcutsHelp}
         onOpenSettings={handleOpenSettings}
+        isMobile={isMobile}
+        mobileOpen={isMobileDrawerOpen}
+        onMobileClose={handleMobileDrawerClose}
       />
       <KeyboardShortcutsHelp
         open={isShortcutsModalOpen}
@@ -155,9 +158,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <IconButton
                 edge="start"
                 color="inherit"
-                aria-label="menu"
+                aria-label="Open navigation"
                 sx={{ mr: 2 }}
-                onClick={handleToggleCollapse}
+                onClick={handleMobileDrawerToggle}
               >
                 <MenuIcon />
               </IconButton>

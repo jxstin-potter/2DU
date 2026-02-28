@@ -13,6 +13,7 @@ import {
   Alert,
   CircularProgress,
   useTheme,
+  useMediaQuery,
   alpha,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -52,6 +53,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   defaultTagIds = [],
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { tags, addTag } = useTaskMetadata();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -197,23 +199,26 @@ const TaskModal: React.FC<TaskModalProps> = ({
     <Dialog 
       open={open} 
       onClose={handleClose}
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          width: '550px',
-          minHeight: '220px',
-          maxWidth: '550px',
-          maxHeight: '90vh',
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          width: isMobile ? '100%' : '550px',
+          minHeight: isMobile ? '100%' : '220px',
+          maxWidth: isMobile ? '100%' : '550px',
+          maxHeight: isMobile ? '100%' : '90vh',
+          ...(!isMobile && {
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }),
           m: 0,
           backgroundColor: theme.palette.background.paper,
           color: theme.palette.text.primary,
-          boxShadow: theme.palette.mode === 'dark' 
+          boxShadow: isMobile ? 'none' : theme.palette.mode === 'dark' 
             ? '0 20px 60px -12px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.4)'
             : '0 20px 60px -12px rgba(0, 0, 0, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.1)',
-          borderRadius: '12px',
+          borderRadius: isMobile ? 0 : '12px',
         }
       }}
       TransitionProps={{
@@ -249,7 +254,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 {errors.submit}
               </Alert>
             )}
-            <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 1.5 }}>
               <TaskNameInput
                 key={initialTask?.id ?? 'new'}
                 inputRef={titleInputRef}
@@ -271,6 +276,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 sx={{ flex: 1 }}
               />
 
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   label="Date"
@@ -280,7 +286,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                     textField: {
                       size: 'small',
                       sx: { 
-                        width: '140px',
+                        width: isMobile ? '100%' : '140px',
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: theme.palette.mode === 'dark' 
                             ? alpha(theme.palette.common.white, 0.05)
@@ -315,7 +321,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 />
               </LocalizationProvider>
 
-              <FormControl size="small" sx={{ width: '120px' }}>
+              <FormControl size="small" sx={{ width: isMobile ? '100%' : '120px' }}>
                 <InputLabel sx={{ color: theme.palette.text.secondary }}>Priority</InputLabel>
                 <Select
                   value={priority}
@@ -367,6 +373,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   <MenuItem value="high">High</MenuItem>
                 </Select>
               </FormControl>
+              </Box>
             </Box>
 
             <TextField

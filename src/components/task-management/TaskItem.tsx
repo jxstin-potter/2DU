@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { Task, Tag } from '../../types';
 import { useTheme, alpha } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 import { format, isBefore, startOfDay } from 'date-fns';
 import InlineTaskEditor from './InlineTaskEditor';
 import TaskDueDatePopover from './TaskDueDatePopover';
@@ -49,6 +50,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   showPriorityRing = false,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { tags, categories } = useTaskMetadata();
   const { activeInlineTaskId, setActiveInlineTaskId } = useTaskModal();
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null);
@@ -187,7 +189,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           backgroundColor: 'transparent !important',
         },
         '& .MuiListItemSecondaryAction-root': {
-          opacity: 0,
+          opacity: isMobile ? 1 : 0,
           transition: 'opacity 0.2s ease',
         },
         '&:hover .MuiListItemSecondaryAction-root': {

@@ -11,6 +11,18 @@
   animation: fadeIn 0.3s ease-out forwards;
 }
 
+@media (max-width: 640px) {
+  .container {
+    padding: 2rem 1rem;
+  }
+
+  .iconContainer {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 1rem;
+  }
+}
+
 .iconContainer {
   display: flex;
   align-items: center;
