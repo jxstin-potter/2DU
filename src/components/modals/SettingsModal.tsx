@@ -18,7 +18,10 @@ import {
   FormControlLabel,
   Divider,
   InputAdornment,
+  Tabs,
+  Tab,
   useTheme,
+  useMediaQuery,
   alpha,
 } from '@mui/material';
 import {
@@ -78,6 +81,7 @@ type SettingsTab = 'account' | 'general';
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user, updateUserProfile, addPassword, authProviders, hasPasswordProvider } = useAuth();
   const { mode, toggleColorMode } = useCustomTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
@@ -213,12 +217,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       onClose={onClose}
       maxWidth="lg"
       fullWidth
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          maxWidth: '900px',
-          height: '80vh',
-          maxHeight: '700px',
-          borderRadius: 2,
+          maxWidth: isMobile ? '100%' : '900px',
+          height: isMobile ? '100%' : '80vh',
+          maxHeight: isMobile ? '100%' : '700px',
+          borderRadius: isMobile ? 0 : 2,
           overflow: 'hidden',
         },
       }}
@@ -242,80 +247,91 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
           </IconButton>
         </Box>
 
-        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* Left Navigation Panel */}
-          <Box
-            sx={{
-              width: 240,
-              borderRight: `1px solid ${theme.palette.divider}`,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-            }}
+        {isMobile && (
+          <Tabs
+            value={settingsTabs.findIndex((t) => t.id === activeTab)}
+            onChange={(_, idx) => handleTabChange(settingsTabs[idx].id)}
+            variant="fullWidth"
+            sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}
           >
-            {/* Search Bar */}
-            <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
-              <TextField
-                placeholder="Search"
-                size="small"
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: alpha(theme.palette.action.hover, 0.3),
-                  },
-                }}
-              />
-            </Box>
+            {settingsTabs.map((tab) => (
+              <Tab key={tab.id} label={tab.label} icon={tab.icon} iconPosition="start" sx={{ minHeight: 48, textTransform: 'none' }} />
+            ))}
+          </Tabs>
+        )}
 
-            {/* Settings Tabs */}
-            <List sx={{ flex: 1, overflow: 'auto', py: 1 }}>
-              {settingsTabs.map((tab) => (
-                <ListItem
-                  key={tab.id}
-                  button
-                  onClick={() => handleTabChange(tab.id)}
-                  selected={activeTab === tab.id}
+        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          {!isMobile && (
+            <Box
+              sx={{
+                width: 240,
+                borderRight: `1px solid ${theme.palette.divider}`,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                <TextField
+                  placeholder="Search"
+                  size="small"
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={{
-                    minHeight: 48,
-                    px: 2,
-                    '&.Mui-selected': {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                      color: theme.palette.primary.main,
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.15),
-                      },
-                      '& .MuiListItemIcon-root': {
-                        color: theme.palette.primary.main,
-                      },
-                    },
-                    '&:hover': {
-                      backgroundColor: theme.palette.action.hover,
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: alpha(theme.palette.action.hover, 0.3),
                     },
                   }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    {tab.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={tab.label}
-                    primaryTypographyProps={{
-                      fontSize: '0.875rem',
-                      fontWeight: activeTab === tab.id ? 500 : 400,
-                    }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
+                />
+              </Box>
 
-          {/* Right Content Panel */}
+              <List sx={{ flex: 1, overflow: 'auto', py: 1 }}>
+                {settingsTabs.map((tab) => (
+                  <ListItem
+                    key={tab.id}
+                    button
+                    onClick={() => handleTabChange(tab.id)}
+                    selected={activeTab === tab.id}
+                    sx={{
+                      minHeight: 48,
+                      px: 2,
+                      '&.Mui-selected': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        color: theme.palette.primary.main,
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                        },
+                        '& .MuiListItemIcon-root': {
+                          color: theme.palette.primary.main,
+                        },
+                      },
+                      '&:hover': {
+                        backgroundColor: theme.palette.action.hover,
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      {tab.icon}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={tab.label}
+                      primaryTypographyProps={{
+                        fontSize: '0.875rem',
+                        fontWeight: activeTab === tab.id ? 500 : 400,
+                      }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
+
           <Box
             sx={{
               flex: 1,

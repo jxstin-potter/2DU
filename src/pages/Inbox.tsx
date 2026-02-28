@@ -199,8 +199,8 @@ const Inbox: React.FC = () => {
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         width: '100%',
-        pl: 0,
-        ml: -1,
+        px: { xs: 2, sm: 0 },
+        ml: { xs: 0, sm: -1 },
         mt: -0.5,
       }}
     >
@@ -215,7 +215,7 @@ const Inbox: React.FC = () => {
           alignItems: 'flex-start',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: theme.breakpoints.values.sm }}>
+        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: theme.breakpoints.values.sm } }}>
           <InboxView
             tasks={tasks}
             loading={loading}

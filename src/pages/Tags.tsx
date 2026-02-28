@@ -198,8 +198,8 @@ const Tags: React.FC = () => {
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         width: '100%',
-        pl: 0,
-        ml: -1,
+        px: { xs: 2, sm: 0 },
+        ml: { xs: 0, sm: -1 },
         mt: -0.5,
       }}
     >
@@ -214,7 +214,7 @@ const Tags: React.FC = () => {
           alignItems: 'flex-start',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: theme.breakpoints.values.sm }}>
+        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: theme.breakpoints.values.sm } }}>
           <Box
             sx={{
               position: 'sticky',
@@ -241,7 +241,7 @@ const Tags: React.FC = () => {
                   variant="h6"
                   sx={{
                     fontWeight: 700,
-                    fontSize: '1.5rem',
+                    fontSize: { xs: '1.25rem', sm: '1.5rem' },
                     lineHeight: 1.3,
                   }}
                 >
@@ -278,7 +278,7 @@ const Tags: React.FC = () => {
                   sx={{
                     fontWeight: 700,
                     mb: 0.5,
-                    fontSize: '1.5rem',
+                    fontSize: { xs: '1.25rem', sm: '1.5rem' },
                     lineHeight: 1.3,
                   }}
                 >

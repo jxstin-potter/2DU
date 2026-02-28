@@ -41,7 +41,7 @@ const TaskDueDatePopover: React.FC<TaskDueDatePopoverProps> = ({
         sx: {
           mt: 1,
           p: 2,
-          minWidth: 280,
+          minWidth: { xs: 'calc(100vw - 32px)', sm: 280 },
           backgroundColor: theme.palette.background.paper,
           boxShadow:
             theme.palette.mode === 'dark'

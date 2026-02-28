@@ -7,6 +7,7 @@ import {
   Typography,
   TextField,
   useTheme,
+  useMediaQuery,
   alpha,
   Checkbox,
   Chip,
@@ -55,6 +56,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onToggleComplete,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { tags, categories } = useTaskMetadata();
 
   const [title, setTitle] = useState(task.title);
@@ -154,13 +156,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       open={open}
       onClose={onClose}
       maxWidth={false}
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          width: '90vw',
-          maxWidth: 720,
-          minHeight: 400,
-          maxHeight: '85vh',
-          borderRadius: 2,
+          width: isMobile ? '100%' : '90vw',
+          maxWidth: isMobile ? '100%' : 720,
+          minHeight: isMobile ? '100%' : 400,
+          maxHeight: isMobile ? '100%' : '85vh',
+          borderRadius: isMobile ? 0 : 2,
           backgroundColor: theme.palette.background.paper,
           boxShadow:
             theme.palette.mode === 'dark'
@@ -204,7 +207,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flex: 1, overflow: isMobile ? 'auto' : 'hidden' }}>
           {/* Left pane: content */}
           <Box
             sx={{
@@ -212,8 +215,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               display: 'flex',
               flexDirection: 'column',
               minWidth: 0,
-              borderRight: 1,
-              borderColor: 'divider',
+              ...(!isMobile && { borderRight: 1, borderColor: 'divider' }),
             }}
           >
             {/* Checkbox + title */}
@@ -277,9 +279,9 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           {/* Right pane: metadata */}
           <Box
             sx={{
-              flex: 1,
-              minWidth: 200,
-              maxWidth: 260,
+              flex: isMobile ? 'none' : 1,
+              ...(isMobile ? {} : { minWidth: 200, maxWidth: 260 }),
+              ...(isMobile && { borderTop: 1, borderColor: 'divider' }),
               p: 2,
               display: 'flex',
               flexDirection: 'column',

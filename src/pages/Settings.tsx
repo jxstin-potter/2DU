@@ -41,8 +41,8 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ width: '100%', mt: 4, mb: 6 }}>
+    <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
+      <Box sx={{ width: '100%', mt: { xs: 2, sm: 4 }, mb: 6 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           {t('settings.title')}
         </Typography>

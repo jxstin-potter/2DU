@@ -182,47 +182,14 @@ body {
   }
 }
 
-/* ========== RESPONSIVE ADJUSTMENTS ========== */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 64px !important;
+/* Sidebar/layout responsive adjustments are handled by MUI sx props in
+   MainLayout.tsx and Sidebar.tsx. No CSS classes needed. */
+
+/* ========== MOBILE TOUCH TARGETS ========== */
+/* Ensure IconButtons meet the 44px minimum touch target on mobile (WCAG 2.5.5). */
+@media (max-width: 640px) {
+  .MuiIconButton-sizeSmall {
+    min-width: 44px;
+    min-height: 44px;
   }
-  
-  .main-content {
-    margin-left: 64px !important;
-  }
-}
-
-/* Collapsible Sidebar Styles */
-.sidebar-collapsed {
-  width: 64px !important;
-  transition: width 0.3s ease;
-}
-
-.sidebar-expanded {
-  width: 240px !important;
-  transition: width 0.3s ease;
-}
-
-.main-content-collapsed {
-  margin-left: 64px !important;
-  width: calc(100% - 64px) !important;
-  transition: margin-left 0.3s ease, width 0.3s ease;
-}
-
-.main-content-expanded {
-  margin-left: 240px !important;
-  width: calc(100% - 240px) !important;
-  transition: margin-left 0.3s ease, width 0.3s ease;
-}
-
-/* Mobile styles */
-@media (max-width: 600px) {
-  .main-content-collapsed,
-  .main-content-expanded {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-}
-
-/* Any remaining specific utility classes that aren't covered by MUI */ 
+} 

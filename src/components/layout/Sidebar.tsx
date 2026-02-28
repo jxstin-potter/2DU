@@ -47,6 +47,9 @@ interface SidebarProps {
   user?: User | null;
   onOpenShortcutsHelp: () => void;
   onOpenSettings?: () => void;
+  isMobile?: boolean;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -59,6 +62,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   user,
   onOpenShortcutsHelp,
   onOpenSettings,
+  isMobile = false,
+  mobileOpen = false,
+  onMobileClose,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -191,10 +197,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     );
   }, [location.pathname, navigate, theme.palette.mode, theme.palette.common.white, theme.palette.primary.main]);
 
-  const drawerWidth = isCollapsed ? 64 : 240;
+  const effectiveCollapsed = isMobile ? false : isCollapsed;
+  const drawerWidth = effectiveCollapsed ? 64 : 240;
   
   const drawerStyles = {
-    width: drawerWidth,
+    width: isMobile ? 0 : drawerWidth,
     flexShrink: 0,
     '& .MuiDrawer-paper': {
       width: drawerWidth,
@@ -208,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       overflowX: 'hidden',
       border: 'none',
       outline: 'none',
-      boxShadow: 'none',
+      boxShadow: isMobile ? theme.shadows[8] : 'none',
       willChange: 'width',
     },
   };
@@ -216,19 +223,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       <Drawer
-        variant="permanent"
+        variant={isMobile ? 'temporary' : 'permanent'}
+        open={isMobile ? mobileOpen : true}
+        onClose={onMobileClose}
+        ModalProps={{ keepMounted: true }}
         sx={drawerStyles}
       >
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          justifyContent: isCollapsed ? 'center' : 'space-between',
+          justifyContent: effectiveCollapsed ? 'center' : 'space-between',
           p: 1,
           px: 1.5,
           minHeight: 40,
           height: 40,
         }}> 
-          {!isCollapsed ? (
+          {!effectiveCollapsed ? (
             <Box
               sx={{
                 display: 'flex',
@@ -281,13 +291,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             </Box>
           ) : null}
           <IconButton 
-            onClick={onToggleCollapse}
-            aria-label={isCollapsed ? 'Open sidebar' : 'Close sidebar'}
+            onClick={isMobile ? onMobileClose : onToggleCollapse}
+            aria-label={effectiveCollapsed ? 'Open sidebar' : 'Close sidebar'}
             aria-controls="sidebar"
-            aria-expanded={!isCollapsed}
+            aria-expanded={!effectiveCollapsed}
             sx={{ 
-              ml: isCollapsed ? 0 : -0.5,
-              mr: isCollapsed ? 0 : -0.5,
+              ml: effectiveCollapsed ? 0 : -0.5,
+              mr: effectiveCollapsed ? 0 : -0.5,
               color: theme.palette.text.secondary,
               p: 0.5,
               '&:hover': {
@@ -297,11 +307,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               transition: 'all 0.2s ease',
             }}
           >
-            <SidebarToggleIcon isCollapsed={isCollapsed} sx={{ fontSize: '1rem' }} />
+            <SidebarToggleIcon isCollapsed={effectiveCollapsed} sx={{ fontSize: '1rem' }} />
           </IconButton>
         </Box>
       
-      {!isCollapsed && (
+      {!effectiveCollapsed && (
         <>
           <List sx={{ 
             px: 1,

@@ -297,7 +297,7 @@ const TaskList: React.FC<TaskListProps> = ({
       height={listHeight}
       width="100%"
       itemCount={displayTasks.length}
-      itemSize={72}
+      itemSize={isMobile ? 80 : 72}
       onScroll={handleScroll}
     >
       {Row}

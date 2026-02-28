@@ -134,9 +134,11 @@ const Completed: React.FC = () => {
       justifyContent: 'center',
       alignItems: 'flex-start',
       width: '100%',
+      px: { xs: 2, sm: 0 },
     }}>
       <Container 
-        maxWidth="md" 
+        maxWidth="md"
+        disableGutters
         sx={{ 
           width: '100%',
           display: 'flex',
@@ -146,7 +148,7 @@ const Completed: React.FC = () => {
       >
         <Box sx={{ 
           width: '100%',
-          maxWidth: theme.breakpoints.values.sm,
+          maxWidth: { xs: '100%', sm: theme.breakpoints.values.sm },
         }}>
           {/* Header */}
           <Box sx={{ mb: 3 }}>
