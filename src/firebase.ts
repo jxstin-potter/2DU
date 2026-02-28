@@ -18,7 +18,7 @@ const envVars = {
 };
 
 
-const firebaseConfig = {
+const firebaseConfig: Record<string, string | undefined> = {
   apiKey: envVars.apiKey,
   authDomain: envVars.authDomain,
   projectId: envVars.projectId,
@@ -26,6 +26,9 @@ const firebaseConfig = {
   messagingSenderId: envVars.messagingSenderId,
   appId: envVars.appId
 };
+if (envVars.measurementId) {
+  firebaseConfig.measurementId = envVars.measurementId;
+}
 
 // Validate required config values
 const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
@@ -40,7 +43,7 @@ let auth: Auth;
 let persistenceEnabled = false;
 
 try {
-  app = initializeApp(firebaseConfig);
+  app = initializeApp(firebaseConfig as import('firebase/app').FirebaseOptions);
   db = getFirestore(app);
   auth = getAuth(app);
 } catch (error) {

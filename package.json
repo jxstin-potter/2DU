@@ -19,6 +19,7 @@
     "test:e2e": "cypress run",
     "test:e2e:dev": "cypress open",
     "test:ci": "jest --ci --coverage && cypress run",
+    "deploy": "npm run build && node scripts/gh-pages-deploy.cjs",
     "deploy:rules": "npx firebase deploy --only firestore:rules"
   },
   "dependencies": {
@@ -60,6 +61,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "gh-pages": "^6.3.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",

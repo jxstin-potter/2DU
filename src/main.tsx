@@ -5,11 +5,12 @@ import App from './App'
 import './firebase' // Import Firebase configuration
 import './styles/global.css' // Import our consolidated global CSS
 
-// Register service worker
+// Register service worker (use BASE_URL so it works under GitHub Pages subpath)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    const swPath = `${import.meta.env.BASE_URL}sw.js`
     navigator.serviceWorker
-      .register('/sw.js')
+      .register(swPath)
       .catch(() => {
         // Service worker registration failed - app will still work
       });
@@ -18,7 +19,7 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
       <App />
     </BrowserRouter>
   </React.StrictMode>,

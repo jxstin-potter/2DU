@@ -1,6 +1,26 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// GitHub Pages serves 404.html when a path is not found. Copy index.html → 404.html
+// so client routes (e.g. /2DU/login) load the SPA and React Router can handle the path.
+function copy404ForGitHubPages() {
+  return {
+    name: 'copy-404',
+    closeBundle() {
+      const outDir = path.resolve(__dirname, 'dist')
+      const indexPath = path.join(outDir, 'index.html')
+      const notFoundPath = path.join(outDir, '404.html')
+      if (fs.existsSync(indexPath)) {
+        fs.copyFileSync(indexPath, notFoundPath)
+      }
+    }
+  }
+}
 
 // Strip ANSI escape codes so Cursor/VS Code terminal on Windows doesn't glitch
 const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, '').replace(/\x1b\]8;;[^\x1b]*\x1b\\/g, '')
@@ -31,10 +51,12 @@ const plainLogger = {
 
 // https://vitejs.dev/config/
 // Terminal (Cursor/VS Code on Windows): customLogger strips ANSI and no-ops clearScreen; do not set logLevel: 'warn' (can freeze).
-export default defineConfig({
+// base required for GitHub Pages: site is served at https://<user>.github.io/2DU/
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/2DU/' : '/',
   clearScreen: false,
   customLogger: plainLogger,
-  plugins: [react()],
+  plugins: [react(), copy404ForGitHubPages()],
   esbuild: {
     drop: ['console', 'debugger'],
   },
@@ -67,17 +89,11 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       output: {
+        // Single vendor chunk: splitting MUI into its own chunk can cause "X is not a function"
+        // at runtime (MUI expects React in same bundle). Keep react + mui + core deps together.
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('@mui')) {
-              return 'mui'
-            }
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom') || id.includes('firebase')) {
-              return 'vendor'
-            }
-            if (id.includes('date-fns')) {
-              return 'utils'
-            }
+            if (id.includes('date-fns')) return 'utils'
             return 'vendor'
           }
         },
@@ -96,4 +112,4 @@ export default defineConfig({
       port: 4000
     }
   }
-})
+}))

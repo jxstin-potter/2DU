@@ -67,7 +67,12 @@ src/
    ```bash
    npm run dev
    ```
-   App runs at the URL Vite prints (e.g. `http://localhost:5173`).
+   App runs at the URL Vite prints (e.g. `http://localhost:4000`).
+
+### Deploy to GitHub Pages
+
+- Run `npm run deploy` to build and push to the `gh-pages` branch.
+- **Firebase:** For Auth and Firestore to work on the live site, add `jxstin-potter.github.io` to [Firebase Console](https://console.firebase.google.com/) → Authentication → **Authorized domains**, and ensure the production build has Firebase env vars (see `docs/FIREBASE_PRODUCTION.md`).
 
 ## Scripts
 
