@@ -9,8 +9,8 @@
 ### Running the app
 
 - `npm run dev` starts Vite dev server on **port 4000** (not the Vite default 5173).
-- Firebase credentials are already in `.env` and `.env.development` (project `du-app-ff4ae`).
-- **Production (GitHub Pages):** For the deployed app to use Firebase Auth/Firestore, add `jxstin-potter.github.io` to Firebase Console → Authentication → Authorized domains, and ensure production build has `VITE_FIREBASE_*` env vars (e.g. `.env.production`). See `docs/FIREBASE_PRODUCTION.md`.
+- Firebase credentials live in `.env` / `.env.development` (project `du-app-ff4ae`). Required at build time: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`; optional `VITE_FIREBASE_MEASUREMENT_ID`.
+- **Production (GitHub Pages):** Add `jxstin-potter.github.io` to Firebase Console → Authentication → Authorized domains. Use `.env.production` or `.env` so `npm run build` / `npm run deploy` sees the same `VITE_FIREBASE_*` vars. Deploy rules with `npm run deploy:rules` when changed.
 
 ### Key commands
 

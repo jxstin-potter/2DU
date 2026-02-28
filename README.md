@@ -56,12 +56,12 @@ src/
    ```
 
 2. **Environment**  
-   Copy `.env.example` to `.env` and fill in your [Firebase config](https://console.firebase.google.com/) (see `.env.example` for variable names).
+   Create `.env` with your [Firebase config](https://console.firebase.google.com/): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID` (optional: `VITE_FIREBASE_MEASUREMENT_ID`).
 
 3. **Firebase**
-   - Enable **Email/Password** authentication.
+   - Enable **Email/Password** (and optionally Google/Apple) authentication.
    - Create a **Firestore** database.
-   - Deploy rules and indexes from `src/config/` if you use the included ones.
+   - Deploy rules: `npm run deploy:rules` (uses `firestore.rules` at repo root).
 
 4. **Run**
    ```bash
@@ -71,8 +71,8 @@ src/
 
 ### Deploy to GitHub Pages
 
-- Run `npm run deploy` to build and push to the `gh-pages` branch.
-- **Firebase:** For Auth and Firestore to work on the live site, add `jxstin-potter.github.io` to [Firebase Console](https://console.firebase.google.com/) → Authentication → **Authorized domains**, and ensure the production build has Firebase env vars (see `docs/FIREBASE_PRODUCTION.md`).
+- `npm run deploy` builds and pushes to the `gh-pages` branch.
+- **Firebase:** Add `jxstin-potter.github.io` to Firebase Console → Authentication → Authorized domains; production build must have the same `VITE_FIREBASE_*` vars (e.g. in `.env` or `.env.production`).
 
 ## Scripts
 
@@ -88,6 +88,8 @@ src/
 | `npm run test:e2e` | Cypress e2e (headless) |
 | `npm run test:e2e:dev` | Cypress interactive |
 | `npm run test:ci` | Jest + Cypress (CI-style) |
+| `npm run deploy` | Build and push to `gh-pages` (GitHub Pages) |
+| `npm run deploy:rules` | Deploy Firestore rules only |
 
 ## Testing
 
