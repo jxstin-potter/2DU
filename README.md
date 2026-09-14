@@ -2,6 +2,8 @@
 
 A **Todoist-inspired** task management app — full independent implementation with React, TypeScript, and Firebase. Built for clarity and recruiter-friendly context.
 
+**Live demo:** [jxstin-potter.github.io/2DU/login](https://jxstin-potter.github.io/2DU/login)
+
 ## Tech stack
 
 | Layer | Technologies |
