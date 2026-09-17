@@ -22,6 +22,8 @@ import InlineTaskEditor from './InlineTaskEditor';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 import TodayAddTaskButton from './TodayAddTaskButton';
 import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
+import { monoMeta } from '../../styles/theme';
+import { getPriorityColor, type TaskPriority } from './inline-task-editor/inlineTaskEditorPriority';
 
 interface TodayViewProps {
   tasks: Task[];
@@ -156,15 +158,10 @@ const TodayView: React.FC<TodayViewProps> = ({
 
   const formattedDate = format(todayDate, "MMM d 'Today' - EEEE");
 
-  const priorityColors: Record<string, string> = {
-    low: '#4caf50',
-    medium: '#ff9800',
-    high: '#f44336',
-  };
   const getTaskSummaryColor = (task: Task): string => {
     const cat = categories.find(c => c.id === task.categoryId);
     if (cat?.color) return cat.color;
-    if (task.priority && priorityColors[task.priority]) return priorityColors[task.priority];
+    if (task.priority) return getPriorityColor(task.priority as TaskPriority);
     return theme.palette.error.main;
   };
 
@@ -213,7 +210,7 @@ const TodayView: React.FC<TodayViewProps> = ({
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ fontSize: '0.75rem' }}
+            sx={{ ...monoMeta, fontSize: '0.75rem' }}
           >
             {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
           </Typography>
@@ -431,12 +428,8 @@ const TodayView: React.FC<TodayViewProps> = ({
       {/* Today Section */}
       <Box>
         <Typography
-          variant="h6"
-          sx={{
-            fontWeight: theme.typography.fontWeightBold,
-            fontSize: theme.typography.body1.fontSize,
-            mb: theme.spacing(2),
-          }}
+          variant="body1"
+          sx={{ ...monoMeta, mb: theme.spacing(2), color: 'text.secondary' }}
         >
           {formattedDate}
         </Typography>

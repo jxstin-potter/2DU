@@ -1,11 +1,23 @@
 import { alpha, createTheme, ThemeOptions } from '@mui/material/styles';
 
 // Studious, calming palette (color theory: blues = trust/focus/calm; muted tones = reduced strain)
-// Accent: slate blue — associated with focus, productivity, and calm; used in many productivity/education UIs
-const accentMain = '#5B7A9E';
-const accentHover = '#6A8AA8';
-const accentActive = '#4A6582';
-const accentLight = '#7B9BB8';
+// Accent: slate blue — associated with focus, productivity, and calm.
+//
+// Split into two values, because one cannot do both jobs. The old single
+// #5B7A9E failed WCAG AA twice over: white text on it measured 4.08:1, and it
+// measured 4.16:1 as link text on the ground. Those requirements pull in
+// opposite directions — a fill dark enough for white text is too dark to read
+// as text itself — and in this hue they cross right where both fail.
+//
+//   accentMain  fills only (contained buttons, filled chips). White ink 5.60:1.
+//   accentText  anything that IS text or a thin mark on the dark ground —
+//               links, tab indicator, focus ring, active nav. 4.98:1 on ground.
+//
+// Never set accentMain on text, and never fill a surface with accentText.
+const accentMain = '#4B6481';
+const accentHover = '#526E8E';
+const accentActive = '#435A75';
+const accentText = '#6A87A9';
 
 // Define color palette
 const colors = {
@@ -17,11 +29,12 @@ const colors = {
     accent: accentMain,
     accentHover,
     accentActive,
+    accentText,
   },
   // Theme tokens (primary = slate blue for studious/calm)
   primary: {
     main: accentMain,
-    light: accentLight,
+    light: accentText,
     dark: accentActive,
     contrastText: '#F5F5F5',
   },
@@ -44,6 +57,14 @@ const colors = {
     800: '#252E38',
     900: '#151C24',
   },
+  // Task priority. One set, checked against the ground: high 5.76:1,
+  // medium 7.91:1, low 6.99:1. Previously three different palettes lived in
+  // TodayView, inlineTaskEditorPriority and TaskDetailModal.
+  priority: {
+    high: '#E06C6C',
+    medium: '#D4A05A',
+    low: '#7BA3C9',
+  },
   // Semantic colors (muted so they don’t break the calm mood)
   success: {
     main: '#4A9B6D',
@@ -62,7 +83,7 @@ const colors = {
   },
   info: {
     main: accentMain,
-    light: accentLight,
+    light: accentText,
     dark: accentActive,
   },
 };
@@ -290,9 +311,12 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         dark: colors.warning.dark,
       },
       action: {
-        hover: alpha(colors.brand.accent, 0.08),
-        selected: alpha(colors.brand.accent, 0.12),
-        focus: alpha(colors.brand.accent, 0.14),
+        // Neutral, not accent-tinted. These fire on every list row, nav item
+        // and icon button in the app - tinting them made the accent the most
+        // common colour on screen rather than a signal.
+        hover: 'rgba(245, 245, 245, 0.06)',
+        selected: 'rgba(245, 245, 245, 0.10)',
+        focus: 'rgba(245, 245, 245, 0.12)',
         disabled: 'rgba(245, 245, 245, 0.28)',
         disabledBackground: 'rgba(245, 245, 245, 0.08)',
       },
@@ -365,8 +389,8 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
       MuiLink: {
         styleOverrides: {
           root: {
-            color: colors.primary.main,
-            '&:hover': { color: colors.brand.accentHover },
+            color: colors.primary.light,
+            '&:hover': { color: inkPrimary },
           },
         },
       },
@@ -374,7 +398,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         styleOverrides: {
           root: {
             color: 'rgba(245,245,245,0.42)',
-            '&.Mui-checked': { color: colors.primary.main },
+            '&.Mui-checked': { color: colors.primary.light },
           },
         },
       },
@@ -383,7 +407,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
           root: {
             borderRadius: shape.borderRadius,
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: colors.primary.main,
+              borderColor: colors.primary.light,
             },
             '&:hover .MuiOutlinedInput-notchedOutline': {
               borderColor: 'rgba(245,245,245,0.28)',
@@ -410,7 +434,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
             borderBottom: `1px solid ${line}`,
           },
           indicator: {
-            backgroundColor: colors.primary.main,
+            backgroundColor: colors.primary.light,
             height: 3,
             borderTopLeftRadius: 3,
             borderTopRightRadius: 3,
@@ -452,7 +476,9 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
       MuiAvatar: {
         styleOverrides: {
           root: {
-            backgroundColor: colors.primary.main,
+            // Neutral. An avatar is an identity surface, not an accent one.
+            backgroundColor: colors.brand.blackElevated2,
+            color: inkSecondary,
           },
         },
       },
@@ -528,5 +554,20 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
   return createTheme(baseTheme);
 };
 
-export { colors, typography, spacing, breakpoints, shape, transitions, zIndex };
+/**
+ * Mono meta styling for text that is data rather than prose - dates, counts,
+ * timestamps. The `overline` variant covers the uppercase cases (section
+ * headers, labels); this covers the ones that should stay in mixed case,
+ * where uppercasing a date would just shout.
+ *
+ * `tabular-nums` is the point as much as the face: it stops due dates and
+ * counts jittering as digits change width down a list.
+ */
+export const monoMeta = {
+  fontFamily: FONT_MONO,
+  fontVariantNumeric: 'tabular-nums' as const,
+  letterSpacing: '0.01em',
+};
+
+export { colors, typography, spacing, breakpoints, shape, transitions, zIndex, FONT_MONO };
 export default getTheme;

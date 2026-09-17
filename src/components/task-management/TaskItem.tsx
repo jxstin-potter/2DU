@@ -24,6 +24,7 @@ import { format, isBefore, startOfDay } from 'date-fns';
 import InlineTaskEditor from './InlineTaskEditor';
 import TaskDueDatePopover from './TaskDueDatePopover';
 import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
+import { colors, monoMeta } from '../../styles/theme';
 import { useTaskModal } from '../../contexts/TaskModalContext';
 
 interface TaskItemProps {
@@ -91,18 +92,21 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
   const priorityRingColor = useMemo(() => {
     if (!showPriorityRing || task.completed) return undefined;
-    // Priority color mapping (simple + consistent with existing semantics)
+    // One priority palette, shared with the inline editor and TaskDetailModal.
+    // Not palette.error/warning/info: `info` is the accent FILL token, which
+    // only reaches 3.03:1 against the ground and reads as a dim smudge on a
+    // 2px ring. These are picked to carry at ring weight.
     switch (task.priority) {
       case 'high':
-        return theme.palette.error.main;      // red
+        return colors.priority.high;
       case 'medium':
-        return theme.palette.warning.main;    // orange
+        return colors.priority.medium;
       case 'low':
-        return theme.palette.info.main;       // blue
+        return colors.priority.low;
       default:
         return undefined;
     }
-  }, [showPriorityRing, task.completed, task.priority, theme.palette.error.main, theme.palette.warning.main, theme.palette.info.main]);
+  }, [showPriorityRing, task.completed, task.priority]);
 
   const handleToggleComplete = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -196,7 +200,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           opacity: 1,
         },
         '&:focus-visible': {
-          outline: `2px solid ${alpha(theme.palette.primary.main, 0.5)}`,
+          outline: `2px solid ${theme.palette.primary.light}`,
           outlineOffset: 2,
         },
       }}
@@ -322,6 +326,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     <Typography
                       variant="body2"
                       sx={{
+                        ...monoMeta,
                         color: isOverdue ? 'error.main' : 'text.secondary',
                       }}
                     >

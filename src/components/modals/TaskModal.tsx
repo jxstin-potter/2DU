@@ -22,6 +22,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Task } from '../../types';
 import TaskNameInput from '../task-management/TaskNameInput';
 import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
+import { shape } from '../../styles/theme';
 import {
   getPlainTitleFromTitleDiv,
   getTagIdsFromTitleDiv,
@@ -218,7 +219,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           boxShadow: isMobile ? 'none' : theme.palette.mode === 'dark' 
             ? '0 20px 60px -12px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.4)'
             : '0 20px 60px -12px rgba(0, 0, 0, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.1)',
-          borderRadius: isMobile ? 0 : '12px',
+          borderRadius: isMobile ? 0 : `${shape.borderRadius}px`,
         }
       }}
       TransitionProps={{

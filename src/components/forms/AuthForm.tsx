@@ -39,7 +39,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
         ? '0 0 0 100px #333 inset' 
         : '0 0 0 100px #f5f5f5 inset',
       WebkitTextFillColor: theme.palette.text.primary,
-      caretColor: theme.palette.primary.main,
+      caretColor: theme.palette.primary.light,
       borderRadius: 'inherit',
       // Longer transition to ensure it stays applied
       transition: 'background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s',
@@ -59,7 +59,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   // Special handling for autofilled state
   '& .MuiInputBase-input:-webkit-autofill + .MuiInputLabel-root': {
     transform: 'translate(14px, -9px) scale(0.75)',
-    color: theme.palette.primary.main,
+    color: theme.palette.primary.light,
   },
 }));
 
@@ -222,7 +222,7 @@ const AuthForm: React.FC = () => {
       sx={{
         p: { xs: 3, sm: 4 },
         width: '100%',
-        maxWidth: 380,
+        maxWidth: 420,
         borderRadius: 1,
         border: theme => `1px solid ${theme.palette.divider}`,
         bgcolor: 'background.paper',
@@ -235,7 +235,7 @@ const AuthForm: React.FC = () => {
         </Box>
 
         <Box>
-          <Typography component="h1" variant="h3" align="center">
+          <Typography component="h1" variant="h2" align="center">
             {isLogin ? 'Welcome!' : 'Create your account'}
           </Typography>
           <Typography variant="body2" align="center" color="text.secondary" sx={{ mt: 0.5 }}>

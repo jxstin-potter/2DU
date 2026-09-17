@@ -102,9 +102,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({ type, onCreateTask }) => {
         {getIcon()}
       </div>
       
-      <Typography variant="h5" className={styles.title} sx={{ 
+      <Typography variant="h3" className={styles.title} sx={{ 
         color: theme.palette.text.primary,
-        mb: 0.5
+        mb: 1
       }}>
         {getTitle()}
       </Typography>

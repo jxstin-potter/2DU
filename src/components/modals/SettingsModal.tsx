@@ -581,7 +581,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                           sx={{
                             px: 1.25,
                             py: 0.5,
-                            borderRadius: 999,
+                            borderRadius: 1,
                             border: `1px solid ${theme.palette.divider}`,
                             fontSize: '0.8125rem',
                             color: 'text.secondary',

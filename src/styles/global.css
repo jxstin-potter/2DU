@@ -10,6 +10,18 @@
 
 :root {
   --base-font-size: 16px;
+
+  /* Accent, mirrored from src/styles/theme.ts. CSS cannot read the TS theme,
+     so these are the single source for stylesheets and CSS modules - keep them
+     in sync with accentMain / accentText there.
+       --accent-fill  fills only; white ink on it clears AA at 5.60:1
+       --accent-text  text and thin marks on the dark ground, 4.98:1
+     EmptyState.module.css previously referenced a --primary-main that was
+     never defined anywhere, so its fallback hex was what actually rendered. */
+  --accent-fill: #4b6481;
+  --accent-fill-rgb: 75, 100, 129;
+  --accent-text: #6a87a9;
+  --accent-fill-dark: #435a75;
 }
 
 /* Mirrors typography.fontFamily in src/styles/theme.ts - MUI sets this on its
@@ -157,7 +169,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid #5B7A9E;
+  outline: 2px solid var(--accent-text);
   outline-offset: 2px;
 }
 

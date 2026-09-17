@@ -32,12 +32,13 @@ import { format, isToday, startOfDay } from 'date-fns';
 import { Task, Tag } from '../../types';
 import InlineTaskEditorDatePopover from '../task-management/inline-task-editor/InlineTaskEditorDatePopover';
 import { useTaskMetadata } from '../../contexts/TaskMetadataContext';
+import { colors } from '../../styles/theme';
 
 const PRIORITY_OPTIONS: { value: 'high' | 'medium' | 'low' | ''; label: string; color: string }[] = [
-  { value: 'high', label: 'P1', color: '#e53935' },
-  { value: 'medium', label: 'P2', color: '#fb8c00' },
-  { value: 'low', label: 'P3', color: '#1e88e5' },
-  { value: '', label: 'P4', color: '#ffffff' },
+  { value: 'high', label: 'P1', color: colors.priority.high },
+  { value: 'medium', label: 'P2', color: colors.priority.medium },
+  { value: 'low', label: 'P3', color: colors.priority.low },
+  { value: '', label: 'P4', color: 'rgba(245, 245, 245, 0.72)' },
 ];
 
 interface TaskDetailModalProps {

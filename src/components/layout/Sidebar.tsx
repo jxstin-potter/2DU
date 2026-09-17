@@ -130,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     const offWhiteColor = theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.1)
       : alpha(theme.palette.common.white, 0.7);
-    const activeColor = theme.palette.primary.main;
+    const activeColor = theme.palette.primary.light;
     return (
       <ListItem
         button
@@ -195,7 +195,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </ListItem>
     );
-  }, [location.pathname, navigate, theme.palette.mode, theme.palette.common.white, theme.palette.primary.main]);
+  }, [location.pathname, navigate, theme.palette.mode, theme.palette.common.white, theme.palette.primary.light]);
 
   const effectiveCollapsed = isMobile ? false : isCollapsed;
   const drawerWidth = effectiveCollapsed ? 64 : 240;
@@ -362,7 +362,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       justifyContent: 'center',
                     }}
                   >
-                    <AddIcon sx={{ fontSize: '1rem', color: 'inherit' }} />
+                    <AddIcon sx={{ fontSize: '1rem', color: 'primary.contrastText' }} />
                   </Box>
                 </ListItemIcon>
                 <ListItemText 

@@ -6,6 +6,7 @@ import { taskDocumentToTask } from '../types/firestore';
 import { Task } from '../types';
 import CompletedTaskItem from '../components/task-management/CompletedTaskItem';
 import { format, isToday, isYesterday, startOfDay } from 'date-fns';
+import { monoMeta } from '../styles/theme';
 
 const Completed: React.FC = () => {
   const theme = useTheme();
@@ -170,13 +171,8 @@ const Completed: React.FC = () => {
               <Box key={dateKey} sx={{ mb: 4 }}>
                 {/* Date Header */}
                 <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: theme.typography.fontWeightBold,
-                    fontSize: theme.typography.body1.fontSize,
-                    mb: 2,
-                    color: 'text.secondary',
-                  }}
+                  variant="body1"
+                  sx={{ ...monoMeta, mb: 2, color: 'text.secondary' }}
                 >
                   {dateKey}
                 </Typography>

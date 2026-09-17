@@ -1,4 +1,5 @@
 import { alpha, Theme } from '@mui/material/styles';
+import { colors } from '../../../styles/theme';
 
 export type TaskPriority = 'low' | 'medium' | 'high';
 
@@ -8,17 +9,12 @@ export const priorityLabels: Record<TaskPriority, string> = {
   high: 'High',
 };
 
-// Muted, studious palette: green = low/calm, amber = medium, muted red = high
-export const getPriorityColor = (priority: TaskPriority) => {
-  switch (priority) {
-    case 'low':
-      return '#4A9B6D';
-    case 'medium':
-      return '#B8954A';
-    case 'high':
-      return '#B85C5C';
-  }
-};
+// The one priority palette. Three different sets used to exist - here, in
+// TodayView and in TaskDetailModal - so the same priority rendered in three
+// different reds depending on which surface you were looking at. All of them
+// now read these tokens, which are checked against the ground (high 5.76:1,
+// medium 7.91:1, low 6.99:1).
+export const getPriorityColor = (priority: TaskPriority) => colors.priority[priority];
 
 export const getPriorityChipStyles = (theme: Theme, priority: TaskPriority) => {
   const color = getPriorityColor(priority);

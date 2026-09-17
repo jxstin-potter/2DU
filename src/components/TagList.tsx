@@ -93,21 +93,10 @@ const TagList: React.FC<TagListProps> = ({
           justifyContent: 'space-between',
         }}
       >
-        <Typography
-          variant="subtitle2"
-          sx={{
-            textTransform: 'uppercase',
-            letterSpacing: 0.6,
-            fontSize: '0.75rem',
-            color: 'text.secondary',
-          }}
-        >
+        <Typography variant="overline" sx={{ color: 'text.secondary' }}>
           Tags
         </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: 'text.disabled', fontSize: '0.7rem' }}
-        >
+        <Typography variant="overline" sx={{ color: 'text.disabled' }}>
           {normalizedTags.length} total
         </Typography>
       </Box>
@@ -134,9 +123,9 @@ const TagList: React.FC<TagListProps> = ({
             mt: 0.25,
             borderRadius: 1,
             border: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
-            backgroundColor: alpha(theme.palette.primary.main, 0.04),
+            backgroundColor: 'transparent',
             '&:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              backgroundColor: theme.palette.action.hover,
             },
           }}
         >
@@ -176,17 +165,17 @@ const TagList: React.FC<TagListProps> = ({
                 }
                 sx={{
                   fontSize: '0.8125rem',
-                  borderRadius: '999px',
+                  borderRadius: 1,
                   border: `1px solid ${
                     selected
-                      ? theme.palette.primary.main
+                      ? theme.palette.primary.light
                       : alpha(theme.palette.divider, 0.8)
                   }`,
                   backgroundColor: selected
-                    ? alpha(theme.palette.primary.main, 0.12)
+                    ? alpha(theme.palette.primary.light, 0.12)
                     : alpha(theme.palette.action.hover, 0.2),
                   color: selected
-                    ? theme.palette.primary.main
+                    ? theme.palette.primary.light
                     : theme.palette.text.secondary,
                   '& .MuiChip-label': {
                     px: 1.5,
