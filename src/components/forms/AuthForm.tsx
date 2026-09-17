@@ -22,6 +22,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import GoogleIcon from '@mui/icons-material/Google';
 import AppleIcon from '@mui/icons-material/Apple';
+import Logo from '../ui/Logo';
 
 // Styled TextField component with enhanced autofill fixes
 const StyledTextField = styled(TextField)(({ theme }) => ({
@@ -230,23 +231,7 @@ const AuthForm: React.FC = () => {
       <Stack spacing={2.25}>
         {/* Brand */}
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Box
-            aria-label="2DU"
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: 2,
-              bgcolor: '#000',
-              color: '#fff',
-              display: 'grid',
-              placeItems: 'center',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              userSelect: 'none',
-            }}
-          >
-            2DU
-          </Box>
+          <Logo size={44} />
         </Box>
 
         <Box>
