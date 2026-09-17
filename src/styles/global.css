@@ -16,6 +16,9 @@
    own once mounted; this is the pre-hydration fallback, so the two must match
    or the first paint reflows into a different face. */
 body {
+  /* colors.brand.black. MUI's CssBaseline sets this too, but only after it
+     mounts - without it here the browser paints its default white first. */
+  background-color: #0f1419;
   font-family: 'Switzer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

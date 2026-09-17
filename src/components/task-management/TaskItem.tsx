@@ -275,7 +275,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
             <Typography
               variant="body1"
               sx={{
-                fontSize: '0.875rem',
                 textDecoration: task.completed ? 'line-through' : 'none',
                 color: task.completed ? 'text.secondary' : 'text.primary',
               }}
@@ -290,7 +289,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
                   variant="body2"
                   sx={{
                     color: 'text.secondary',
-                    fontSize: '0.8125rem',
                     mb: task.dueDate || category || (taskTags.length > 0) ? 0.5 : 0,
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
@@ -325,7 +323,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
                       variant="body2"
                       sx={{
                         color: isOverdue ? 'error.main' : 'text.secondary',
-                        fontSize: '0.8125rem',
                       }}
                     >
                       {formattedDate}

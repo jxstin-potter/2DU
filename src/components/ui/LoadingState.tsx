@@ -7,6 +7,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { t } from '../../utils/i18n';
 
@@ -125,7 +126,10 @@ const LoadingState: React.FC<LoadingStateProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          // Was a hardcoded rgba(255,255,255,0.8). This renders as the route
+          // Suspense fallback, so on an always-dark app every navigation
+          // flashed an 80%-opaque white panel before the chunk resolved.
+          backgroundColor: (theme) => alpha(theme.palette.background.default, 0.85),
           zIndex: 1000,
           height: fullScreen ? '100vh' : '100%',
           animation: 'fadeIn 0.3s ease-out forwards',
