@@ -41,7 +41,10 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
+    // Left-anchored like the five task pages. MainLayout already supplies the
+    // gutter; a centring Container here left Settings floating away from the
+    // sidebar while every other page hugged it.
+    <Container maxWidth={false} disableGutters sx={{ maxWidth: { xs: '100%', md: 860 }, mx: 0 }}>
       <Box sx={{ width: '100%', mt: { xs: 2, sm: 4 }, mb: 6 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           {t('settings.title')}
