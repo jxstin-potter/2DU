@@ -37,7 +37,9 @@ const Logo: React.FC<LogoProps> = ({ size = 44, color, title = '2DU' }) => {
         fill="#FFFFFF"
         fontFamily={theme.typography.fontFamily}
         fontSize="21"
-        fontWeight="800"
+        // 500 is the system ceiling and the heaviest weight actually loaded.
+        // Asking for 800 here would render synthesised bold, not real Switzer.
+        fontWeight="500"
         letterSpacing="-1"
       >
         2DU

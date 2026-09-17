@@ -11,10 +11,19 @@
     <!-- The app renders dark in both schemes, so one theme-color covers both.
          Value is colors.brand.black from src/styles/theme.ts - keep in sync. -->
     <meta name="theme-color" content="#0F1419" />
+    <!-- Switzer carries the UI, Geist Mono the labels and numerals. Only 400
+         and 500 are requested: the type system caps weight at 500 on purpose
+         (see src/styles/theme.ts), so pulling 600+ would only invite misuse. -->
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://api.fontshare.com/v2/css?f%5B%5D=switzer@400,500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="manifest" href="/manifest.json" />

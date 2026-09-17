@@ -223,7 +223,7 @@ const AuthForm: React.FC = () => {
         p: { xs: 3, sm: 4 },
         width: '100%',
         maxWidth: 380,
-        borderRadius: 3,
+        borderRadius: 1,
         border: theme => `1px solid ${theme.palette.divider}`,
         bgcolor: 'background.paper',
       }}
@@ -235,7 +235,7 @@ const AuthForm: React.FC = () => {
         </Box>
 
         <Box>
-          <Typography component="h1" variant="h3" align="center" sx={{ fontWeight: 800 }}>
+          <Typography component="h1" variant="h3" align="center">
             {isLogin ? 'Welcome!' : 'Create your account'}
           </Typography>
           <Typography variant="body2" align="center" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -252,7 +252,7 @@ const AuthForm: React.FC = () => {
             startIcon={<GoogleIcon />}
             onClick={handleGoogle}
             disabled={isLoading}
-            sx={{ borderRadius: 2, textTransform: 'none' }}
+            sx={{}}
           >
             Continue with Google
           </Button>
@@ -263,7 +263,7 @@ const AuthForm: React.FC = () => {
             startIcon={<AppleIcon />}
             onClick={handleApple}
             disabled={isLoading}
-            sx={{ borderRadius: 2, textTransform: 'none' }}
+            sx={{}}
           >
             Continue with Apple
           </Button>
@@ -332,7 +332,7 @@ const AuthForm: React.FC = () => {
                 type="button"
                 onClick={openReset}
                 underline="hover"
-                sx={{ fontSize: '0.875rem' }}
+                sx={{ fontSize: '0.75rem' }}
                 disabled={!isLogin || isLoading}
               >
                 Forgot password?
@@ -344,7 +344,7 @@ const AuthForm: React.FC = () => {
               fullWidth
               variant="contained"
               size="large"
-              sx={{ mt: 0.5, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+              sx={{ mt: 0.5 }}
               disabled={isLoading}
             >
               {isLoading ? <CircularProgress size={22} color="inherit" /> : isLogin ? 'Log in' : 'Sign up'}
@@ -361,7 +361,7 @@ const AuthForm: React.FC = () => {
                 type="button"
                 onClick={() => setIsLogin(false)}
                 underline="hover"
-                sx={{ fontWeight: 700 }}
+                sx={{ fontWeight: 500 }}
               >
                 Sign up
               </Link>
@@ -374,7 +374,7 @@ const AuthForm: React.FC = () => {
                 type="button"
                 onClick={() => setIsLogin(true)}
                 underline="hover"
-                sx={{ fontWeight: 700 }}
+                sx={{ fontWeight: 500 }}
               >
                 Log in
               </Link>

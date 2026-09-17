@@ -75,74 +75,116 @@ const lineStrong = 'rgba(245, 245, 245, 0.18)';
 const inkPrimary = '#F5F5F5';
 const inkSecondary = 'rgba(245, 245, 245, 0.72)';
 
-// Define typography
+// Typography follows the "technical editorial" direction measured from nine
+// Awwwards winners (see ~/design-tokens/README.md for the method and numbers).
+// Three rules from that study drive everything below:
+//
+//   1. Hierarchy is size, never weight. Across ~2,400 measured nodes, weight
+//      700+ appeared 13 times. WEIGHT_MAX is the ceiling and MUI's
+//      fontWeightBold is pinned to it so Button/Chip/table headers cannot
+//      quietly reach past it.
+//   2. Body sets small and tracks tight. 13px matches the sample's median and
+//      the size Sidebar.tsx already hardcoded, so this makes the app
+//      consistent rather than shrinking it.
+//   3. Display sets tight enough to nearly touch; body stays loose. Nothing
+//      lands in between.
+const WEIGHT = 400;
+const WEIGHT_MAX = 500;
+const TRACK_BODY = '-0.025em';
+const TRACK_DISPLAY = '-0.04em';
+
+const FONT_SANS =
+  "'Switzer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+const FONT_MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+
 const typography = {
-  fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fontFamily: FONT_SANS,
+  fontWeightLight: WEIGHT,
+  fontWeightRegular: WEIGHT,
+  fontWeightMedium: WEIGHT_MAX,
+  fontWeightBold: WEIGHT_MAX,
   h1: {
-    fontSize: '2.5rem',
-    fontWeight: 700,
-    lineHeight: 1.2,
-    letterSpacing: '-0.025em',
+    fontSize: 'clamp(2.5rem, 9vw, 5.5rem)',
+    fontWeight: WEIGHT,
+    lineHeight: 0.95,
+    letterSpacing: TRACK_DISPLAY,
   },
   h2: {
-    fontSize: '2rem',
-    fontWeight: 700,
-    lineHeight: 1.2,
-    letterSpacing: '-0.025em',
+    fontSize: '2.75rem',
+    fontWeight: WEIGHT,
+    lineHeight: 1.02,
+    letterSpacing: TRACK_DISPLAY,
   },
   h3: {
-    fontSize: '1.5rem',
-    fontWeight: 600,
-    lineHeight: 1.3,
-    letterSpacing: '-0.025em',
+    fontSize: '1.75rem',
+    fontWeight: WEIGHT,
+    lineHeight: 1.1,
+    letterSpacing: TRACK_DISPLAY,
   },
   h4: {
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    lineHeight: 1.4,
-    letterSpacing: '-0.025em',
+    fontSize: '1.375rem',
+    fontWeight: WEIGHT,
+    lineHeight: 1.2,
+    letterSpacing: TRACK_BODY,
   },
   h5: {
     fontSize: '1.125rem',
-    fontWeight: 600,
-    lineHeight: 1.4,
+    fontWeight: WEIGHT_MAX,
+    lineHeight: 1.3,
+    letterSpacing: TRACK_BODY,
   },
   h6: {
-    fontSize: '1rem',
-    fontWeight: 600,
-    lineHeight: 1.4,
+    fontSize: '0.9375rem',
+    fontWeight: WEIGHT_MAX,
+    lineHeight: 1.35,
+    letterSpacing: TRACK_BODY,
   },
   subtitle1: {
-    fontSize: '1rem',
-    fontWeight: 500,
+    fontSize: '0.9375rem',
+    fontWeight: WEIGHT_MAX,
     lineHeight: 1.5,
+    letterSpacing: TRACK_BODY,
   },
   subtitle2: {
-    fontSize: '0.875rem',
-    fontWeight: 500,
+    fontSize: '0.8125rem',
+    fontWeight: WEIGHT_MAX,
     lineHeight: 1.5,
+    letterSpacing: TRACK_BODY,
   },
   body1: {
-    fontSize: '1rem',
+    fontSize: '0.8125rem',
+    fontWeight: WEIGHT,
     lineHeight: 1.5,
+    letterSpacing: TRACK_BODY,
   },
   body2: {
-    fontSize: '0.875rem',
+    fontSize: '0.75rem',
+    fontWeight: WEIGHT,
     lineHeight: 1.5,
+    letterSpacing: TRACK_BODY,
   },
   button: {
+    fontSize: '0.8125rem',
     textTransform: 'none' as const,
-    fontWeight: 500,
+    fontWeight: WEIGHT_MAX,
+    letterSpacing: TRACK_BODY,
   },
   caption: {
-    fontSize: '0.75rem',
-    lineHeight: 1.5,
+    fontSize: '0.6875rem',
+    fontWeight: WEIGHT,
+    lineHeight: 1.4,
+    letterSpacing: TRACK_BODY,
   },
+  // The mono label. The one place in the system where tracking opens up -
+  // five of the nine measured sites pair a grotesque with a mono for exactly
+  // this: uppercase meta, counts and timestamps.
   overline: {
-    fontSize: '0.75rem',
-    fontWeight: 500,
-    lineHeight: 1.5,
-    letterSpacing: '0.05em',
+    fontFamily: FONT_MONO,
+    fontSize: '0.6875rem',
+    fontWeight: WEIGHT,
+    lineHeight: 1.4,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
   },
 };
 
@@ -161,21 +203,28 @@ const breakpoints = {
 };
 
 // Define transitions
+// Motion runs roughly 3x longer than stock Material and decelerates hard.
+// Material's own cubic-bezier(0.4, 0, 0.2, 1) appeared almost nowhere in the
+// measured sample; this ease is the one Aspen Search and Cerebrium share.
+// Small interactions still feel immediate because MUI drives hovers off
+// `shortest`, which stays near 200ms.
+const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
 const transitions = {
   duration: {
-    shortest: 150,
-    shorter: 200,
-    short: 250,
-    standard: 300,
-    complex: 375,
-    enteringScreen: 225,
-    leavingScreen: 195,
+    shortest: 200,
+    shorter: 300,
+    short: 400,
+    standard: 600,
+    complex: 780,
+    enteringScreen: 450,
+    leavingScreen: 360,
   },
   easing: {
-    easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
-    easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
-    sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+    easeInOut: EASE,
+    easeOut: EASE,
+    easeIn: EASE,
+    sharp: EASE,
   },
 };
 
@@ -192,8 +241,10 @@ const zIndex = {
 };
 
 // Define shape
+// 7px, not 8. Radius in the sample was strictly bimodal - either 0 or ~7px,
+// with nothing in the 12-16px range that most systems default to.
 const shape = {
-  borderRadius: 8,
+  borderRadius: 7,
 };
 
 // Export theme based on mode
