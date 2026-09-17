@@ -2,29 +2,39 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/2DU/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/2DU/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
       content="2DU Task Management - A simple and elegant task management application"
     />
-    <meta
-      name="theme-color"
-      content="#4a90e2"
-      media="(prefers-color-scheme: light)"
+    <!-- The app renders dark in both schemes, so one theme-color covers both.
+         Value is colors.brand.black from src/styles/theme.ts - keep in sync. -->
+    <meta name="theme-color" content="#0F1419" />
+    <!-- Switzer carries the UI, Geist Mono the labels and numerals. Only 400
+         and 500 are requested: the type system caps weight at 500 on purpose
+         (see src/styles/theme.ts), so pulling 600+ would only invite misuse. -->
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://api.fontshare.com/v2/css?f%5B%5D=switzer@400,500&display=swap"
+      rel="stylesheet"
     />
-    <meta
-      name="theme-color"
-      content="#2c3e50"
-      media="(prefers-color-scheme: dark)"
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
     />
     <link rel="manifest" href="/2DU/manifest.json" />
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <!-- Vite rewrites href on rel="icon"/"manifest" for the base path but not
+         on apple-touch-icon, so this one interpolates /2DU/ itself. -->
+    <link rel="apple-touch-icon" href="/2DU/icons/icon-192x192.png" />
     <title>2DU Task Management</title>
-    <script type="module" crossorigin src="/2DU/assets/js/index-DR31qAIW.js"></script>
+    <script type="module" crossorigin src="/2DU/assets/js/index-BrXHIBLT.js"></script>
     <link rel="modulepreload" crossorigin href="/2DU/assets/js/utils-BdZxPcI9.js">
     <link rel="modulepreload" crossorigin href="/2DU/assets/js/vendor-Ch348d4r.js">
-    <link rel="stylesheet" crossorigin href="/2DU/assets/css/index-BD6Grhh6.css">
+    <link rel="stylesheet" crossorigin href="/2DU/assets/css/index-C6p4_umx.css">
   </head>
   <body>
     <div id="root"></div>
