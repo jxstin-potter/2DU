@@ -130,7 +130,7 @@ const InlineTaskEditorDatePopover: React.FC<InlineTaskEditorDatePopoverProps> = 
           bgcolor: alpha(theme.palette.text.primary, 0.06),
         }}
       >
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+        <Typography variant="subtitle2">
           {headerLabel}
         </Typography>
       </Box>

@@ -186,15 +186,12 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
         {filteredRecent.length > 0 && (
           <Box sx={{ pb: 2 }}>
             <Typography
-              variant="caption"
+              variant="overline"
               sx={{
                 display: 'block',
                 px: 2,
                 py: 0.75,
                 color: theme.palette.text.secondary,
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
               }}
             >
               Recently viewed

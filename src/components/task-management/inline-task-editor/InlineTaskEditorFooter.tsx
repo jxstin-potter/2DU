@@ -45,7 +45,7 @@ const InlineTaskEditorFooter: React.FC<InlineTaskEditorFooterProps> = ({
         sx={{
           textTransform: 'none',
           fontSize: '0.8125rem',
-          fontWeight: 600,
+          fontWeight: 500,
           height: '28px',
           borderRadius: '6px',
           px: 1.5,
@@ -68,7 +68,7 @@ const InlineTaskEditorFooter: React.FC<InlineTaskEditorFooterProps> = ({
         sx={{
           textTransform: 'none',
           fontSize: '0.8125rem',
-          fontWeight: 600,
+          fontWeight: 500,
           height: '28px',
           borderRadius: '6px',
           px: 2,

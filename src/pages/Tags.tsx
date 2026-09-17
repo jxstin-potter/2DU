@@ -236,15 +236,7 @@ const Tags: React.FC = () => {
                 >
                   Filters & Labels /
                 </Typography>
-                <Typography
-                  component="h1"
-                  variant="h6"
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                    lineHeight: 1.3,
-                  }}
-                >
+                <Typography component="h1" variant="h4">
                   {tag.name}
                 </Typography>
                 {!showInlineEditor && (
@@ -274,13 +266,8 @@ const Tags: React.FC = () => {
               <>
                 <Typography
                   component="h1"
-                  variant="h6"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 0.5,
-                    fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                    lineHeight: 1.3,
-                  }}
+                  variant="h4"
+                  sx={{ mb: 0.5 }}
                 >
                   Tags
                 </Typography>
@@ -322,7 +309,7 @@ const Tags: React.FC = () => {
                       mb: 2,
                     }}
                   />
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                  <Typography variant="h5" sx={{ mb: 1 }}>
                     Try adding this label to some tasks…
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

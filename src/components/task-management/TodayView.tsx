@@ -191,12 +191,9 @@ const TodayView: React.FC<TodayViewProps> = ({
       >
         <Typography
           component="h1"
-          variant="h6"
+          variant="h4"
           sx={{
-            fontWeight: 700,
             mb: 0.5,
-            fontSize: '1.5rem',
-            lineHeight: 1.3,
           }}
         >
           Today

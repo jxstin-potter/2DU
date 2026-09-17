@@ -187,7 +187,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <InboxIcon sx={{ fontSize: '1.25rem', color: 'text.secondary' }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9375rem' }}>
+            <Typography variant="subtitle1">
               {category?.name ?? 'Inbox'}
             </Typography>
           </Box>
@@ -237,7 +237,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   disableUnderline: true,
                   sx: {
                     fontSize: '1.125rem',
-                    fontWeight: 600,
+                    fontWeight: 500,
                     textDecoration: task.completed ? 'line-through' : 'none',
                     color: task.completed ? 'text.secondary' : 'text.primary',
                   },
