@@ -10,7 +10,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // App-wide decision: always-dark theme for consistent black/gold brand styling.
+  // App-wide decision: always-dark theme, slate-blue accent (see src/styles/theme.ts).
   // We keep the context shape stable, but `toggleColorMode` is intentionally a no-op.
   const [mode] = useState<ThemeMode>('dark');
 

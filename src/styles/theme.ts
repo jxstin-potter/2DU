@@ -1,11 +1,11 @@
 import { alpha, createTheme, ThemeOptions } from '@mui/material/styles';
 
 // Studious, calming palette (color theory: blues = trust/focus/calm; muted tones = reduced strain)
-// Primary: slate blue — associated with focus, productivity, and calm; used in many productivity/education UIs
-const primaryMain = '#5B7A9E';
-const primaryHover = '#6A8AA8';
-const primaryActive = '#4A6582';
-const primaryLight = '#7B9BB8';
+// Accent: slate blue — associated with focus, productivity, and calm; used in many productivity/education UIs
+const accentMain = '#5B7A9E';
+const accentHover = '#6A8AA8';
+const accentActive = '#4A6582';
+const accentLight = '#7B9BB8';
 
 // Define color palette
 const colors = {
@@ -14,15 +14,15 @@ const colors = {
     black: '#0F1419',
     blackElevated: '#161D26',
     blackElevated2: '#1C2530',
-    gold: primaryMain,
-    goldHover: primaryHover,
-    goldActive: primaryActive,
+    accent: accentMain,
+    accentHover,
+    accentActive,
   },
   // Theme tokens (primary = slate blue for studious/calm)
   primary: {
-    main: primaryMain,
-    light: primaryLight,
-    dark: primaryActive,
+    main: accentMain,
+    light: accentLight,
+    dark: accentActive,
     contrastText: '#F5F5F5',
   },
   secondary: {
@@ -30,13 +30,6 @@ const colors = {
     light: '#A8B8C9',
     dark: '#6B7D94',
     contrastText: '#0F1419',
-  },
-  // Accent colors (muted for calm; still distinguishable)
-  accent: {
-    purple: '#7B6B9E',
-    orange: '#B8956A',
-    pink: '#A67B8A',
-    teal: '#5A8A8A',
   },
   // Neutral colors (cool gray / slate for professional feel)
   neutral: {
@@ -68,11 +61,19 @@ const colors = {
     dark: '#944848',
   },
   info: {
-    main: primaryMain,
-    light: primaryLight,
-    dark: primaryActive,
+    main: accentMain,
+    light: accentLight,
+    dark: accentActive,
   },
 };
+
+// Surface lines and fills. The app is always dark, so these are the single
+// source for "a hairline on the dark ground" rather than each component
+// re-deriving its own alpha(common.white, x).
+const line = 'rgba(245, 245, 245, 0.12)';
+const lineStrong = 'rgba(245, 245, 245, 0.18)';
+const inkPrimary = '#F5F5F5';
+const inkSecondary = 'rgba(245, 245, 245, 0.72)';
 
 // Define typography
 const typography = {
@@ -130,7 +131,7 @@ const typography = {
     lineHeight: 1.5,
   },
   button: {
-    textTransform: 'none',
+    textTransform: 'none' as const,
     fontWeight: 500,
   },
   caption: {
@@ -158,36 +159,6 @@ const breakpoints = {
     xl: 1280,
   },
 };
-
-// Define shadows
-const shadows = [
-  'none',
-  '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-  '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-  '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-  '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-  '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-  '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-  '0 30px 60px -12px rgba(0, 0, 0, 0.25)',
-  '0 35px 70px -12px rgba(0, 0, 0, 0.25)',
-  '0 40px 80px -12px rgba(0, 0, 0, 0.25)',
-  '0 45px 90px -12px rgba(0, 0, 0, 0.25)',
-  '0 50px 100px -12px rgba(0, 0, 0, 0.25)',
-  '0 55px 110px -12px rgba(0, 0, 0, 0.25)',
-  '0 60px 120px -12px rgba(0, 0, 0, 0.25)',
-  '0 65px 130px -12px rgba(0, 0, 0, 0.25)',
-  '0 70px 140px -12px rgba(0, 0, 0, 0.25)',
-  '0 75px 150px -12px rgba(0, 0, 0, 0.25)',
-  '0 80px 160px -12px rgba(0, 0, 0, 0.25)',
-  '0 85px 170px -12px rgba(0, 0, 0, 0.25)',
-  '0 90px 180px -12px rgba(0, 0, 0, 0.25)',
-  '0 95px 190px -12px rgba(0, 0, 0, 0.25)',
-  '0 100px 200px -12px rgba(0, 0, 0, 0.25)',
-  '0 105px 210px -12px rgba(0, 0, 0, 0.25)',
-  '0 110px 220px -12px rgba(0, 0, 0, 0.25)',
-  '0 115px 230px -12px rgba(0, 0, 0, 0.25)',
-  '0 120px 240px -12px rgba(0, 0, 0, 0.25)',
-];
 
 // Define transitions
 const transitions = {
@@ -225,262 +196,6 @@ const shape = {
   borderRadius: 8,
 };
 
-// Define animation keyframes
-export const keyframes = {
-  completeTask: `
-    0% { opacity: 1; transform: translateX(0); }
-    40% { opacity: 0.7; transform: translateX(5px); }
-    100% { opacity: 0; transform: translateX(20px); }
-  `,
-  uncompleteTask: `
-    0% { opacity: 0; transform: translateX(20px); }
-    100% { opacity: 1; transform: translateX(0); }
-  `,
-  checkmarkAppear: `
-    0% { opacity: 0; transform: scale(0); }
-    50% { opacity: 1; transform: scale(1.2); }
-    100% { opacity: 1; transform: scale(1); }
-  `,
-  checkboxPulse: `
-    0% { box-shadow: 0 0 0 0 rgba(74, 155, 109, 0.35); }
-    70% { box-shadow: 0 0 0 10px rgba(74, 155, 109, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(74, 155, 109, 0); }
-  `,
-  fadeIn: `
-    from { opacity: 0; }
-    to { opacity: 1; }
-  `,
-  slideIn: `
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  `,
-  scaleIn: `
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  `,
-  shake: `
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
-  `,
-  statusChange: `
-    0% { background-color: transparent; }
-    50% { background-color: rgba(74, 155, 109, 0.12); }
-    100% { background-color: transparent; }
-  `,
-};
-
-// Define component styles (currently unused; kept for future theming work)
-const _components = {
-  MuiCssBaseline: {
-    styleOverrides: (theme) => ({
-      body: {
-        backgroundColor: theme.palette.mode === 'dark' ? colors.neutral[900] : colors.neutral[50],
-        color: theme.palette.mode === 'dark' ? colors.neutral[100] : colors.neutral[900],
-        fontFamily: typography.fontFamily,
-        lineHeight: 1.6,
-        margin: 0,
-        padding: 0,
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        fontSize: '14px',
-        WebkitFontSmoothing: 'antialiased',
-        MozOsxFontSmoothing: 'grayscale',
-      },
-      // Reset and base styles
-      '*': {
-        margin: 0,
-        padding: 0,
-        boxSizing: 'border-box',
-      },
-      a: {
-        textDecoration: 'none',
-        color: 'inherit',
-      },
-    }),
-  },
-  MuiButton: {
-    styleOverrides: {
-      root: {
-        borderRadius: 8,
-        textTransform: 'none',
-        fontWeight: 500,
-        padding: '8px 16px',
-      },
-      contained: {
-        boxShadow: 'none',
-        '&:hover': {
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        },
-      },
-    },
-  },
-  MuiPaper: {
-    styleOverrides: {
-      root: {
-        borderRadius: 8,
-      },
-    },
-  },
-  MuiCard: {
-    styleOverrides: {
-      root: {
-        borderRadius: 8,
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-      },
-    },
-  },
-  MuiTextField: {
-    styleOverrides: {
-      root: {
-        '& .MuiOutlinedInput-root': {
-          borderRadius: 8,
-          '& fieldset': {
-            borderColor: 'rgba(0, 0, 0, 0.1)',
-          },
-          '&:hover fieldset': {
-            borderColor: 'rgba(0, 0, 0, 0.2)',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: colors.primary.main,
-          },
-        },
-      },
-    },
-  },
-  MuiCheckbox: {
-    styleOverrides: {
-      root: {
-        color: colors.primary.main,
-      },
-    },
-  },
-  MuiSwitch: {
-    styleOverrides: {
-      root: {
-        width: 42,
-        height: 26,
-        padding: 0,
-        margin: 8,
-      },
-      switchBase: {
-        padding: 1,
-        '&.Mui-checked': {
-          transform: 'translateX(16px)',
-          color: '#fff',
-          '& + .MuiSwitch-track': {
-            backgroundColor: colors.primary.main,
-            opacity: 1,
-            border: 'none',
-          },
-        },
-        '&.Mui-focusVisible .MuiSwitch-thumb': {
-          color: colors.primary.main,
-          border: '6px solid #fff',
-        },
-      },
-      thumb: {
-        width: 24,
-        height: 24,
-      },
-      track: {
-        borderRadius: 26 / 2,
-        border: `1px solid ${colors.neutral[400]}`,
-        backgroundColor: colors.neutral[300],
-        opacity: 1,
-        transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-      },
-    },
-  },
-  MuiList: {
-    styleOverrides: {
-      root: {
-        padding: 0,
-      },
-    },
-  },
-  MuiListItem: {
-    styleOverrides: {
-      root: {
-        borderRadius: 8,
-        '&:hover': {
-          backgroundColor: 'rgba(0, 0, 0, 0.04)',
-        },
-      },
-    },
-  },
-  MuiTabs: {
-    styleOverrides: {
-      root: {
-        minHeight: '48px',
-        borderBottom: `1px solid rgba(0, 0, 0, 0.1)`,
-      },
-      indicator: {
-        height: 3,
-        borderTopLeftRadius: 3,
-        borderTopRightRadius: 3,
-      },
-    },
-  },
-  MuiTab: {
-    styleOverrides: {
-      root: {
-        textTransform: 'none',
-        minHeight: '48px',
-        fontWeight: 500,
-      },
-    },
-  },
-  MuiIconButton: {
-    styleOverrides: {
-      root: {
-        borderRadius: 8,
-      },
-    },
-  },
-  MuiAvatar: {
-    styleOverrides: {
-      root: {
-        backgroundColor: colors.primary.main,
-      },
-    },
-  },
-  MuiChip: {
-    styleOverrides: {
-      root: {
-        borderRadius: '6px',
-        fontWeight: 500,
-      },
-    },
-  },
-  MuiDivider: {
-    styleOverrides: {
-      root: {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      },
-    },
-  },
-  MuiDrawer: {
-    styleOverrides: {
-      paper: {
-        border: 'none',
-        borderRight: 'none',
-      },
-    },
-  },
-  MuiTooltip: {
-    styleOverrides: {
-      tooltip: {
-        backgroundColor: colors.neutral[900],
-        borderRadius: 4,
-        fontSize: '0.75rem',
-        padding: '8px 12px',
-      },
-    },
-  },
-};
-
 // Export theme based on mode
 export const getTheme = (_requestedMode: 'light' | 'dark') => {
   // App-wide decision: always use dark mode (param kept for compatibility).
@@ -491,7 +206,7 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
       mode,
       primary: {
         main: colors.primary.main,
-        dark: colors.brand.goldActive,
+        dark: colors.brand.accentActive,
         light: colors.primary.light,
         contrastText: colors.primary.contrastText,
       },
@@ -504,10 +219,10 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         paper: colors.brand.blackElevated,
       },
       text: {
-        primary: '#F5F5F5',
-        secondary: 'rgba(245, 245, 245, 0.72)',
+        primary: inkPrimary,
+        secondary: inkSecondary,
       },
-      divider: 'rgba(245, 245, 245, 0.12)',
+      divider: line,
       error: {
         main: colors.error.main,
         light: colors.error.light,
@@ -524,27 +239,19 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         dark: colors.warning.dark,
       },
       action: {
-        hover: alpha(colors.primary.main, 0.08),
-        selected: alpha(colors.primary.main, 0.12),
-        focus: alpha(colors.primary.main, 0.14),
+        hover: alpha(colors.brand.accent, 0.08),
+        selected: alpha(colors.brand.accent, 0.12),
+        focus: alpha(colors.brand.accent, 0.14),
         disabled: 'rgba(245, 245, 245, 0.28)',
         disabledBackground: 'rgba(245, 245, 245, 0.08)',
       },
     },
-    typography: {
-      fontFamily: [
-        '-apple-system',
-        'BlinkMacSystemFont',
-        '"Segoe UI"',
-        'Roboto',
-        '"Helvetica Neue"',
-        'Arial',
-        'sans-serif',
-        '"Apple Color Emoji"',
-        '"Segoe UI Emoji"',
-        '"Segoe UI Symbol"',
-      ].join(','),
-    },
+    typography,
+    shape,
+    spacing,
+    breakpoints,
+    transitions,
+    zIndex,
     components: {
       MuiCssBaseline: {
         styleOverrides: {
@@ -576,31 +283,39 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
       },
       MuiButton: {
         styleOverrides: {
-      contained: {
-        backgroundColor: colors.brand.gold,
-        color: colors.primary.contrastText,
-        '&:hover': {
-          backgroundColor: colors.brand.goldHover,
-        },
-        '&:active': {
-          backgroundColor: colors.brand.goldActive,
-        },
-      },
-      outlined: {
-        borderColor: 'rgba(245,245,245,0.18)',
-        color: '#F5F5F5',
-        '&:hover': {
-          borderColor: alpha(colors.brand.gold, 0.5),
-          backgroundColor: alpha(colors.brand.gold, 0.08),
-        },
-      },
+          root: {
+            borderRadius: shape.borderRadius,
+            textTransform: 'none',
+            fontWeight: 500,
+            padding: '8px 16px',
+          },
+          contained: {
+            backgroundColor: colors.brand.accent,
+            color: colors.primary.contrastText,
+            boxShadow: 'none',
+            '&:hover': {
+              backgroundColor: colors.brand.accentHover,
+              boxShadow: 'none',
+            },
+            '&:active': {
+              backgroundColor: colors.brand.accentActive,
+            },
+          },
+          outlined: {
+            borderColor: lineStrong,
+            color: inkPrimary,
+            '&:hover': {
+              borderColor: alpha(colors.brand.accent, 0.5),
+              backgroundColor: alpha(colors.brand.accent, 0.08),
+            },
+          },
         },
       },
       MuiLink: {
         styleOverrides: {
           root: {
             color: colors.primary.main,
-            '&:hover': { color: colors.brand.goldHover },
+            '&:hover': { color: colors.brand.accentHover },
           },
         },
       },
@@ -615,12 +330,16 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
+            borderRadius: shape.borderRadius,
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
               borderColor: colors.primary.main,
             },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(245,245,245,0.28)',
+            },
           },
           notchedOutline: {
-            borderColor: 'rgba(245,245,245,0.18)',
+            borderColor: lineStrong,
           },
         },
       },
@@ -628,13 +347,22 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         styleOverrides: {
           root: {
             textTransform: 'none',
+            minHeight: 48,
+            fontWeight: 500,
           },
         },
       },
       MuiTabs: {
         styleOverrides: {
+          root: {
+            minHeight: 48,
+            borderBottom: `1px solid ${line}`,
+          },
           indicator: {
             backgroundColor: colors.primary.main,
+            height: 3,
+            borderTopLeftRadius: 3,
+            borderTopRightRadius: 3,
           },
         },
       },
@@ -642,6 +370,104 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
         styleOverrides: {
           root: {
             backgroundImage: 'none',
+            borderRadius: shape.borderRadius,
+          },
+        },
+      },
+      MuiList: {
+        styleOverrides: {
+          root: {
+            padding: 0,
+          },
+        },
+      },
+      MuiListItem: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            borderRadius: shape.borderRadius,
+            '&:hover': {
+              backgroundColor: theme.palette.action.hover,
+            },
+          }),
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: shape.borderRadius,
+          },
+        },
+      },
+      MuiAvatar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: colors.primary.main,
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 6,
+            fontWeight: 500,
+          },
+        },
+      },
+      MuiSwitch: {
+        styleOverrides: {
+          root: {
+            width: 42,
+            height: 26,
+            padding: 0,
+            margin: 8,
+          },
+          switchBase: {
+            padding: 1,
+            '&.Mui-checked': {
+              transform: 'translateX(16px)',
+              color: '#fff',
+              '& + .MuiSwitch-track': {
+                backgroundColor: colors.primary.main,
+                opacity: 1,
+                border: 'none',
+              },
+            },
+            '&.Mui-focusVisible .MuiSwitch-thumb': {
+              color: colors.primary.main,
+              border: '6px solid #fff',
+            },
+          },
+          thumb: {
+            width: 24,
+            height: 24,
+          },
+          track: {
+            borderRadius: 13,
+            border: 'none',
+            backgroundColor: 'rgba(245,245,245,0.22)',
+            opacity: 1,
+            transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            border: 'none',
+          },
+        },
+      },
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: {
+            backgroundColor: colors.brand.blackElevated2,
+            border: `1px solid ${line}`,
+            borderRadius: 4,
+            fontSize: '0.75rem',
+            padding: '8px 12px',
+          },
+          arrow: {
+            color: colors.brand.blackElevated2,
           },
         },
       },
@@ -651,5 +477,5 @@ export const getTheme = (_requestedMode: 'light' | 'dark') => {
   return createTheme(baseTheme);
 };
 
-export { colors, typography, spacing, breakpoints, shape, shadows, transitions, zIndex };
-export default getTheme; 
+export { colors, typography, spacing, breakpoints, shape, transitions, zIndex };
+export default getTheme;

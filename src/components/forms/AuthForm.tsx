@@ -250,7 +250,7 @@ const AuthForm: React.FC = () => {
         </Box>
 
         <Box>
-          <Typography component="h1" variant="h5" align="center" sx={{ fontWeight: 800 }}>
+          <Typography component="h1" variant="h3" align="center" sx={{ fontWeight: 800 }}>
             {isLogin ? 'Welcome!' : 'Create your account'}
           </Typography>
           <Typography variant="body2" align="center" color="text.secondary" sx={{ mt: 0.5 }}>
