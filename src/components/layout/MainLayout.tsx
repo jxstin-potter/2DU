@@ -96,15 +96,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const sidebarWidth = useMemo(() => isSidebarCollapsed ? 64 : 240, [isSidebarCollapsed]);
   
+  // The permanent Drawer is a flex sibling and already occupies sidebarWidth in
+  // this row, so the old `ml: sidebarWidth` + `width: calc(100% - sidebarWidth)`
+  // counted it a second time: main started at 480px against a 240px sidebar and
+  // gave away a whole sidebar's worth of space on the left. Being a flex child
+  // that grows is the whole requirement. (The AppBar below is position: fixed,
+  // out of flow, so its offset is real and stays.)
   const mainContentStyles = useMemo(() => ({
     flexGrow: 1,
-    width: isMobile ? '100%' : `calc(100% - ${sidebarWidth}px)`,
-    ml: isMobile ? 0 : `${sidebarWidth}px`,
+    minWidth: 0,
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-  }), [sidebarWidth, isMobile, theme]);
+  }), [theme]);
 
   const appBarStyles = useMemo(() => ({
     width: isMobile ? '100%' : `calc(100% - ${sidebarWidth}px)`,
@@ -172,7 +177,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           mt: { xs: 7, sm: 8 },
           pt: 0,
           pb: 3,
-          pl: 0,
+          // Symmetric with pr. Was 0, which only looked deliberate because the
+          // double-counted margin above was supplying 240px of accidental gutter.
+          pl: { xs: 2, sm: 3 },
           pr: { xs: 2, sm: 3 },
           display: 'flex',
           justifyContent: 'flex-start',

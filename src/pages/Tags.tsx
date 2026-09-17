@@ -198,13 +198,12 @@ const Tags: React.FC = () => {
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         width: '100%',
-        px: { xs: 2, sm: 0 },
-        ml: { xs: 0, sm: -1 },
+        px: 0,
         mt: -0.5,
       }}
     >
       <Container
-        maxWidth="md"
+        maxWidth={false}
         disableGutters
         sx={{
           width: '100%',
@@ -214,7 +213,7 @@ const Tags: React.FC = () => {
           alignItems: 'flex-start',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: theme.breakpoints.values.sm } }}>
+        <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: theme.breakpoints.values.sm, xl: 760 } }}>
           <Box
             sx={{
               position: 'sticky',
