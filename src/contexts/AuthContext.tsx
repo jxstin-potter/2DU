@@ -17,6 +17,7 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   sendPasswordResetEmail,
+  verifyBeforeUpdateEmail,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, enablePersistence } from '../firebase';
@@ -49,6 +50,8 @@ const mapAuthError = (error: unknown, fallback: string) => {
       return new Error('For security, please sign in again and retry this action.');
     case 'auth/weak-password':
       return new Error('Password is too weak. Use at least 6 characters.');
+    case 'auth/email-already-in-use':
+      return new Error('That email is already used by another account.');
     default:
       return error instanceof Error ? error : new Error(fallback);
   }
@@ -69,6 +72,8 @@ interface AuthContextType {
   updateUserProfile: (updates: UserProfileUpdate) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   addPassword: (newPassword: string) => Promise<void>;
+  /** Sends a confirmation link to the new address; the change applies once it is clicked. */
+  changeEmail: (newEmail: string) => Promise<void>;
   authProviders: string[];
   hasPasswordProvider: boolean;
 }
@@ -85,6 +90,7 @@ const AuthContext = createContext<AuthContextType>({
   updateUserProfile: async () => {},
   requestPasswordReset: async () => {},
   addPassword: async () => {},
+  changeEmail: async () => {},
   authProviders: [],
   hasPasswordProvider: false,
 });
@@ -330,6 +336,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+
+  /**
+   * Firebase no longer lets an app silently swap an account's email:
+   * verifyBeforeUpdateEmail mails a confirmation link to the NEW address and
+   * only applies the change once that link is clicked. So this resolving is
+   * "we sent the link", not "the email changed" - the UI has to say so.
+   */
+  const changeEmail = useCallback(async (newEmail: string) => {
+    const current = auth.currentUser;
+    if (!current) throw new Error('You must be signed in to change your email.');
+    const next = normalizeEmail(newEmail);
+    if (!next) throw new Error('Please enter a valid email address.');
+    if (current.email && normalizeEmail(current.email) === next) {
+      throw new Error('That is already your email address.');
+    }
+    try {
+      setIsLoading(true);
+      await verifyBeforeUpdateEmail(current, next);
+    } catch (error) {
+      throw mapAuthError(error, 'Failed to start the email change.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const loginWithGoogle = useCallback(async (rememberMe: boolean = true): Promise<'success' | 'cancelled' | 'redirect'> => {
     try {
       setIsLoading(true);
@@ -423,6 +454,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateUserProfile,
     requestPasswordReset,
     addPassword,
+    changeEmail,
     authProviders,
     hasPasswordProvider,
   }), [
@@ -436,6 +468,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateUserProfile,
     requestPasswordReset,
     addPassword,
+    changeEmail,
     authProviders,
     hasPasswordProvider,
   ]);

@@ -14,8 +14,6 @@ import {
   TextField,
   Button,
   Avatar,
-  Switch,
-  FormControlLabel,
   Divider,
   InputAdornment,
   Tabs,
@@ -31,7 +29,6 @@ import {
   Search as SearchIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 
 /** Resize image to fit within maxSize and return as JPEG data URL (no Firebase Storage). */
 function resizeImageToDataUrl(file: File, maxSize: number, quality: number): Promise<string> {
@@ -82,14 +79,18 @@ type SettingsTab = 'account' | 'general';
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { user, updateUserProfile, addPassword, authProviders, hasPasswordProvider } = useAuth();
-  const { mode, toggleColorMode } = useCustomTheme();
+  const { user, updateUserProfile, addPassword, changeEmail, authProviders, hasPasswordProvider } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [name, setName] = useState(user?.name || '');
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailValue, setEmailValue] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailInfo, setEmailInfo] = useState<string | null>(null);
+  const [emailSaving, setEmailSaving] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -153,7 +154,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   };
 
   const handleChangeEmail = () => {
-    // TODO: Implement email change
+    setEmailError(null);
+    setEmailInfo(null);
+    setEmailValue('');
+    setEmailOpen(true);
+  };
+
+  const handleSaveEmail = async () => {
+    setEmailError(null);
+    const next = emailValue.trim();
+    if (!next) {
+      setEmailError('Enter the new email address.');
+      return;
+    }
+    setEmailSaving(true);
+    try {
+      await changeEmail(next);
+      setEmailOpen(false);
+      // Deliberately not "email changed" - Firebase only applies it once the
+      // link in that message is opened, so saying otherwise would be a lie.
+      setEmailInfo(`Confirmation sent to ${next}. Your email changes once you open that link.`);
+    } catch (err) {
+      setEmailError(err instanceof Error ? err.message : 'Failed to start the email change.');
+    } finally {
+      setEmailSaving(false);
+    }
   };
 
   const handleAddPassword = () => {
@@ -200,10 +225,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       default:
         return providerId;
     }
-  };
-
-  const handleManagePlan = () => {
-    // TODO: Implement plan management
   };
 
   const settingsTabs = [
@@ -352,25 +373,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                       Plan
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography variant="body1">Beginner</Typography>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={handleManagePlan}
-                      sx={{
-                        textTransform: 'none',
-                        borderColor: theme.palette.divider,
-                        color: theme.palette.text.primary,
-                        '&:hover': {
-                          borderColor: theme.palette.text.secondary,
-                          backgroundColor: theme.palette.action.hover,
-                        },
-                      }}
-                    >
-                      Manage plan
-                    </Button>
-                  </Box>
+                  <Typography variant="body1">Beginner</Typography>
                 </Box>
 
                 <Divider sx={{ mb: 4 }} />
@@ -482,9 +485,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     Email
                   </Typography>
-                  <Typography variant="body1" sx={{ mb: 1.5 }}>
+                  <Typography variant="body1" sx={{ mb: emailInfo ? 0.75 : 1.5 }}>
                     {user?.email || 'No email'}
                   </Typography>
+                  {emailInfo && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+                      {emailInfo}
+                    </Typography>
+                  )}
                   <Button
                     variant="outlined"
                     size="small"
@@ -546,19 +554,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                     <Typography variant="body2" color="text.secondary">
                       Two-factor authentication
                     </Typography>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={false}
-                          onChange={() => {}}
-                          size="small"
-                        />
-                      }
-                      label=""
-                    />
                   </Box>
                   <Typography variant="caption" color="text.secondary">
-                    2FA is disabled on your account.
+                    Not available yet.
                   </Typography>
                 </Box>
 
@@ -610,22 +608,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                         Theme
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Choose between light and dark mode
+                        2DU is dark only. A light theme is not built yet.
                       </Typography>
                     </Box>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={mode === 'dark'}
-                          onChange={toggleColorMode}
-                          size="small"
-                        />
-                      }
-                      label=""
-                    />
                   </Box>
                   <Typography variant="body2" color="text.primary">
-                    {mode === 'dark' ? 'Dark mode' : 'Light mode'}
+                    Dark
                   </Typography>
                 </Box>
 
@@ -648,6 +636,44 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
           </Box>
         </Box>
       </DialogContent>
+
+      <Dialog
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        aria-labelledby="change-email-title"
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle id="change-email-title">Change email</DialogTitle>
+        <DialogContent sx={{ pt: 1.25 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            We&apos;ll send a confirmation link to the new address. Your email changes
+            once you open it.
+          </Typography>
+          <TextField
+            fullWidth
+            label="New email"
+            type="email"
+            value={emailValue}
+            onChange={(e) => setEmailValue(e.target.value)}
+            disabled={emailSaving}
+            autoComplete="email"
+          />
+          {emailError && (
+            <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1 }}>
+              {emailError}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setEmailOpen(false)} disabled={emailSaving}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleSaveEmail} disabled={emailSaving}>
+            {emailSaving ? 'Sending…' : 'Send confirmation'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={passwordOpen}
