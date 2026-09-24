@@ -32,13 +32,12 @@ const Login: React.FC = () => {
     <Box
       component="main"
       sx={{
-        height: '100dvh',
+        minHeight: '100dvh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         px: 2,
-        py: 3,
-        overflow: 'hidden',
+        py: 6,
         bgcolor: 'background.default',
         backgroundImage: theme => {
           const glowStrong = alpha(theme.palette.primary.main, 0.14);
@@ -47,7 +46,7 @@ const Login: React.FC = () => {
         },
       }}
     >
-      <Box sx={{ width: '100%', maxWidth: 420 }}>
+      <Box sx={{ width: '100%', maxWidth: 520 }}>
         <AuthForm />
         <Typography
           variant="caption"

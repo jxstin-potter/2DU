@@ -217,32 +217,36 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: { xs: 3, sm: 4 },
-        width: '100%',
-        maxWidth: 420,
-        borderRadius: 1,
-        border: theme => `1px solid ${theme.palette.divider}`,
-        bgcolor: 'background.paper',
-      }}
-    >
-      <Stack spacing={2.25}>
-        {/* Brand */}
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Logo size={44} />
-        </Box>
-
+    <Box sx={{ width: '100%' }}>
+      {/* The hero sits outside the card deliberately. h1 runs to 88px at
+          desktop width and a 420px form panel cannot hold that - and the login
+          screen is the one genuinely marketing-shaped surface in the product,
+          so it is where the top of the type scale actually belongs. */}
+      <Stack spacing={1.5} alignItems="center" sx={{ mb: { xs: 3, sm: 4 } }}>
+        <Logo size={44} />
         <Box>
-          <Typography component="h1" variant="h2" align="center">
+          <Typography component="h1" variant="h1" align="center" sx={{ textWrap: 'balance' }}>
             {isLogin ? 'Welcome!' : 'Create your account'}
           </Typography>
-          <Typography variant="body2" align="center" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography variant="body2" align="center" color="text.secondary" sx={{ mt: 1 }}>
             {isLogin ? 'Log in to start completing tasks.' : 'Sign up to start completing tasks.'}
           </Typography>
         </Box>
+      </Stack>
 
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 3, sm: 4 },
+          width: '100%',
+          maxWidth: 420,
+          mx: 'auto',
+          borderRadius: 1,
+          border: theme => `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
+        }}
+      >
+      <Stack spacing={2.25}>
         {/* Social auth (UI only for now) */}
         <Stack spacing={1}>
           <Button
@@ -416,7 +420,8 @@ const AuthForm: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+      </Paper>
+    </Box>
   );
 };
 
